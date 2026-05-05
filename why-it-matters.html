@@ -13,7 +13,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body data-page-slug="why-it-matters">
   <header class="site-header">
     <div class="container nav-shell">
       <a class="brand" href="index.html">
@@ -42,7 +42,7 @@
   </header>
 
   <main>
-    <section class="page-hero">
+    <section class="page-hero" data-section-slug="page-hero">
       <div class="container page-hero-grid">
         <div class="page-intro">
           <div class="breadcrumb">
@@ -121,7 +121,7 @@
 
     <section class="section">
       <div class="container content-stack">
-        <article class="prose-card">
+        <article class="prose-card" data-section-slug="not-just-another-session">
           <p class="eyebrow">Beyond Conventional Training</p>
           <h3>Why this is not just another session</h3>
           <p>
@@ -142,7 +142,7 @@
           </p>
         </article>
 
-        <article class="prose-card">
+        <article class="prose-card" data-section-slug="lived-experience">
           <p class="eyebrow">Why Experience Matters</p>
           <h3>People remember what they live more deeply than what they only hear</h3>
           <p>
@@ -161,7 +161,7 @@
           </p>
         </article>
 
-        <article class="prose-card">
+        <article class="prose-card" data-section-slug="meaning-making">
           <p class="eyebrow">Why Reflection Matters</p>
           <h3>Experience becomes learning only when people are able to make meaning from it</h3>
           <p>
@@ -180,7 +180,7 @@
           </p>
         </article>
 
-        <article class="prose-card">
+        <article class="prose-card" data-section-slug="individualism">
           <p class="eyebrow">Why Human Understanding Matters Today</p>
           <h3>Modern life often rewards individual success more than collective understanding</h3>
           <p>
@@ -200,7 +200,7 @@
           </p>
         </article>
 
-        <article class="prose-card">
+        <article class="prose-card" data-section-slug="shared-objectives">
           <p class="eyebrow">Why Teams Need This Work</p>
           <h3>Shared objectives reveal more than competence alone</h3>
           <p>
@@ -221,7 +221,7 @@
           </p>
         </article>
 
-        <article class="prose-card">
+        <article class="prose-card" data-section-slug="failure-and-growth">
           <p class="eyebrow">Why Mistakes Matter</p>
           <h3>Growth becomes possible when failure is not treated as final</h3>
           <p>
@@ -241,7 +241,7 @@
           </p>
         </article>
 
-        <article class="prose-card">
+        <article class="prose-card" data-section-slug="after-the-session">
           <p class="eyebrow">Why Awareness Matters More Than Winning</p>
           <h3>The real value is what continues after the session ends</h3>
           <p>
@@ -279,6 +279,9 @@
     </div>
   </footer>
 
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="content-loader.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

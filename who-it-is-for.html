@@ -13,7 +13,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body data-page-slug="who-it-is-for">
   <header class="site-header">
     <div class="container nav-shell">
       <a class="brand" href="index.html">
@@ -42,7 +42,7 @@
   </header>
 
   <main>
-    <section class="page-hero">
+    <section class="page-hero" data-section-slug="page-hero">
       <div class="container page-hero-grid">
         <div class="page-intro">
           <div class="breadcrumb">
@@ -121,7 +121,7 @@
 
     <section class="section">
       <div class="container content-stack">
-        <article class="prose-card">
+        <article class="prose-card" data-section-slug="life-journey-intro">
           <p class="eyebrow">Why Audience Matters</p>
           <h3>Different spaces, different objectives, one continuing human need</h3>
           <p>
@@ -145,7 +145,7 @@
           </p>
         </article>
 
-        <article class="prose-card">
+        <article class="prose-card" data-section-slug="schools">
           <p class="eyebrow">For Schools</p>
           <h3>Helping students feel, connect, and grow through reflective play</h3>
           <p>
@@ -167,7 +167,7 @@
           </p>
         </article>
 
-        <article class="prose-card">
+        <article class="prose-card" data-section-slug="colleges">
           <p class="eyebrow">For Colleges</p>
           <h3>Supporting students through transition, pressure, and identity formation</h3>
           <p>
@@ -188,7 +188,7 @@
           </p>
         </article>
 
-        <article class="prose-card">
+        <article class="prose-card" data-section-slug="corporates">
           <p class="eyebrow">For Corporates</p>
           <h3>Bringing awareness, trust, and presence into high-pressure work environments</h3>
           <p>
@@ -209,7 +209,7 @@
           </p>
         </article>
 
-        <article class="prose-card">
+        <article class="prose-card" data-section-slug="communities">
           <p class="eyebrow">For Communities</p>
           <h3>Creating space for adults to reconnect with themselves and one another</h3>
           <p>
@@ -230,7 +230,7 @@
           </p>
         </article>
 
-        <article class="prose-card">
+        <article class="prose-card" data-section-slug="government-organizations">
           <p class="eyebrow">For Government Organizations</p>
           <h3>Supporting public teams that work within responsibility, structure, and social impact</h3>
           <p>
@@ -269,6 +269,9 @@
     </div>
   </footer>
 
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="content-loader.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

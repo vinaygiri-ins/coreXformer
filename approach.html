@@ -13,7 +13,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body data-page-slug="approach">
   <header class="site-header">
     <div class="container nav-shell">
       <a class="brand" href="index.html">
@@ -42,7 +42,7 @@
   </header>
 
   <main>
-    <section class="page-hero">
+    <section class="page-hero" data-section-slug="page-hero">
       <div class="container page-hero-grid">
         <div class="page-intro">
           <div class="breadcrumb">
@@ -120,7 +120,7 @@
 
     <section class="section">
       <div class="container content-stack">
-        <article class="prose-card">
+        <article class="prose-card" data-section-slug="why-activities-exist">
           <p class="eyebrow">Deeper Purpose Of Activities</p>
           <h3>Why the activities exist at all</h3>
           <p>
@@ -138,7 +138,7 @@
           </p>
         </article>
 
-        <article class="prose-card">
+        <article class="prose-card" data-section-slug="why-short-activities">
           <p class="eyebrow">Short Activity Arcs</p>
           <h3>Why most activities stay within 10 to 20 minutes</h3>
           <p>
@@ -155,7 +155,7 @@
           </p>
         </article>
 
-        <article class="prose-card">
+        <article class="prose-card" data-section-slug="time-pressure">
           <p class="eyebrow">Time Pressure</p>
           <h3>Why urgency is part of the learning design</h3>
           <p>
@@ -175,7 +175,7 @@
           </p>
         </article>
 
-        <article class="prose-card">
+        <article class="prose-card" data-section-slug="reflection-meaning">
           <p class="eyebrow">Reflection Space</p>
           <h3>How meaning is created after the activity</h3>
           <p>
@@ -198,7 +198,7 @@
           </p>
         </article>
 
-        <article class="prose-card">
+        <article class="prose-card" data-section-slug="safe-space">
           <p class="eyebrow">Safe Space</p>
           <h3>How openness becomes possible</h3>
           <p>
@@ -218,7 +218,7 @@
           </p>
         </article>
 
-        <article class="prose-card">
+        <article class="prose-card" data-section-slug="awareness-over-winning">
           <p class="eyebrow">Awareness Over Winning</p>
           <h3>Why completion is not the only measure</h3>
           <p>
@@ -237,7 +237,7 @@
           </p>
         </article>
 
-        <article class="prose-card">
+        <article class="prose-card" data-section-slug="learning-forward">
           <p class="eyebrow">After The Session</p>
           <h3>How the learning is meant to travel forward</h3>
           <p>
@@ -275,6 +275,9 @@
     </div>
   </footer>
 
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="content-loader.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

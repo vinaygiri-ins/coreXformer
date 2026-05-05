@@ -13,7 +13,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body data-page-slug="how-it-works">
   <header class="site-header">
     <div class="container nav-shell">
       <a class="brand" href="index.html">
@@ -42,7 +42,7 @@
   </header>
 
   <main>
-    <section class="page-hero">
+    <section class="page-hero" data-section-slug="page-hero">
       <div class="container page-hero-grid">
         <div class="page-intro">
           <div class="breadcrumb">
@@ -120,7 +120,7 @@
 
     <section class="section">
       <div class="container content-stack">
-        <article class="prose-card">
+        <article class="prose-card" data-section-slug="welcome">
           <p class="eyebrow">Beginning The Session</p>
           <h3>Warm welcome, lightness, and a non-judgmental entry</h3>
           <p>
@@ -148,7 +148,7 @@
           </p>
         </article>
 
-        <article class="prose-card">
+        <article class="prose-card" data-section-slug="enter-activity">
           <p class="eyebrow">Entering The Activity</p>
           <h3>Clarity, co-creation, and willingness to participate</h3>
           <p>
@@ -170,7 +170,7 @@
           </p>
         </article>
 
-        <article class="prose-card">
+        <article class="prose-card" data-section-slug="engagement">
           <p class="eyebrow">During The Activity</p>
           <h3>Body, mind, heart, and group connection all come alive</h3>
           <p>
@@ -197,7 +197,7 @@
           </p>
         </article>
 
-        <article class="prose-card">
+        <article class="prose-card" data-section-slug="emotions-patterns">
           <p class="eyebrow">What Surfaces</p>
           <h3>Emotions, habits, patterns, and team behaviors become visible</h3>
           <p>
@@ -219,7 +219,7 @@
           </p>
         </article>
 
-        <article class="prose-card">
+        <article class="prose-card" data-section-slug="break">
           <p class="eyebrow">Pause After Action</p>
           <h3>A short break helps the experience settle</h3>
           <p>
@@ -240,7 +240,7 @@
           </p>
         </article>
 
-        <article class="prose-card">
+        <article class="prose-card" data-section-slug="reflection-opening">
           <p class="eyebrow">Beginning Reflection</p>
           <h3>Safety first, then emotional recognition</h3>
           <p>
@@ -265,7 +265,7 @@
           </p>
         </article>
 
-        <article class="prose-card">
+        <article class="prose-card" data-section-slug="emotion-to-behavior">
           <p class="eyebrow">Connecting The Dots</p>
           <h3>From emotion to behavior to impact</h3>
           <p>
@@ -295,7 +295,7 @@
           </p>
         </article>
 
-        <article class="prose-card">
+        <article class="prose-card" data-section-slug="takeaway">
           <p class="eyebrow">Closing With Takeaways</p>
           <h3>Learning is gathered, not imposed</h3>
           <p>
@@ -346,6 +346,9 @@
     </div>
   </footer>
 
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="content-loader.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

@@ -13,7 +13,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body data-page-slug="concept">
   <header class="site-header">
     <div class="container nav-shell">
       <a class="brand" href="index.html">
@@ -42,7 +42,7 @@
   </header>
 
   <main>
-    <section class="page-hero">
+    <section class="page-hero" data-section-slug="page-hero">
       <div class="container page-hero-grid">
         <div class="page-intro">
           <div class="breadcrumb">
@@ -121,7 +121,7 @@
 
     <section class="section">
       <div class="container content-stack">
-        <article class="prose-card">
+        <article class="prose-card" data-section-slug="deeper-purpose">
           <p class="eyebrow">Deeper Purpose</p>
           <h3>Why CoreXformer exists beyond activities and reflection</h3>
           <p>
@@ -143,7 +143,7 @@
           </p>
         </article>
 
-        <article class="prose-card">
+        <article class="prose-card" data-section-slug="human-gap">
           <p class="eyebrow">Human Gap</p>
           <h3>What this initiative is trying to respond to</h3>
           <p>
@@ -174,7 +174,7 @@
           </p>
         </article>
 
-        <article class="prose-card">
+        <article class="prose-card" data-section-slug="team-context">
           <p class="eyebrow">Understanding Self And Others</p>
           <h3>What this means in a team context</h3>
           <p>
@@ -204,7 +204,7 @@
           </p>
         </article>
 
-        <article class="prose-card">
+        <article class="prose-card" data-section-slug="stronger-ecosystem">
           <p class="eyebrow">Stronger Team Ecosystems</p>
           <h3>What team strength really means here</h3>
           <p>
@@ -232,7 +232,7 @@
           </p>
         </article>
 
-        <article class="prose-card">
+        <article class="prose-card" data-section-slug="relevance-now">
           <p class="eyebrow">Why This Matters Today</p>
           <h3>Why this work is especially relevant now</h3>
           <p>
@@ -275,6 +275,9 @@
     </div>
   </footer>
 
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="content-loader.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

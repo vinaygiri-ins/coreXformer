@@ -13,7 +13,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body data-page-slug="thank-you">
   <header class="site-header">
     <div class="container nav-shell">
       <a class="brand" href="index.html">
@@ -42,7 +42,7 @@
   </header>
 
   <main>
-    <section class="page-hero">
+    <section class="page-hero" data-section-slug="page-hero">
       <div class="container page-hero-grid">
         <div class="page-intro">
           <div class="breadcrumb">
@@ -71,12 +71,12 @@
       </div>
     </section>
 
-    <section class="section">
+    <section class="section" data-section-slug="next-steps">
       <div class="container split-section">
         <div>
-          <p class="eyebrow">What happens next</p>
-          <h2>Your inquiry becomes the starting point for thoughtful planning.</h2>
-          <p>
+          <p class="eyebrow" data-content="eyebrow">What happens next</p>
+          <h2 data-content="heading">Your inquiry becomes the starting point for thoughtful planning.</h2>
+          <p data-content="summary">
             The first response is used to understand who the participants are, what kind of environment they are in,
             and what you hope the session can support. From there, the format, logistics, and tone can be shaped with
             greater relevance.
@@ -115,6 +115,9 @@
     </div>
   </footer>
 
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="content-loader.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
