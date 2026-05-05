@@ -825,6 +825,29 @@ a.journey-map-card:focus-visible {
   border-top: 1px solid rgba(39, 55, 42, 0.1);
 }
 
+.footer-meta {
+  display: grid;
+  justify-items: end;
+  gap: 0.45rem;
+}
+
+.footer-meta p {
+  margin: 0;
+}
+
+.footer-admin-link {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--forest);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+
+.footer-admin-link:hover,
+.footer-admin-link:focus-visible {
+  border-color: currentColor;
+}
+
 .page-hero {
   padding: 4.5rem 0 2rem;
 }
