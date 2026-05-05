@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CoreXformer Studio</title>
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="studio-shell">
+    <section class="studio-hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Private control surface</p>
+        <h1>CoreXformer Studio</h1>
+        <p class="hero-text">
+          This is the first scaffold for the admin-controlled version of CoreXformer. It is designed for private
+          editing, structured content management, and future publish flow, without exposing editing tools to public visitors.
+        </p>
+        <div class="hero-points">
+          <span>Private login</span>
+          <span>Section-based editing</span>
+          <span>Publish-safe content flow</span>
+        </div>
+      </div>
+
+      <aside class="login-card">
+        <p class="card-label">Private studio access</p>
+        <h2>Admin sign in</h2>
+        <p class="card-note">
+          Sign in with your private CoreXformer credentials. If this is the first time, create the first owner account here and the profile will become the master admin for the studio.
+        </p>
+        <form id="loginForm" class="login-form">
+          <label>
+            <span>Full name</span>
+            <input id="fullNameInput" type="text" placeholder="Vinay Giri">
+          </label>
+          <label>
+            <span>Email</span>
+            <input id="emailInput" type="email" placeholder="admin@corexformer.com" required>
+          </label>
+          <label>
+            <span>Password</span>
+            <input id="passwordInput" type="password" placeholder="••••••••" required>
+          </label>
+          <div class="login-actions">
+            <button id="signInButton" type="submit" class="button">Sign in</button>
+            <button id="signUpButton" type="button" class="button button-ghost">Create first owner account</button>
+          </div>
+          <button id="signOutButton" type="button" class="button button-muted hidden">Sign out</button>
+        </form>
+        <div id="authMessage" class="message-banner hidden"></div>
+        <div id="authState" class="auth-state">
+          <strong>Session status</strong>
+          <span>Checking Supabase connection...</span>
+        </div>
+        <button id="importStarterButton" type="button" class="button hidden">Import starter content into the database</button>
+      </aside>
+    </section>
+
+    <section class="studio-grid">
+      <article class="panel page-panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Editable pages</p>
+            <h2>Content dashboard</h2>
+          </div>
+          <span class="status-pill">Prototype ready</span>
+        </div>
+
+        <div id="pageList" class="page-list" aria-label="Page list"></div>
+        <div id="pageEmptyState" class="empty-state hidden">
+          <h3>No pages loaded yet</h3>
+          <p>Once you sign in as an owner or editor, you can import the starter CoreXformer structure into the database.</p>
+        </div>
+      </article>
+
+      <article class="panel section-panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Current selection</p>
+            <h2 id="selectedPageTitle">Homepage</h2>
+          </div>
+          <span id="selectedPageStatus" class="status-pill status-live">Published</span>
+        </div>
+
+        <div id="sectionList" class="section-list"></div>
+      </article>
+    </section>
+
+    <section class="studio-grid">
+      <article class="panel editor-panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Section editor</p>
+            <h2 id="selectedSectionTitle">Homepage Hero</h2>
+          </div>
+          <span id="selectedSectionType" class="status-pill">hero</span>
+        </div>
+
+        <form class="editor-form">
+          <label>
+            <span>Eyebrow</span>
+            <input id="fieldEyebrow" type="text" value="" disabled>
+          </label>
+          <label>
+            <span>Heading</span>
+            <input id="fieldHeading" type="text" value="" disabled>
+          </label>
+          <label>
+            <span>Summary</span>
+            <textarea id="fieldSummary" rows="4" disabled></textarea>
+          </label>
+          <label>
+            <span>Body / Notes</span>
+            <textarea id="fieldBody" rows="7" disabled></textarea>
+          </label>
+
+          <div class="editor-actions">
+            <button id="saveDraftButton" type="button" class="button button-ghost" disabled>Save draft</button>
+            <button id="publishButton" type="button" class="button" disabled>Publish update</button>
+          </div>
+        </form>
+        <div id="editorMessage" class="message-banner hidden"></div>
+      </article>
+
+      <article class="panel ops-panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Operational view</p>
+            <h2>What this studio will control</h2>
+          </div>
+        </div>
+
+        <ul class="ops-list">
+          <li>
+            <strong>Public content</strong>
+            <span>Hero copy, deep-dive articles, audience cards, founder details, contact content.</span>
+          </li>
+          <li>
+            <strong>Inquiry flow</strong>
+            <span>New, contacted, scheduled, and closed inquiry states from the website form.</span>
+          </li>
+          <li>
+            <strong>Publishing</strong>
+            <span>Draft and published states so the live site only shows approved content.</span>
+          </li>
+          <li>
+            <strong>Future media</strong>
+            <span>Founder image, session photos, gallery assets, and testimonial visuals.</span>
+          </li>
+        </ul>
+
+        <div class="notice-box">
+          <h3>Important boundary</h3>
+          <p>
+            Admin editing should update content records in the backend. It should not directly rewrite layout code.
+            That keeps the design stable while letting you update words and sections freely.
+          </p>
+        </div>
+      </article>
+    </section>
+
+    <section class="studio-grid">
+      <article class="panel inquiry-panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Inquiry pipeline</p>
+            <h2>Future admin queue</h2>
+          </div>
+        </div>
+
+        <div class="pipeline-grid">
+          <div class="pipeline-card">
+            <span>New</span>
+            <strong id="countNew">0</strong>
+            <p>Fresh inquiries waiting for first contact.</p>
+          </div>
+          <div class="pipeline-card">
+            <span>Contacted</span>
+            <strong id="countContacted">0</strong>
+            <p>Conversations started, awaiting date or scope alignment.</p>
+          </div>
+          <div class="pipeline-card">
+            <span>Scheduled</span>
+            <strong id="countScheduled">0</strong>
+            <p>Confirmed sessions ready for operational planning.</p>
+          </div>
+          <div class="pipeline-card">
+            <span>Closed</span>
+            <strong id="countClosed">0</strong>
+            <p>Completed or archived conversations for future reference.</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel docs-panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Studio links</p>
+            <h2>Useful places while you manage content</h2>
+          </div>
+        </div>
+
+        <ul class="doc-links">
+          <li><a href="/">View the public CoreXformer site</a></li>
+          <li><a href="/concept.html">Review the live Concept page</a></li>
+          <li><a href="/approach.html">Review the live Approach page</a></li>
+          <li><a href="/who-it-is-for.html">Review the live Who It Is For page</a></li>
+          <li><a href="/how-it-works.html">Review the live How It Works page</a></li>
+          <li><a href="/why-it-matters.html">Review the live Why It Matters page</a></li>
+          <li><a href="https://github.com/vinaygiri-ins/coreXformer" target="_blank" rel="noreferrer">Open the GitHub source</a></li>
+        </ul>
+      </article>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
