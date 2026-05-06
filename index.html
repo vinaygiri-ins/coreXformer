@@ -432,6 +432,44 @@
       </div>
     </section>
 
+    <section class="section section-tinted" id="reflections">
+      <div class="container split-section feedback-preview-shell">
+        <div>
+          <p class="eyebrow">Participant reflections</p>
+          <h2>What participants are carrying forward after the session.</h2>
+          <p>
+            CoreXformer does not end when the activity ends. This space updates from post-session reflections shared
+            by participants and helps the website stay connected to what people are actually taking with them.
+          </p>
+
+          <div class="feedback-insight-grid feedback-insight-grid-compact">
+            <article class="feedback-stat-card">
+              <span>Reflections received</span>
+              <strong data-feedback-total>0</strong>
+              <p>Each response adds another layer of lived understanding to the work.</p>
+            </article>
+            <article class="feedback-stat-card">
+              <span>Safe space</span>
+              <strong data-feedback-safe>—</strong>
+              <p>Average sense of welcome and emotional safety at the start.</p>
+            </article>
+            <article class="feedback-stat-card">
+              <span>Reflection value</span>
+              <strong data-feedback-reflection>—</strong>
+              <p>How valuable participants felt the reflection space was after the activity.</p>
+            </article>
+          </div>
+
+          <div class="section-link-row">
+            <a class="button" href="feedback.html">Share feedback after your session</a>
+            <a class="button button-ghost" href="feedback.html#feedback-insights">See live reflections</a>
+          </div>
+        </div>
+
+        <div class="quote-wall" data-feedback-quote-grid data-feedback-quote-limit="2"></div>
+      </div>
+    </section>
+
     <section class="section section-tinted" id="future" data-section-slug="future">
       <div class="container split-section">
         <div>
@@ -649,11 +687,14 @@
     <div class="container footer-shell">
       <div>
         <strong>CoreXformer</strong>
-        <p>Helping groups understand themselves and each other through shared experiences.</p>
+        <p class="footer-tagline">Helping groups understand themselves and each other through shared experiences.</p>
       </div>
       <div class="footer-meta">
         <p>Current delivery at client locations | Rangpur space later</p>
-        <a class="footer-admin-link" href="studio/">Private studio</a>
+        <div class="footer-links">
+          <a class="footer-admin-link" href="feedback.html">Share feedback</a>
+          <a class="footer-admin-link" href="studio/">Private studio</a>
+        </div>
       </div>
     </div>
   </footer>
@@ -661,6 +702,7 @@
   <script src="config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="content-loader.js"></script>
+  <script src="feedback.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

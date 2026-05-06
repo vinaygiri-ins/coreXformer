@@ -79,7 +79,7 @@ function applyGlobalSettings(settingsByKey) {
   }
 
   if (tagline) {
-    document.querySelectorAll(".brand-text small, .footer-shell > div > p").forEach((element) => {
+    document.querySelectorAll(".brand-text small, .footer-tagline").forEach((element) => {
       element.textContent = tagline;
     });
   }
