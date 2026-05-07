@@ -338,7 +338,7 @@ The session may be short, but the learning is meant to travel into future life s
     navLabel: "Products",
     templateKey: "deep-dive",
     metaTitle: "CoreXformer | Products and Offerings",
-    metaDescription: "Explore CoreXformer products and offerings: trust, communication, leadership, adaptability, alignment, and working better across differences.",
+    metaDescription: "Explore CoreXformer products and offerings across trust, communication, leadership, adaptability, alignment, reset, and conflict navigation.",
     sortOrder: 4,
     sections: [
       {
@@ -366,20 +366,30 @@ That is why these products are organized around objective rather than around aud
 So the page helps you choose by asking a simpler question first: what kind of shift, awareness, or team movement does your group most need right now?`
       },
       {
+        slug: "trajectory-map",
+        label: "Growth Stage Lens",
+        type: "cards",
+        sortOrder: 3,
+        eyebrow: "Growth-stage lens",
+        heading: "Groups grow. Their challenges change. The offering should match the moment.",
+        summary: "Across schools, colleges, corporates, communities, and government organizations, the outer context changes but the inner group journey often follows familiar stages. CoreXformer can therefore be read not only by audience, but also by the developmental stage or pressure point a group is currently moving through.",
+        body: ""
+      },
+      {
         slug: "core-products",
         label: "Core Products",
         type: "cards",
-        sortOrder: 3,
+        sortOrder: 4,
         eyebrow: "Core Products",
-        heading: "Six clear ways to begin the journey.",
-        summary: "These offerings are designed as strong starting points. Each one can be delivered as a stand-alone session or adapted into a more customized journey over time.",
+        heading: "Eight clear ways to begin the journey.",
+        summary: "These offerings are designed as strong starting points across different audiences, growth stages, and team realities. Each one can be delivered as a stand-alone session or adapted into a more customized journey over time.",
         body: ""
       },
       {
         slug: "standard-format",
         label: "Standard Format",
         type: "rich-text",
-        sortOrder: 4,
+        sortOrder: 5,
         eyebrow: "Standard format",
         heading: "The product gives clarity. The format stays flexible.",
         summary: "The offering is not locked to one exact session length. What stays consistent is the intent, the use of purposeful activity, and the reflection process that helps the learning travel beyond the session itself.",
@@ -389,10 +399,10 @@ So the page helps you choose by asking a simpler question first: what kind of sh
         slug: "custom-pathway",
         label: "Custom Pathway",
         type: "rich-text",
-        sortOrder: 5,
+        sortOrder: 6,
         eyebrow: "Need something more specific?",
         heading: "Later, your team will also be able to build a custom journey from the website.",
-        summary: "For now, these six offerings are the clearest way to begin. Over time, CoreXformer can also invite visitors to describe their own audience, time window, challenge, and intended outcomes so a tailored journey can be reviewed for possibility and fit.",
+        summary: "For now, these eight offerings are the clearest way to begin. Over time, CoreXformer can also invite visitors to describe their own audience, time window, challenge, and intended outcomes so a tailored journey can be reviewed for possibility and fit.",
         body: `Until that builder is live, the easiest path is to begin with the closest product and then discuss how it may be adapted for your context, language, venue, and deeper objective.`
       }
     ]

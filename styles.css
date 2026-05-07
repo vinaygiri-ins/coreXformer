@@ -408,6 +408,44 @@ p {
     rgba(255, 250, 241, 0.88);
 }
 
+.trajectory-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.stage-card {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1.35rem;
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(circle at top right, rgba(217, 150, 68, 0.1), transparent 14rem),
+    rgba(255, 250, 241, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.74);
+  box-shadow: var(--shadow);
+}
+
+.stage-kicker {
+  margin: 0;
+  color: var(--clay);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.stage-card h3,
+.stage-card p {
+  margin: 0;
+}
+
+.stage-offering {
+  color: var(--forest);
+  font-weight: 700;
+}
+
 .founder-column {
   display: grid;
   gap: 1rem;
@@ -1276,7 +1314,8 @@ a.journey-map-card:focus-visible {
   .feature-grid,
   .sensor-grid,
   .journey-map-grid,
-  .product-grid {
+  .product-grid,
+  .trajectory-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 
@@ -1327,7 +1366,8 @@ a.journey-map-card:focus-visible {
   .stat-row,
   .journey-map-grid,
   .feedback-insight-grid-compact,
-  .product-grid {
+  .product-grid,
+  .trajectory-grid {
     grid-template-columns: 1fr;
   }
 
