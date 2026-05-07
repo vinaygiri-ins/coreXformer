@@ -33,6 +33,13 @@ async function loadPublicContent(supabase, pageSlug) {
         .eq("is_public", true)
     ]);
 
+    const settingsByKey = (settingsResult.data || []).reduce((accumulator, setting) => {
+      accumulator[setting.key] = setting.value || {};
+      return accumulator;
+    }, {});
+
+    applyGlobalSettings(settingsByKey);
+
     if (pageResult.error || !pageResult.data) {
       return;
     }
@@ -49,17 +56,11 @@ async function loadPublicContent(supabase, pageSlug) {
       return;
     }
 
-    const settingsByKey = (settingsResult.data || []).reduce((accumulator, setting) => {
-      accumulator[setting.key] = setting.value || {};
-      return accumulator;
-    }, {});
-
     const sectionsBySlug = (sectionRows || []).reduce((accumulator, section) => {
       accumulator[section.slug] = section;
       return accumulator;
     }, {});
 
-    applyGlobalSettings(settingsByKey);
     applyPageMeta(pageResult.data);
     applyPageSections(sectionsBySlug);
   } catch (error) {

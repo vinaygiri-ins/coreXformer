@@ -402,6 +402,12 @@ p {
   border: 1px solid rgba(255, 255, 255, 0.72);
 }
 
+.product-note-card {
+  background:
+    radial-gradient(circle at top right, rgba(217, 150, 68, 0.14), transparent 15rem),
+    rgba(255, 250, 241, 0.88);
+}
+
 .founder-column {
   display: grid;
   gap: 1rem;
@@ -532,7 +538,7 @@ p {
 
 .journey-map-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 1rem;
   margin-top: 1.6rem;
 }
@@ -911,6 +917,98 @@ a.journey-map-card:focus-visible {
   max-width: 18ch;
 }
 
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.2rem;
+  margin-top: 2rem;
+}
+
+.product-card {
+  display: grid;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(circle at top right, rgba(217, 150, 68, 0.12), transparent 16rem),
+    linear-gradient(150deg, rgba(255, 250, 241, 0.92), rgba(230, 239, 233, 0.76));
+  border: 1px solid rgba(255, 255, 255, 0.74);
+  box-shadow: var(--shadow);
+}
+
+.product-kicker {
+  margin: 0;
+  color: var(--clay);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.product-summary {
+  margin-bottom: 0;
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.64);
+  border: 1px solid rgba(39, 55, 42, 0.08);
+  color: var(--forest);
+  font-size: 0.83rem;
+  font-weight: 800;
+}
+
+.product-block {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.product-block h4 {
+  margin: 0;
+  font-size: 0.98rem;
+  color: var(--ink);
+}
+
+.product-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.product-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin-top: auto;
+}
+
+.product-footer span {
+  padding: 0.45rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(22, 49, 40, 0.08);
+  color: var(--ink);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.cta-card-soft {
+  background:
+    radial-gradient(circle at top right, rgba(217, 150, 68, 0.16), transparent 16rem),
+    linear-gradient(135deg, rgba(255, 250, 241, 0.92), rgba(224, 236, 227, 0.88));
+  border: 1px solid rgba(255, 255, 255, 0.74);
+}
+
 .feedback-entry-grid {
   align-items: start;
 }
@@ -1177,7 +1275,8 @@ a.journey-map-card:focus-visible {
   .timeline-grid,
   .feature-grid,
   .sensor-grid,
-  .journey-map-grid {
+  .journey-map-grid,
+  .product-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 
@@ -1227,7 +1326,8 @@ a.journey-map-card:focus-visible {
   .sensor-grid,
   .stat-row,
   .journey-map-grid,
-  .feedback-insight-grid-compact {
+  .feedback-insight-grid-compact,
+  .product-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1246,6 +1346,7 @@ a.journey-map-card:focus-visible {
   .journey-panel,
   .feature-card,
   .timeline-card,
+  .product-card,
   .journey-map-shell,
   .journey-map-card,
   .feedback-form-card,

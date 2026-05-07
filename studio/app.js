@@ -25,7 +25,7 @@ const STARTER_CONTENT = [
         sortOrder: 2,
         eyebrow: "Explore Deeper",
         heading: "Move from overview into the parts that matter most to you.",
-        summary: "The homepage is designed to stay welcoming and readable. These deeper pages let interested readers explore the philosophy, method, audiences, process, and value of CoreXformer without overwhelming first-time visitors.",
+        summary: "The homepage is designed to stay welcoming and readable. These deeper pages let interested readers explore the philosophy, method, audiences, process, value, and offerings of CoreXformer without overwhelming first-time visitors.",
         body: ""
       },
       {
@@ -63,9 +63,9 @@ const STARTER_CONTENT = [
         label: "Programs and Formats",
         type: "cards",
         sortOrder: 6,
-        eyebrow: "Programs and Formats",
-        heading: "Clear ways to begin, whether you need a first session or a more intentional journey.",
-        summary: "CoreXformer can begin with a single reflection-led session and later grow into more focused or repeated engagements. The exact format is shaped around your group, your objective, and the realities of your space.",
+        eyebrow: "Products and Offerings",
+        heading: "Start with a clear objective, then shape the experience around your group.",
+        summary: "Instead of asking every school, college, department, team, or community group to imagine the session from scratch, CoreXformer can begin with clear objective-led offerings. Each one is still adapted to your audience, your space, and the real context behind the session.",
         body: ""
       },
       {
@@ -333,13 +333,78 @@ The session may be short, but the learning is meant to travel into future life s
     ]
   },
   {
+    slug: "products",
+    title: "CoreXformer | Products and Offerings",
+    navLabel: "Products",
+    templateKey: "deep-dive",
+    metaTitle: "CoreXformer | Products and Offerings",
+    metaDescription: "Explore CoreXformer products and offerings: trust, communication, leadership, adaptability, alignment, and working better across differences.",
+    sortOrder: 4,
+    sections: [
+      {
+        slug: "page-hero",
+        label: "Products Hero",
+        type: "page-hero",
+        sortOrder: 1,
+        eyebrow: "Objective-led offerings",
+        heading: "Clear ways to begin without reducing the depth of the work.",
+        summary: "Introduces the offerings page.",
+        body: `These offerings are designed to make the CoreXformer experience easier to understand for first-time visitors. Instead of starting from an abstract idea alone, you can begin with the kind of human or team challenge you most want to work on.`
+      },
+      {
+        slug: "why-objective-led",
+        label: "Why Objective-Led",
+        type: "rich-text",
+        sortOrder: 2,
+        eyebrow: "How To Read These Offerings",
+        heading: "Start with the objective that feels most alive in your group.",
+        summary: "Explains why the products are organized by objective.",
+        body: `CoreXformer is capable of custom design, but most institutions do not want to begin by designing everything from zero. They want an offering they can understand quickly, a likely outcome they can hold onto, and a sense of how the experience might fit their people.
+
+That is why these products are organized around objective rather than around audience alone. The same core human dynamics, such as trust, communication, leadership, adaptability, and alignment, appear across schools, colleges, corporates, government spaces, and communities in different forms.
+
+So the page helps you choose by asking a simpler question first: what kind of shift, awareness, or team movement does your group most need right now?`
+      },
+      {
+        slug: "core-products",
+        label: "Core Products",
+        type: "cards",
+        sortOrder: 3,
+        eyebrow: "Core Products",
+        heading: "Six clear ways to begin the journey.",
+        summary: "These offerings are designed as strong starting points. Each one can be delivered as a stand-alone session or adapted into a more customized journey over time.",
+        body: ""
+      },
+      {
+        slug: "standard-format",
+        label: "Standard Format",
+        type: "rich-text",
+        sortOrder: 4,
+        eyebrow: "Standard format",
+        heading: "The product gives clarity. The format stays flexible.",
+        summary: "The offering is not locked to one exact session length. What stays consistent is the intent, the use of purposeful activity, and the reflection process that helps the learning travel beyond the session itself.",
+        body: `Typical session length is around 3 hours, but shorter and longer versions can be shaped from 90 minutes to half-day. The work is best suited for groups between 8 and 40 participants and is delivered at client locations or at a mutually identified suitable venue. Audience, space, movement comfort, and facilitation tone are aligned before the session.`
+      },
+      {
+        slug: "custom-pathway",
+        label: "Custom Pathway",
+        type: "rich-text",
+        sortOrder: 5,
+        eyebrow: "Need something more specific?",
+        heading: "Later, your team will also be able to build a custom journey from the website.",
+        summary: "For now, these six offerings are the clearest way to begin. Over time, CoreXformer can also invite visitors to describe their own audience, time window, challenge, and intended outcomes so a tailored journey can be reviewed for possibility and fit.",
+        body: `Until that builder is live, the easiest path is to begin with the closest product and then discuss how it may be adapted for your context, language, venue, and deeper objective.`
+      }
+    ]
+  },
+  {
     slug: "who-it-is-for",
     title: "CoreXformer | Who It Is For",
     navLabel: "Who It Is For",
     templateKey: "deep-dive",
     metaTitle: "CoreXformer | Who It Is For",
     metaDescription: "See how CoreXformer serves schools, colleges, corporates, communities, and government organizations.",
-    sortOrder: 4,
+    sortOrder: 5,
     sections: [
       {
         slug: "page-hero",
@@ -444,7 +509,7 @@ This makes the approach relevant for departmental teams, training cohorts, missi
     templateKey: "deep-dive",
     metaTitle: "CoreXformer | How It Works",
     metaDescription: "Follow the journey of a CoreXformer session from welcome to activity to reflection and takeaway.",
-    sortOrder: 5,
+    sortOrder: 6,
     sections: [
       {
         slug: "page-hero",
@@ -589,7 +654,7 @@ In this way, the session closes not only with memory of the activity, but with a
     templateKey: "deep-dive",
     metaTitle: "CoreXformer | Why It Matters",
     metaDescription: "Understand why CoreXformer matters beyond performance, lectures, and one-time activity sessions.",
-    sortOrder: 6,
+    sortOrder: 7,
     sections: [
       {
         slug: "page-hero",
@@ -708,7 +773,7 @@ This is why CoreXformer matters. It is not only about what happened in the activ
     templateKey: "system",
     metaTitle: "CoreXformer | Thank You",
     metaDescription: "Thank you page shown after inquiry submission.",
-    sortOrder: 7,
+    sortOrder: 8,
     sections: [
       {
         slug: "page-hero",
