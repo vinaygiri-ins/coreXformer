@@ -1151,18 +1151,18 @@ async function loadInquiryCounts() {
 
 async function importStarterContent() {
   if (!canEdit()) {
-    showMessage(dom.authMessage, "Only owner or editor accounts can import starter content.", "error");
+    showMessage(dom.authMessage, "Only owner or editor accounts can sync starter content.", "error");
     return;
   }
 
   setBusy("import", true);
-  showMessage(dom.authMessage, "Importing the starter CoreXformer content structure into Supabase...");
+  showMessage(dom.authMessage, "Syncing any missing starter pages and sections into Supabase...");
 
   const userId = state.session.user.id;
   const publishedAt = new Date().toISOString();
 
   try {
-    const { error: siteSettingsError } = await state.supabase.from("site_settings").upsert([
+    const starterSettings = [
       {
         key: "brand",
         value: {
@@ -1181,11 +1181,32 @@ async function importStarterContent() {
         is_public: true,
         updated_by: userId
       }
-    ], { onConflict: "key" });
+    ];
 
-    if (siteSettingsError) {
-      throw siteSettingsError;
+    const { data: existingSettings, error: settingsReadError } = await state.supabase
+      .from("site_settings")
+      .select("key")
+      .in("key", starterSettings.map((setting) => setting.key));
+
+    if (settingsReadError) {
+      throw settingsReadError;
     }
+
+    const existingSettingKeys = new Set((existingSettings || []).map((setting) => setting.key));
+    const missingSettings = starterSettings.filter((setting) => !existingSettingKeys.has(setting.key));
+
+    if (missingSettings.length) {
+      const { error: siteSettingsError } = await state.supabase
+        .from("site_settings")
+        .upsert(missingSettings, { onConflict: "key" });
+
+      if (siteSettingsError) {
+        throw siteSettingsError;
+      }
+    }
+
+    let insertedPageCount = 0;
+    let insertedSectionCount = 0;
 
     for (const page of STARTER_CONTENT) {
       const { data: savedPage, error: pageError } = await state.supabase
@@ -1210,7 +1231,23 @@ async function importStarterContent() {
         throw pageError;
       }
 
-      const sectionPayloads = page.sections.map((section) => ({
+      if (savedPage?.id && !state.pages.some((entry) => entry.slug === page.slug)) {
+        insertedPageCount += 1;
+      }
+
+      const { data: existingSections, error: existingSectionError } = await state.supabase
+        .from("page_sections")
+        .select("slug")
+        .eq("page_id", savedPage.id);
+
+      if (existingSectionError) {
+        throw existingSectionError;
+      }
+
+      const existingSectionSlugs = new Set((existingSections || []).map((section) => section.slug));
+      const sectionPayloads = page.sections
+        .filter((section) => !existingSectionSlugs.has(section.slug))
+        .map((section) => ({
         page_id: savedPage.id,
         slug: section.slug,
         label: section.label,
@@ -1227,20 +1264,29 @@ async function importStarterContent() {
         updated_by: userId
       }));
 
-      const { error: sectionError } = await state.supabase
-        .from("page_sections")
-        .upsert(sectionPayloads, { onConflict: "page_id,slug" });
+      if (!sectionPayloads.length) {
+        continue;
+      }
+
+      const { error: sectionError } = await state.supabase.from("page_sections").insert(sectionPayloads);
 
       if (sectionError) {
         throw sectionError;
       }
+
+      insertedSectionCount += sectionPayloads.length;
     }
 
     await loadPages();
     clearMessage(dom.editorMessage);
-    showMessage(dom.authMessage, "Starter content imported successfully. You can now edit and publish section updates from the studio.");
+    showMessage(
+      dom.authMessage,
+      insertedPageCount || insertedSectionCount
+        ? `Starter structure synced. Added ${insertedPageCount} page${insertedPageCount === 1 ? "" : "s"} and ${insertedSectionCount} section${insertedSectionCount === 1 ? "" : "s"} without overwriting existing content.`
+        : "The starter structure is already in sync. No new pages or sections were needed."
+    );
   } catch (error) {
-    showMessage(dom.authMessage, error.message || "The starter content import failed.", "error");
+    showMessage(dom.authMessage, error.message || "The starter structure sync failed.", "error");
   } finally {
     setBusy("import", false);
     renderStudio();
@@ -1355,8 +1401,11 @@ function renderAuthControls() {
   dom.signOutButton.disabled = !signedIn;
 
   dom.signOutButton.classList.toggle("hidden", !signedIn);
-  dom.importStarterButton.classList.toggle("hidden", !(editable && !pagesLoaded));
+  dom.importStarterButton.classList.toggle("hidden", !editable);
   dom.importStarterButton.disabled = state.busy.import;
+  dom.importStarterButton.textContent = pagesLoaded
+    ? "Sync missing starter pages and sections"
+    : "Import starter pages and sections";
   dom.pageEmptyState.classList.toggle("hidden", pagesLoaded || !editable);
 }
 
