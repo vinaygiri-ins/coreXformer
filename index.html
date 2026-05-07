@@ -628,11 +628,9 @@
           class="interest-form"
           name="corexformer-inquiry"
           method="POST"
-          data-netlify="true"
-          netlify-honeypot="bot-field"
           action="thank-you.html"
+          data-inquiry-form
         >
-          <input type="hidden" name="form-name" value="corexformer-inquiry">
           <p class="hidden-field">
             <label>
               Do not fill this out if you are human
@@ -701,7 +699,8 @@
             <textarea name="message" rows="5" placeholder="Tell us a little about your group, context, or what you would like the session to support."></textarea>
           </label>
           <button class="button" type="submit">Send Your Request</button>
-          <p class="form-note">This form is now ready for real Netlify submissions. The next step after inquiry is a context-setting conversation, not an automatic booking.</p>
+          <div class="feedback-message hidden" data-inquiry-message></div>
+          <p class="form-note">Your inquiry is saved securely and reviewed with care. The next step after inquiry is a context-setting conversation, not an automatic booking.</p>
         </form>
       </div>
     </section>

@@ -4,6 +4,18 @@ const refreshButton = document.getElementById("refreshButton");
 const interestForm = document.querySelector(".interest-form");
 const tabButtons = document.querySelectorAll(".tab-button");
 const journeyPanels = document.querySelectorAll(".journey-panel");
+const publicConfig = window.COREXFORMER_PUBLIC_CONFIG;
+const supabaseLib = window.supabase;
+const publicSupabase =
+  publicConfig?.supabaseUrl && publicConfig?.supabaseAnonKey && supabaseLib?.createClient
+    ? supabaseLib.createClient(publicConfig.supabaseUrl, publicConfig.supabaseAnonKey, {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+          detectSessionInUrl: false
+        }
+      })
+    : null;
 
 if (navToggle && siteNav) {
   navToggle.addEventListener("click", () => {
@@ -67,14 +79,10 @@ if (refreshButton) {
   refreshButton.addEventListener("click", refreshPlanningFeed);
 }
 
-if (interestForm) {
-  interestForm.addEventListener("submit", () => {
-    const submitButton = interestForm.querySelector("button[type='submit']");
-
-    if (submitButton) {
-      submitButton.textContent = "Sending your request...";
-      submitButton.disabled = true;
-    }
+if (interestForm && publicSupabase) {
+  interestForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    void submitInquiry(publicSupabase, interestForm);
   });
 }
 
@@ -305,4 +313,87 @@ if (journeyFinder) {
   });
 
   renderFinderResults();
+}
+
+async function submitInquiry(supabase, form) {
+  const submitButton = form.querySelector("button[type='submit']");
+  const messageElement = form.querySelector("[data-inquiry-message]");
+  const formData = new FormData(form);
+  const honeypotValue = normalizeValue(formData.get("bot-field"));
+
+  if (honeypotValue) {
+    form.reset();
+    window.location.href = form.getAttribute("action") || "thank-you.html";
+    return;
+  }
+
+  const interestValue = normalizeValue(formData.get("interest"));
+  const objectiveValue = normalizeValue(formData.get("objective"));
+  const messageValue = normalizeValue(formData.get("message"));
+
+  const payload = {
+    full_name: normalizeValue(formData.get("name")),
+    organization_name: normalizeValue(formData.get("organization")),
+    audience_type: normalizeValue(formData.get("audience")),
+    email: normalizeValue(formData.get("email")),
+    phone: normalizeValue(formData.get("phone")),
+    city: normalizeValue(formData.get("location")),
+    preferred_date: normalizeValue(formData.get("timeline")),
+    group_size: normalizeValue(formData.get("groupSize")),
+    objective: [interestValue, objectiveValue].filter(Boolean).join(" | "),
+    message: messageValue,
+    source_page: "website:home-contact"
+  };
+
+  if (!payload.full_name || !payload.email || !payload.organization_name || !payload.city) {
+    showInquiryMessage(
+      messageElement,
+      "Please complete the required contact details before sending your request.",
+      "error"
+    );
+    return;
+  }
+
+  if (submitButton) {
+    submitButton.disabled = true;
+    submitButton.textContent = "Sending your request...";
+  }
+
+  showInquiryMessage(messageElement, "Saving your inquiry...", "info");
+
+  const { error } = await supabase
+    .from("inquiries")
+    .insert([payload]);
+
+  if (error) {
+    if (submitButton) {
+      submitButton.disabled = false;
+      submitButton.textContent = "Send Your Request";
+    }
+
+    showInquiryMessage(
+      messageElement,
+      "Your inquiry could not be saved yet. Please try once more in a moment, or use the direct WhatsApp or email links.",
+      "error"
+    );
+    console.warn("CoreXformer inquiry submission failed.", error);
+    return;
+  }
+
+  form.reset();
+  window.location.href = form.getAttribute("action") || "thank-you.html";
+}
+
+function showInquiryMessage(element, text, tone) {
+  if (!element) {
+    return;
+  }
+
+  element.textContent = text;
+  element.classList.remove("hidden", "is-error", "is-success", "is-info");
+  element.classList.add(`is-${tone || "info"}`);
+}
+
+function normalizeValue(value) {
+  return typeof value === "string" ? value.trim() : "";
 }
