@@ -446,6 +446,105 @@ p {
   font-weight: 700;
 }
 
+.finder-shell {
+  display: grid;
+  gap: 2rem;
+}
+
+.finder-grid {
+  display: grid;
+  grid-template-columns: 0.88fr 1.12fr;
+  gap: 1.2rem;
+  align-items: start;
+}
+
+.finder-card,
+.finder-result-card,
+.finder-guidance {
+  padding: 1.5rem;
+  border-radius: var(--radius-xl);
+  border: 1px solid rgba(255, 255, 255, 0.74);
+  box-shadow: var(--shadow);
+}
+
+.finder-card {
+  display: grid;
+  gap: 1rem;
+  background:
+    radial-gradient(circle at top right, rgba(217, 150, 68, 0.12), transparent 15rem),
+    rgba(255, 250, 241, 0.92);
+}
+
+.finder-field {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.finder-field label {
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.finder-field select {
+  width: 100%;
+  min-height: 3.2rem;
+  padding: 0.9rem 1rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(39, 55, 42, 0.12);
+  background: rgba(255, 255, 255, 0.9);
+  font: inherit;
+  color: var(--ink);
+}
+
+.finder-note {
+  padding: 1rem 1.1rem;
+  border-radius: 1rem;
+  background: rgba(22, 49, 40, 0.06);
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.finder-results {
+  display: grid;
+  gap: 1rem;
+}
+
+.finder-result-card {
+  display: grid;
+  gap: 0.85rem;
+  background:
+    linear-gradient(150deg, rgba(255, 250, 241, 0.94), rgba(227, 238, 232, 0.82));
+}
+
+.finder-result-card.is-primary {
+  background:
+    radial-gradient(circle at top right, rgba(47, 107, 80, 0.16), transparent 16rem),
+    linear-gradient(150deg, rgba(255, 250, 241, 0.96), rgba(225, 239, 230, 0.9));
+}
+
+.finder-result-card h3,
+.finder-result-card p,
+.finder-guidance h3 {
+  margin: 0;
+}
+
+.finder-result-label {
+  color: var(--clay);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.finder-fit {
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.finder-guidance {
+  background: rgba(255, 250, 241, 0.84);
+}
+
 .founder-column {
   display: grid;
   gap: 1rem;
@@ -1305,6 +1404,7 @@ a.journey-map-card:focus-visible {
   .traceability-box,
   .page-hero-grid,
   .journey-map-head,
+  .finder-grid,
   .feedback-context-grid,
   .feedback-insight-grid {
     grid-template-columns: 1fr;
