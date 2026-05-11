@@ -438,7 +438,7 @@ async function loadPublicFacilitators(supabase) {
 
       return `
         <article class="product-facilitator-card">
-          <p class="eyebrow">Assigned facilitator</p>
+          <p class="eyebrow">Conducting this session</p>
           <h4>${name}</h4>
           <p class="product-facilitator-role">${escapeHtml(role)}</p>
           ${bio ? `<p>${bio}</p>` : ""}

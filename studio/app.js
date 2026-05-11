@@ -863,12 +863,28 @@ const dom = {
   publishButton: document.getElementById("publishButton"),
   editorMessage: document.getElementById("editorMessage"),
   productSelector: document.getElementById("productSelector"),
+  facilitatorProfileSelect: document.getElementById("facilitatorProfileSelect"),
+  newFacilitatorButton: document.getElementById("newFacilitatorButton"),
   facilitatorNameInput: document.getElementById("facilitatorNameInput"),
+  facilitatorDisplayNameInput: document.getElementById("facilitatorDisplayNameInput"),
   facilitatorRoleInput: document.getElementById("facilitatorRoleInput"),
   facilitatorEmailInput: document.getElementById("facilitatorEmailInput"),
+  facilitatorPhoneInput: document.getElementById("facilitatorPhoneInput"),
+  facilitatorLocationInput: document.getElementById("facilitatorLocationInput"),
+  facilitatorStatusInput: document.getElementById("facilitatorStatusInput"),
+  facilitatorAvailabilityInput: document.getElementById("facilitatorAvailabilityInput"),
+  facilitatorInterestStatusInput: document.getElementById("facilitatorInterestStatusInput"),
+  facilitatorCanLeadInput: document.getElementById("facilitatorCanLeadInput"),
+  facilitatorCanCofacilitateInput: document.getElementById("facilitatorCanCofacilitateInput"),
+  facilitatorSchedulingInput: document.getElementById("facilitatorSchedulingInput"),
+  facilitatorInternalNoteInput: document.getElementById("facilitatorInternalNoteInput"),
   facilitatorBioInput: document.getElementById("facilitatorBioInput"),
   facilitatorNoteInput: document.getElementById("facilitatorNoteInput"),
   facilitatorPublicInput: document.getElementById("facilitatorPublicInput"),
+  sessionOrganizationInput: document.getElementById("sessionOrganizationInput"),
+  sessionTitleInput: document.getElementById("sessionTitleInput"),
+  sessionDateInput: document.getElementById("sessionDateInput"),
+  sessionAssignmentStatusInput: document.getElementById("sessionAssignmentStatusInput"),
   saveFacilitatorButton: document.getElementById("saveFacilitatorButton"),
   productNoteTitleInput: document.getElementById("productNoteTitleInput"),
   productNoteScopeInput: document.getElementById("productNoteScopeInput"),
@@ -903,7 +919,14 @@ const state = {
   },
   productOps: {
     selectedProductSlug: PRODUCT_LIBRARY[0].slug,
-    facilitator: null,
+    facilitators: [],
+    selectedFacilitatorId: "",
+    creatingFacilitator: false,
+    facilitatorProfile: null,
+    productLink: null,
+    sessionRun: null,
+    sessionAssignment: null,
+    publicFacilitatorRow: null,
     note: null,
     feedbackRows: []
   },
@@ -991,6 +1014,20 @@ function bindEvents() {
     void loadProductOpsData();
   });
 
+  dom.facilitatorProfileSelect?.addEventListener("change", () => {
+    state.productOps.selectedFacilitatorId = dom.facilitatorProfileSelect.value;
+    state.productOps.creatingFacilitator = !state.productOps.selectedFacilitatorId;
+    clearMessage(dom.productOpsMessage);
+    void loadProductOpsData();
+  });
+
+  dom.newFacilitatorButton?.addEventListener("click", () => {
+    state.productOps.selectedFacilitatorId = "";
+    state.productOps.creatingFacilitator = true;
+    clearMessage(dom.productOpsMessage);
+    renderStudio();
+  });
+
   dom.saveFacilitatorButton?.addEventListener("click", () => {
     void saveProductFacilitator();
   });
@@ -1009,7 +1046,14 @@ async function handleSession(session) {
     state.currentPageIndex = 0;
     state.currentSectionIndex = 0;
     state.inquiryCounts = zeroInquiryCounts();
-    state.productOps.facilitator = null;
+    state.productOps.facilitators = [];
+    state.productOps.selectedFacilitatorId = "";
+    state.productOps.creatingFacilitator = false;
+    state.productOps.facilitatorProfile = null;
+    state.productOps.productLink = null;
+    state.productOps.sessionRun = null;
+    state.productOps.sessionAssignment = null;
+    state.productOps.publicFacilitatorRow = null;
     state.productOps.note = null;
     state.productOps.feedbackRows = [];
     clearMessage(dom.editorMessage);
@@ -1230,7 +1274,12 @@ async function loadInquiryCounts() {
 async function loadProductOpsData() {
   const product = getSelectedProduct();
 
-  state.productOps.facilitator = null;
+  state.productOps.facilitators = [];
+  state.productOps.facilitatorProfile = null;
+  state.productOps.productLink = null;
+  state.productOps.sessionRun = null;
+  state.productOps.sessionAssignment = null;
+  state.productOps.publicFacilitatorRow = null;
   state.productOps.note = null;
   state.productOps.feedbackRows = [];
 
@@ -1242,10 +1291,19 @@ async function loadProductOpsData() {
   setBusy("productOps", true);
 
   try {
-    const [facilitatorResult, noteResult, feedbackResult] = await Promise.all([
+    const [profilesResult, linkResult, publicFacilitatorResult, noteResult, feedbackResult, sessionRunResult] = await Promise.all([
+      state.supabase
+        .from("facilitators")
+        .select("id, full_name, display_name, email, phone, base_location, public_bio_short, facilitator_status, availability_status")
+        .order("full_name", { ascending: true }),
+      state.supabase
+        .from("facilitator_product_links")
+        .select("id, facilitator_id, product_slug, product_name, interest_status, delivery_role, can_lead_alone, can_cofacilitate, is_active_for_scheduling, public_profile_enabled, public_short_bio_override, internal_notes")
+        .eq("product_slug", product.slug)
+        .order("updated_at", { ascending: false }),
       state.supabase
         .from("product_facilitators")
-        .select("id, product_slug, product_name, facilitator_name, facilitator_role, facilitator_bio, facilitator_email, public_note, is_public, sort_order")
+        .select("id, facilitator_id, session_run_id, product_slug, product_name, facilitator_name, facilitator_role, facilitator_bio, facilitator_email, public_note, is_public, sort_order")
         .eq("product_slug", product.slug)
         .order("sort_order", { ascending: true })
         .limit(1),
@@ -1260,11 +1318,25 @@ async function loadProductOpsData() {
         .select("id, organization_name, audience_type, product_slug, product_name, safe_space_rating, activity_meaning_rating, reflection_value_rating, lasting_moment, teamwork_insight, future_takeaway, share_publicly, display_name, created_at")
         .eq("product_slug", product.slug)
         .order("created_at", { ascending: false })
-        .limit(10)
+        .limit(10),
+      state.supabase
+        .from("session_runs")
+        .select("id, product_slug, product_name, organization_name, session_title, session_date, status")
+        .eq("product_slug", product.slug)
+        .order("updated_at", { ascending: false })
+        .limit(1)
     ]);
 
-    if (facilitatorResult.error) {
-      throw facilitatorResult.error;
+    if (profilesResult.error) {
+      throw profilesResult.error;
+    }
+
+    if (linkResult.error) {
+      throw linkResult.error;
+    }
+
+    if (publicFacilitatorResult.error) {
+      throw publicFacilitatorResult.error;
     }
 
     if (noteResult.error) {
@@ -1275,9 +1347,42 @@ async function loadProductOpsData() {
       throw feedbackResult.error;
     }
 
-    state.productOps.facilitator = Array.isArray(facilitatorResult.data) ? facilitatorResult.data[0] || null : null;
+    if (sessionRunResult.error) {
+      throw sessionRunResult.error;
+    }
+
+    state.productOps.facilitators = Array.isArray(profilesResult.data) ? profilesResult.data : [];
+    const productLinks = Array.isArray(linkResult.data) ? linkResult.data : [];
+    state.productOps.publicFacilitatorRow = Array.isArray(publicFacilitatorResult.data) ? publicFacilitatorResult.data[0] || null : null;
     state.productOps.note = noteResult.data || null;
     state.productOps.feedbackRows = Array.isArray(feedbackResult.data) ? feedbackResult.data : [];
+    state.productOps.sessionRun = Array.isArray(sessionRunResult.data) ? sessionRunResult.data[0] || null : null;
+
+    const validSelectedId = state.productOps.selectedFacilitatorId
+      && state.productOps.facilitators.some((facilitator) => facilitator.id === state.productOps.selectedFacilitatorId);
+
+    if (!state.productOps.creatingFacilitator && !validSelectedId) {
+      state.productOps.selectedFacilitatorId = productLinks[0]?.facilitator_id || state.productOps.publicFacilitatorRow?.facilitator_id || state.productOps.facilitators[0]?.id || "";
+    }
+
+    state.productOps.facilitatorProfile = getSelectedFacilitatorProfile();
+    state.productOps.productLink = productLinks.find((link) => link.facilitator_id === state.productOps.selectedFacilitatorId) || null;
+
+    if (state.productOps.sessionRun?.id && state.productOps.selectedFacilitatorId) {
+      const { data: assignmentData, error: assignmentError } = await state.supabase
+        .from("session_facilitators")
+        .select("id, session_run_id, facilitator_id, assignment_role, assignment_status, show_publicly, public_role_label, public_note")
+        .eq("session_run_id", state.productOps.sessionRun.id)
+        .eq("facilitator_id", state.productOps.selectedFacilitatorId)
+        .maybeSingle();
+
+      if (assignmentError) {
+        throw assignmentError;
+      }
+
+      state.productOps.sessionAssignment = assignmentData || null;
+    }
+
     clearMessage(dom.productOpsMessage);
   } catch (error) {
     showMessage(dom.productOpsMessage, error.message || "The product operations data could not be loaded yet.", "error");
@@ -1450,45 +1555,184 @@ async function saveProductFacilitator() {
     return;
   }
 
-  const payload = {
-    product_slug: product.slug,
-    product_name: product.name,
-    facilitator_name: facilitatorName,
-    facilitator_role: dom.facilitatorRoleInput.value,
-    facilitator_email: dom.facilitatorEmailInput.value.trim() || null,
-    facilitator_bio: dom.facilitatorBioInput.value.trim() || null,
-    public_note: dom.facilitatorNoteInput.value.trim() || null,
-    is_public: Boolean(dom.facilitatorPublicInput.checked),
-    sort_order: 0,
-    updated_by: state.session.user.id
-  };
-
-  if (!state.productOps.facilitator?.id) {
-    payload.created_by = state.session.user.id;
-  }
-
   setBusy("productOps", true);
-  showMessage(dom.productOpsMessage, `Saving facilitator details for ${product.name}...`);
+  showMessage(dom.productOpsMessage, `Saving facilitator setup for ${product.name}...`);
 
-  let query = state.supabase
-    .from("product_facilitators");
+  try {
+    const userId = state.session.user.id;
+    const displayName = dom.facilitatorDisplayNameInput.value.trim() || null;
+    const email = dom.facilitatorEmailInput.value.trim() || null;
+    const phone = dom.facilitatorPhoneInput.value.trim() || null;
+    const baseLocation = dom.facilitatorLocationInput.value.trim() || null;
+    const publicBio = dom.facilitatorBioInput.value.trim() || null;
+    const internalNotes = dom.facilitatorInternalNoteInput.value.trim() || null;
+    const publicNote = dom.facilitatorNoteInput.value.trim() || null;
+    const showPublicly = Boolean(dom.facilitatorPublicInput.checked);
+    const interestStatus = dom.facilitatorInterestStatusInput.value;
+    const deliveryRole = dom.facilitatorRoleInput.value;
+    const sessionStatus = dom.sessionAssignmentStatusInput.value;
+    const sessionDate = fromDateTimeLocalValue(dom.sessionDateInput.value);
+    const sessionTitle = dom.sessionTitleInput.value.trim() || null;
+    const organizationName = dom.sessionOrganizationInput.value.trim() || null;
 
-  if (state.productOps.facilitator?.id) {
-    query = query.update(payload).eq("id", state.productOps.facilitator.id);
-  } else {
-    query = query.insert([payload]);
-  }
+    const facilitatorPayload = {
+      full_name: facilitatorName,
+      display_name: displayName,
+      email,
+      phone,
+      base_location: baseLocation,
+      public_bio_short: publicBio,
+      facilitator_status: dom.facilitatorStatusInput.value,
+      availability_status: dom.facilitatorAvailabilityInput.value,
+      public_profile_enabled: showPublicly,
+      updated_by: userId
+    };
 
-  const { error } = await query;
+    let facilitatorId = state.productOps.selectedFacilitatorId || null;
 
-  if (error) {
+    if (facilitatorId) {
+      const { error: updateError } = await state.supabase
+        .from("facilitators")
+        .update(facilitatorPayload)
+        .eq("id", facilitatorId);
+
+      if (updateError) {
+        throw updateError;
+      }
+    } else {
+      facilitatorPayload.created_by = userId;
+      const { data: insertedFacilitator, error: insertError } = await state.supabase
+        .from("facilitators")
+        .insert([facilitatorPayload])
+        .select("id")
+        .single();
+
+      if (insertError) {
+        throw insertError;
+      }
+
+      facilitatorId = insertedFacilitator.id;
+      state.productOps.selectedFacilitatorId = facilitatorId;
+    }
+
+    state.productOps.creatingFacilitator = false;
+
+    const linkPayload = {
+      facilitator_id: facilitatorId,
+      product_slug: product.slug,
+      product_name: product.name,
+      interest_status: interestStatus,
+      delivery_role: deliveryRole,
+      can_lead_alone: Boolean(dom.facilitatorCanLeadInput.checked),
+      can_cofacilitate: Boolean(dom.facilitatorCanCofacilitateInput.checked),
+      is_active_for_scheduling: Boolean(dom.facilitatorSchedulingInput.checked),
+      public_profile_enabled: showPublicly,
+      public_short_bio_override: publicBio,
+      internal_notes: internalNotes,
+      approved_by: userId,
+      approved_at: interestStatus === "approved" ? new Date().toISOString() : null,
+      updated_by: userId
+    };
+
+    if (!state.productOps.productLink?.id) {
+      linkPayload.created_by = userId;
+    }
+
+    const { error: linkError } = await state.supabase
+      .from("facilitator_product_links")
+      .upsert(linkPayload, { onConflict: "facilitator_id,product_slug" });
+
+    if (linkError) {
+      throw linkError;
+    }
+
+    const shouldPersistSession = Boolean(
+      state.productOps.sessionRun?.id
+      || organizationName
+      || sessionTitle
+      || sessionDate
+      || showPublicly
+    );
+
+    let sessionRunId = state.productOps.sessionRun?.id || null;
+
+    if (shouldPersistSession) {
+      const sessionPayload = {
+        product_slug: product.slug,
+        product_name: product.name,
+        organization_name: organizationName,
+        session_title: sessionTitle,
+        session_date: sessionDate,
+        status: deriveSessionRunStatus(sessionStatus),
+        updated_by: userId
+      };
+
+      if (sessionRunId) {
+        const { error: sessionUpdateError } = await state.supabase
+          .from("session_runs")
+          .update(sessionPayload)
+          .eq("id", sessionRunId);
+
+        if (sessionUpdateError) {
+          throw sessionUpdateError;
+        }
+      } else {
+        sessionPayload.created_by = userId;
+        const { data: insertedSessionRun, error: sessionInsertError } = await state.supabase
+          .from("session_runs")
+          .insert([sessionPayload])
+          .select("id")
+          .single();
+
+        if (sessionInsertError) {
+          throw sessionInsertError;
+        }
+
+        sessionRunId = insertedSessionRun.id;
+      }
+
+      const assignmentPayload = {
+        session_run_id: sessionRunId,
+        facilitator_id: facilitatorId,
+        assignment_role: deliveryRole,
+        assignment_status: sessionStatus,
+        show_publicly: showPublicly,
+        public_role_label: humanizeStudioFacilitatorRole(deliveryRole),
+        public_note: publicNote,
+        assigned_by: userId,
+        assigned_at: new Date().toISOString(),
+        internal_notes: internalNotes
+      };
+
+      const { error: assignmentError } = await state.supabase
+        .from("session_facilitators")
+        .upsert(assignmentPayload, { onConflict: "session_run_id,facilitator_id" });
+
+      if (assignmentError) {
+        throw assignmentError;
+      }
+    }
+
+    await syncPublicFacilitatorSnapshot({
+      facilitatorId,
+      product,
+      sessionRunId,
+      facilitatorName: displayName || facilitatorName,
+      email,
+      publicBio,
+      publicNote,
+      deliveryRole,
+      showPublicly,
+      userId
+    });
+
+    await loadProductOpsData();
+    showMessage(dom.productOpsMessage, `Facilitator setup for ${product.name} was saved successfully.`, "success");
+  } catch (error) {
+    showMessage(dom.productOpsMessage, error.message || "The facilitator setup could not be saved.", "error");
+  } finally {
     setBusy("productOps", false);
-    showMessage(dom.productOpsMessage, error.message, "error");
-    return;
   }
-
-  await loadProductOpsData();
-  showMessage(dom.productOpsMessage, `Facilitator details for ${product.name} were saved successfully.`, "success");
 }
 
 async function saveProductNote() {
@@ -1770,9 +2014,17 @@ function renderEditor() {
 
 function renderProductOps() {
   renderProductSelectorOptions();
+  renderFacilitatorProfileOptions();
 
   const selectedProduct = getSelectedProduct();
-  const facilitator = state.productOps.facilitator;
+  const profile = getSelectedFacilitatorProfile();
+  const link = state.productOps.productLink;
+  const sessionRun = state.productOps.sessionRun;
+  const sessionAssignment = state.productOps.sessionAssignment;
+  const publicRow = state.productOps.publicFacilitatorRow
+    && (!state.productOps.selectedFacilitatorId || state.productOps.publicFacilitatorRow.facilitator_id === state.productOps.selectedFacilitatorId)
+    ? state.productOps.publicFacilitatorRow
+    : null;
   const note = state.productOps.note;
   const editable = canEdit();
   const disabled = !editable || state.busy.productOps;
@@ -1782,24 +2034,54 @@ function renderProductOps() {
   }
 
   dom.productSelector.disabled = !editable;
+  dom.facilitatorProfileSelect.disabled = disabled;
+  dom.newFacilitatorButton.disabled = disabled;
   dom.facilitatorNameInput.disabled = disabled;
+  dom.facilitatorDisplayNameInput.disabled = disabled;
   dom.facilitatorRoleInput.disabled = disabled;
   dom.facilitatorEmailInput.disabled = disabled;
+  dom.facilitatorPhoneInput.disabled = disabled;
+  dom.facilitatorLocationInput.disabled = disabled;
+  dom.facilitatorStatusInput.disabled = disabled;
+  dom.facilitatorAvailabilityInput.disabled = disabled;
+  dom.facilitatorInterestStatusInput.disabled = disabled;
+  dom.facilitatorCanLeadInput.disabled = disabled;
+  dom.facilitatorCanCofacilitateInput.disabled = disabled;
+  dom.facilitatorSchedulingInput.disabled = disabled;
+  dom.facilitatorInternalNoteInput.disabled = disabled;
   dom.facilitatorBioInput.disabled = disabled;
   dom.facilitatorNoteInput.disabled = disabled;
   dom.facilitatorPublicInput.disabled = disabled;
+  dom.sessionOrganizationInput.disabled = disabled;
+  dom.sessionTitleInput.disabled = disabled;
+  dom.sessionDateInput.disabled = disabled;
+  dom.sessionAssignmentStatusInput.disabled = disabled;
   dom.saveFacilitatorButton.disabled = disabled;
   dom.productNoteTitleInput.disabled = disabled;
   dom.productNoteScopeInput.disabled = disabled;
   dom.productNoteBodyInput.disabled = disabled;
   dom.saveProductNoteButton.disabled = disabled;
 
-  dom.facilitatorNameInput.value = facilitator?.facilitator_name || "";
-  dom.facilitatorRoleInput.value = facilitator?.facilitator_role || "approved";
-  dom.facilitatorEmailInput.value = facilitator?.facilitator_email || "";
-  dom.facilitatorBioInput.value = facilitator?.facilitator_bio || "";
-  dom.facilitatorNoteInput.value = facilitator?.public_note || "";
-  dom.facilitatorPublicInput.checked = facilitator?.is_public ?? false;
+  dom.facilitatorNameInput.value = profile?.full_name || "";
+  dom.facilitatorDisplayNameInput.value = profile?.display_name || "";
+  dom.facilitatorRoleInput.value = link?.delivery_role || "lead_facilitator";
+  dom.facilitatorEmailInput.value = profile?.email || "";
+  dom.facilitatorPhoneInput.value = profile?.phone || "";
+  dom.facilitatorLocationInput.value = profile?.base_location || "";
+  dom.facilitatorStatusInput.value = profile?.facilitator_status || "applied";
+  dom.facilitatorAvailabilityInput.value = profile?.availability_status || "available";
+  dom.facilitatorInterestStatusInput.value = link?.interest_status || "interested";
+  dom.facilitatorCanLeadInput.checked = link?.can_lead_alone ?? false;
+  dom.facilitatorCanCofacilitateInput.checked = link?.can_cofacilitate ?? true;
+  dom.facilitatorSchedulingInput.checked = link?.is_active_for_scheduling ?? false;
+  dom.facilitatorInternalNoteInput.value = link?.internal_notes || "";
+  dom.facilitatorBioInput.value = link?.public_short_bio_override || profile?.public_bio_short || "";
+  dom.facilitatorNoteInput.value = sessionAssignment?.public_note || publicRow?.public_note || "";
+  dom.facilitatorPublicInput.checked = sessionAssignment?.show_publicly ?? publicRow?.is_public ?? false;
+  dom.sessionOrganizationInput.value = sessionRun?.organization_name || "";
+  dom.sessionTitleInput.value = sessionRun?.session_title || "";
+  dom.sessionDateInput.value = toDateTimeLocalValue(sessionRun?.session_date);
+  dom.sessionAssignmentStatusInput.value = sessionAssignment?.assignment_status || "assigned";
 
   dom.productNoteTitleInput.value = note?.note_title || "";
   dom.productNoteScopeInput.value = note?.note_scope || "facilitator_and_admin";
@@ -1817,6 +2099,22 @@ function renderProductSelectorOptions() {
 
   dom.productSelector.innerHTML = optionsMarkup;
   dom.productSelector.dataset.optionsReady = "true";
+}
+
+function renderFacilitatorProfileOptions() {
+  if (!dom.facilitatorProfileSelect) {
+    return;
+  }
+
+  const options = ['<option value="">Create a new facilitator</option>'].concat(
+    state.productOps.facilitators.map((facilitator) => {
+      const label = facilitator.display_name || facilitator.full_name || facilitator.email || "Unnamed facilitator";
+      return `<option value="${facilitator.id}">${escapeHtml(label)}</option>`;
+    })
+  );
+
+  dom.facilitatorProfileSelect.innerHTML = options.join("");
+  dom.facilitatorProfileSelect.value = state.productOps.selectedFacilitatorId || "";
 }
 
 function renderProductFeedback() {
@@ -1887,6 +2185,14 @@ function getCurrentSection() {
 
 function getSelectedProduct() {
   return PRODUCT_LIBRARY.find((product) => product.slug === state.productOps.selectedProductSlug) || PRODUCT_LIBRARY[0];
+}
+
+function getSelectedFacilitatorProfile() {
+  if (!state.productOps.selectedFacilitatorId) {
+    return null;
+  }
+
+  return state.productOps.facilitators.find((facilitator) => facilitator.id === state.productOps.selectedFacilitatorId) || null;
 }
 
 function canEdit() {
@@ -1975,6 +2281,111 @@ function formatFeedbackMeta(row) {
   const audience = normalizeValue(row.audience_type) || "mixed";
   const dateLabel = row.created_at ? formatShortDate(new Date(row.created_at)) : "unknown date";
   return `${humanizeAudience(audience)} · ${dateLabel}`;
+}
+
+function toDateTimeLocalValue(value) {
+  if (!value) {
+    return "";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+function fromDateTimeLocalValue(value) {
+  if (!value) {
+    return null;
+  }
+
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
+}
+
+function humanizeStudioFacilitatorRole(role) {
+  switch (role) {
+    case "lead_facilitator":
+      return "Lead facilitator";
+    case "co_facilitator":
+      return "Co-facilitator";
+    case "shadow":
+      return "Shadow facilitator";
+    default:
+      return "Facilitator";
+  }
+}
+
+function deriveSessionRunStatus(assignmentStatus) {
+  switch (assignmentStatus) {
+    case "confirmed":
+      return "confirmed";
+    case "completed":
+      return "delivered";
+    case "cancelled":
+      return "cancelled";
+    default:
+      return "draft";
+  }
+}
+
+async function syncPublicFacilitatorSnapshot({
+  facilitatorId,
+  product,
+  sessionRunId,
+  facilitatorName,
+  email,
+  publicBio,
+  publicNote,
+  deliveryRole,
+  showPublicly,
+  userId
+}) {
+  const payload = {
+    facilitator_id: facilitatorId,
+    session_run_id: sessionRunId,
+    product_slug: product.slug,
+    product_name: product.name,
+    facilitator_name: facilitatorName,
+    facilitator_role: deliveryRole,
+    facilitator_bio: publicBio,
+    facilitator_email: email,
+    public_note: publicNote,
+    is_public: showPublicly,
+    sort_order: 0,
+    updated_by: userId
+  };
+
+  if (state.productOps.publicFacilitatorRow?.id) {
+    const { error } = await state.supabase
+      .from("product_facilitators")
+      .update(payload)
+      .eq("id", state.productOps.publicFacilitatorRow.id);
+
+    if (error) {
+      throw error;
+    }
+
+    return;
+  }
+
+  payload.created_by = userId;
+
+  const { error } = await state.supabase
+    .from("product_facilitators")
+    .insert([payload]);
+
+  if (error) {
+    throw error;
+  }
 }
 
 function humanizeAudience(audience) {

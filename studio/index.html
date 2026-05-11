@@ -216,42 +216,144 @@
 
           <div class="studio-fieldset">
             <div class="studio-fieldset-head">
-              <h3>Public facilitator assignment</h3>
-              <p>This person can appear on the public product page once approved and marked visible.</p>
+              <h3>Facilitator profile</h3>
+              <p>Keep the internal facilitator record private, and only expose the public session-facing parts later.</p>
             </div>
 
             <label>
-              <span>Facilitator name</span>
+              <span>Facilitator record</span>
+              <div class="inline-field-group">
+                <select id="facilitatorProfileSelect">
+                  <option value="">Create a new facilitator</option>
+                </select>
+                <button id="newFacilitatorButton" type="button" class="button button-muted">New</button>
+              </div>
+            </label>
+            <label>
+              <span>Full name</span>
               <input id="facilitatorNameInput" type="text" placeholder="Facilitator linked to this product">
             </label>
             <label>
-              <span>Facilitator role</span>
+              <span>Display name</span>
+              <input id="facilitatorDisplayNameInput" type="text" placeholder="Optional public-facing name if different">
+            </label>
+            <label>
+              <span>Facilitator email</span>
+              <input id="facilitatorEmailInput" type="email" placeholder="Private contact field for studio use">
+            </label>
+            <label>
+              <span>Phone</span>
+              <input id="facilitatorPhoneInput" type="text" placeholder="Optional internal phone number">
+            </label>
+            <label>
+              <span>Base location</span>
+              <input id="facilitatorLocationInput" type="text" placeholder="City or region the facilitator works from">
+            </label>
+            <label>
+              <span>Facilitator status</span>
+              <select id="facilitatorStatusInput">
+                <option value="applied">Applied</option>
+                <option value="screening">Screening</option>
+                <option value="shadowing">Shadowing</option>
+                <option value="approved">Approved</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </label>
+            <label>
+              <span>Availability</span>
+              <select id="facilitatorAvailabilityInput">
+                <option value="available">Available</option>
+                <option value="limited">Limited</option>
+                <option value="unavailable">Unavailable</option>
+              </select>
+            </label>
+            <label>
+              <span>Public short bio</span>
+              <textarea id="facilitatorBioInput" rows="4" placeholder="A short introduction shown only if this facilitator is made public for a session."></textarea>
+            </label>
+          </div>
+
+          <div class="studio-fieldset">
+            <div class="studio-fieldset-head">
+              <h3>Product approval for this facilitator</h3>
+              <p>This section is private. It defines whether the facilitator is only interested, shadowing, approved, or schedulable for this product.</p>
+            </div>
+
+            <label>
+              <span>Product fit status</span>
+              <select id="facilitatorInterestStatusInput">
+                <option value="interested">Interested</option>
+                <option value="under_review">Under review</option>
+                <option value="shadowing">Shadowing</option>
+                <option value="approved">Approved</option>
+                <option value="paused">Paused</option>
+              </select>
+            </label>
+            <label>
+              <span>Primary delivery role</span>
               <select id="facilitatorRoleInput">
-                <option value="approved">Approved facilitator</option>
                 <option value="lead_facilitator">Lead facilitator</option>
                 <option value="co_facilitator">Co-facilitator</option>
                 <option value="shadow">Shadow facilitator</option>
               </select>
             </label>
             <label>
-              <span>Facilitator email</span>
-              <input id="facilitatorEmailInput" type="email" placeholder="Only visible inside the studio">
+              <span>Private training or fit notes</span>
+              <textarea id="facilitatorInternalNoteInput" rows="4" placeholder="Private notes about fit, training, or what to watch for with this product."></textarea>
+            </label>
+            <label class="studio-checkbox-row">
+              <input id="facilitatorCanLeadInput" type="checkbox">
+              <span>Can lead this product alone</span>
+            </label>
+            <label class="studio-checkbox-row">
+              <input id="facilitatorCanCofacilitateInput" type="checkbox">
+              <span>Can co-facilitate this product</span>
+            </label>
+            <label class="studio-checkbox-row">
+              <input id="facilitatorSchedulingInput" type="checkbox">
+              <span>Active for scheduling on this product</span>
+            </label>
+            <div class="editor-actions">
+              <button id="saveFacilitatorButton" type="button" class="button">Save facilitator setup</button>
+            </div>
+          </div>
+
+          <div class="studio-fieldset">
+            <div class="studio-fieldset-head">
+              <h3>Session assignment snapshot</h3>
+              <p>Only this part is allowed to feed the public “facilitators conducting this session” view later.</p>
+            </div>
+
+            <label>
+              <span>Organization or school</span>
+              <input id="sessionOrganizationInput" type="text" placeholder="Optional client or institution name">
             </label>
             <label>
-              <span>Public bio</span>
-              <textarea id="facilitatorBioInput" rows="4" placeholder="A short introduction shown under this product if you choose to make it public."></textarea>
+              <span>Session title</span>
+              <input id="sessionTitleInput" type="text" placeholder="For example: Class 8 orientation or teacher cohort session">
             </label>
             <label>
-              <span>Public note</span>
-              <textarea id="facilitatorNoteInput" rows="3" placeholder="Optional delivery note or fit context shown publicly under the product."></textarea>
+              <span>Session date and time</span>
+              <input id="sessionDateInput" type="datetime-local">
+            </label>
+            <label>
+              <span>Session assignment status</span>
+              <select id="sessionAssignmentStatusInput">
+                <option value="assigned">Assigned</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </label>
+            <label>
+              <span>Public session note</span>
+              <textarea id="facilitatorNoteInput" rows="3" placeholder="Optional note shown publicly when this facilitator is marked visible for the session."></textarea>
             </label>
             <label class="studio-checkbox-row">
               <input id="facilitatorPublicInput" type="checkbox">
-              <span>Show this facilitator on the public product page</span>
+              <span>Show this facilitator publicly as conducting this session</span>
             </label>
-            <div class="editor-actions">
-              <button id="saveFacilitatorButton" type="button" class="button">Save facilitator</button>
-            </div>
           </div>
 
           <div class="studio-fieldset">
@@ -284,8 +386,8 @@
         <div class="notice-box">
           <h3>Current phase</h3>
           <p>
-            This first version keeps product notes inside admin access. Facilitator-specific sign-in can be layered on
-            later, once facilitator accounts and approval states are ready.
+            This version separates facilitator profile, product approval, and session assignment. Public visitors should
+            only ever see the facilitator snapshot that you explicitly mark as conducting the session.
           </p>
         </div>
         <div id="productOpsMessage" class="message-banner hidden"></div>
