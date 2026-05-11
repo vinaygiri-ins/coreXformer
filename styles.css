@@ -408,6 +408,210 @@ p {
     rgba(255, 250, 241, 0.88);
 }
 
+.audience-tabs-section {
+  padding-top: 0;
+  padding-bottom: 2rem;
+}
+
+.audience-nav {
+  display: flex;
+  gap: 0.8rem;
+  overflow-x: auto;
+  padding-bottom: 0.35rem;
+}
+
+.audience-nav a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.9rem;
+  padding: 0.72rem 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(39, 55, 42, 0.12);
+  background: rgba(255, 255, 255, 0.68);
+  color: var(--ink);
+  font-weight: 800;
+  white-space: nowrap;
+  transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
+}
+
+.audience-nav a:hover,
+.audience-nav a:focus-visible {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(47, 90, 67, 0.18);
+}
+
+.audience-nav a.is-current {
+  color: #fff;
+  background: linear-gradient(135deg, var(--forest), #6a8f79);
+  border-color: transparent;
+}
+
+.audience-card-grid,
+.audience-product-grid,
+.audience-timeline-grid,
+.product-detail-columns {
+  display: grid;
+  gap: 1rem;
+}
+
+.audience-card-grid {
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  margin-top: 2rem;
+}
+
+.audience-card {
+  display: grid;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-radius: var(--radius-xl);
+  background: rgba(255, 250, 241, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.76);
+  box-shadow: var(--shadow);
+}
+
+.audience-card-live {
+  background:
+    radial-gradient(circle at top right, rgba(47, 90, 67, 0.12), transparent 15rem),
+    rgba(255, 250, 241, 0.94);
+}
+
+.audience-card-next {
+  background:
+    radial-gradient(circle at top right, rgba(217, 150, 68, 0.12), transparent 15rem),
+    rgba(255, 250, 241, 0.9);
+}
+
+.audience-card-head {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.audience-card-head h3,
+.audience-card-summary {
+  margin: 0;
+}
+
+.audience-state {
+  margin: 0;
+  color: var(--clay);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.audience-card-actions {
+  margin-top: auto;
+}
+
+.audience-timeline-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 2rem;
+}
+
+.journey-stage-card {
+  display: grid;
+  gap: 0.7rem;
+  padding: 1.35rem;
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(circle at top right, rgba(217, 150, 68, 0.08), transparent 14rem),
+    rgba(255, 250, 241, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.74);
+  box-shadow: var(--shadow);
+}
+
+.journey-stage-card h3,
+.journey-stage-card p {
+  margin: 0;
+}
+
+.audience-product-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 2rem;
+}
+
+.audience-product-card {
+  display: grid;
+  gap: 0.85rem;
+  padding: 1.35rem;
+  border-radius: var(--radius-xl);
+  background:
+    linear-gradient(150deg, rgba(255, 250, 241, 0.95), rgba(228, 238, 231, 0.84));
+  border: 1px solid rgba(255, 255, 255, 0.76);
+  box-shadow: var(--shadow);
+}
+
+.audience-product-card h3,
+.audience-product-card p {
+  margin: 0;
+}
+
+.detail-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--forest);
+  font-weight: 800;
+}
+
+.detail-link::after {
+  content: "\2193";
+}
+
+.product-detail-stack {
+  display: grid;
+  gap: 1.25rem;
+  margin-top: 2rem;
+}
+
+.product-detail-panel {
+  display: grid;
+  gap: 1.15rem;
+  padding: 1.6rem;
+  border-radius: calc(var(--radius-xl) + 2px);
+  background:
+    radial-gradient(circle at top right, rgba(217, 150, 68, 0.08), transparent 17rem),
+    rgba(255, 250, 241, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: var(--shadow);
+}
+
+.product-detail-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.product-detail-head h3,
+.product-detail-summary {
+  margin: 0;
+}
+
+.product-detail-summary {
+  max-width: 56rem;
+}
+
+.product-detail-columns {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.product-detail-columns h4 {
+  margin: 0 0 0.75rem;
+  color: var(--ink);
+}
+
+.product-detail-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--muted);
+  line-height: 1.8;
+}
+
 .trajectory-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1415,7 +1619,10 @@ a.journey-map-card:focus-visible {
   .sensor-grid,
   .journey-map-grid,
   .product-grid,
-  .trajectory-grid {
+  .trajectory-grid,
+  .audience-timeline-grid,
+  .audience-product-grid,
+  .product-detail-columns {
     grid-template-columns: repeat(2, 1fr);
   }
 
@@ -1467,7 +1674,11 @@ a.journey-map-card:focus-visible {
   .journey-map-grid,
   .feedback-insight-grid-compact,
   .product-grid,
-  .trajectory-grid {
+  .trajectory-grid,
+  .audience-card-grid,
+  .audience-timeline-grid,
+  .audience-product-grid,
+  .product-detail-columns {
     grid-template-columns: 1fr;
   }
 
@@ -1487,6 +1698,10 @@ a.journey-map-card:focus-visible {
   .feature-card,
   .timeline-card,
   .product-card,
+  .audience-card,
+  .audience-product-card,
+  .journey-stage-card,
+  .product-detail-panel,
   .journey-map-shell,
   .journey-map-card,
   .feedback-form-card,
