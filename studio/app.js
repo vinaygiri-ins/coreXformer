@@ -821,6 +821,21 @@ This is why CoreXformer matters. It is not only about what happened in the activ
 
 const PIPELINE_KEYS = ["new", "contacted", "scheduled", "closed"];
 const EDITOR_ROLES = ["owner", "editor"];
+const PRODUCT_LIBRARY = [
+  { slug: "belong-connect", name: "Belong & Connect", audience: "Schools" },
+  { slug: "team-up-solve", name: "Team Up & Solve", audience: "Schools" },
+  { slug: "feel-pause-respond", name: "Feel, Pause, Respond", audience: "Schools" },
+  { slug: "respect-in-difference", name: "Respect in Difference", audience: "Schools" },
+  { slug: "courage-confidence-action", name: "Courage & Confidence in Action", audience: "Schools" },
+  { slug: "student-leadership-in-action", name: "Student Leadership in Action", audience: "Schools" },
+  { slug: "holding-the-space", name: "Holding the Space", audience: "Teachers" },
+  { slug: "connection-before-instruction", name: "Connection Before Instruction", audience: "Teachers" },
+  { slug: "responding-under-pressure", name: "Responding Under Pressure", audience: "Teachers" },
+  { slug: "teacher-teaming-collaboration", name: "Teacher Teaming & Collaboration", audience: "Teachers" },
+  { slug: "reflection-as-practice", name: "Reflection as Practice", audience: "Teachers" },
+  { slug: "preventing-burnout-rebuilding-energy", name: "Preventing Burnout, Rebuilding Energy", audience: "Teachers" },
+  { slug: "teacher-leadership-in-action", name: "Teacher Leadership in Action", audience: "Teachers" }
+];
 
 const dom = {
   loginForm: document.getElementById("loginForm"),
@@ -847,6 +862,24 @@ const dom = {
   saveDraftButton: document.getElementById("saveDraftButton"),
   publishButton: document.getElementById("publishButton"),
   editorMessage: document.getElementById("editorMessage"),
+  productSelector: document.getElementById("productSelector"),
+  facilitatorNameInput: document.getElementById("facilitatorNameInput"),
+  facilitatorRoleInput: document.getElementById("facilitatorRoleInput"),
+  facilitatorEmailInput: document.getElementById("facilitatorEmailInput"),
+  facilitatorBioInput: document.getElementById("facilitatorBioInput"),
+  facilitatorNoteInput: document.getElementById("facilitatorNoteInput"),
+  facilitatorPublicInput: document.getElementById("facilitatorPublicInput"),
+  saveFacilitatorButton: document.getElementById("saveFacilitatorButton"),
+  productNoteTitleInput: document.getElementById("productNoteTitleInput"),
+  productNoteScopeInput: document.getElementById("productNoteScopeInput"),
+  productNoteBodyInput: document.getElementById("productNoteBodyInput"),
+  saveProductNoteButton: document.getElementById("saveProductNoteButton"),
+  productOpsMessage: document.getElementById("productOpsMessage"),
+  productFeedbackCount: document.getElementById("productFeedbackCount"),
+  productFeedbackShareable: document.getElementById("productFeedbackShareable"),
+  productFeedbackLatest: document.getElementById("productFeedbackLatest"),
+  productFeedbackList: document.getElementById("productFeedbackList"),
+  productFeedbackEmptyState: document.getElementById("productFeedbackEmptyState"),
   inquiryCounts: {
     new: document.getElementById("countNew"),
     contacted: document.getElementById("countContacted"),
@@ -868,10 +901,17 @@ const state = {
     scheduled: 0,
     closed: 0
   },
+  productOps: {
+    selectedProductSlug: PRODUCT_LIBRARY[0].slug,
+    facilitator: null,
+    note: null,
+    feedbackRows: []
+  },
   busy: {
     auth: false,
     save: false,
-    import: false
+    import: false,
+    productOps: false
   }
 };
 
@@ -944,6 +984,20 @@ function bindEvents() {
   dom.publishButton.addEventListener("click", () => {
     void saveCurrentSection("published");
   });
+
+  dom.productSelector?.addEventListener("change", () => {
+    state.productOps.selectedProductSlug = dom.productSelector.value;
+    clearMessage(dom.productOpsMessage);
+    void loadProductOpsData();
+  });
+
+  dom.saveFacilitatorButton?.addEventListener("click", () => {
+    void saveProductFacilitator();
+  });
+
+  dom.saveProductNoteButton?.addEventListener("click", () => {
+    void saveProductNote();
+  });
 }
 
 async function handleSession(session) {
@@ -955,8 +1009,12 @@ async function handleSession(session) {
     state.currentPageIndex = 0;
     state.currentSectionIndex = 0;
     state.inquiryCounts = zeroInquiryCounts();
+    state.productOps.facilitator = null;
+    state.productOps.note = null;
+    state.productOps.feedbackRows = [];
     clearMessage(dom.editorMessage);
     clearMessage(dom.authMessage);
+    clearMessage(dom.productOpsMessage);
     setAuthState("Signed out. Use your email and password to enter the private studio.");
     renderStudio();
     return;
@@ -975,7 +1033,7 @@ async function handleSession(session) {
       return;
     }
 
-    await Promise.all([loadPages(), loadInquiryCounts()]);
+    await Promise.all([loadPages(), loadInquiryCounts(), loadProductOpsData()]);
     clearMessage(dom.authMessage);
     setAuthState(buildAuthSummary());
   } catch (error) {
@@ -1169,6 +1227,65 @@ async function loadInquiryCounts() {
   state.inquiryCounts = counts;
 }
 
+async function loadProductOpsData() {
+  const product = getSelectedProduct();
+
+  state.productOps.facilitator = null;
+  state.productOps.note = null;
+  state.productOps.feedbackRows = [];
+
+  if (!state.session || !canEdit() || !product) {
+    renderStudio();
+    return;
+  }
+
+  setBusy("productOps", true);
+
+  try {
+    const [facilitatorResult, noteResult, feedbackResult] = await Promise.all([
+      state.supabase
+        .from("product_facilitators")
+        .select("id, product_slug, product_name, facilitator_name, facilitator_role, facilitator_bio, facilitator_email, public_note, is_public, sort_order")
+        .eq("product_slug", product.slug)
+        .order("sort_order", { ascending: true })
+        .limit(1),
+      state.supabase
+        .from("product_private_notes")
+        .select("id, product_slug, product_name, note_key, note_title, note_body, note_scope")
+        .eq("product_slug", product.slug)
+        .eq("note_key", "delivery-notes")
+        .maybeSingle(),
+      state.supabase
+        .from("session_feedback")
+        .select("id, organization_name, audience_type, product_slug, product_name, safe_space_rating, activity_meaning_rating, reflection_value_rating, lasting_moment, teamwork_insight, future_takeaway, share_publicly, display_name, created_at")
+        .eq("product_slug", product.slug)
+        .order("created_at", { ascending: false })
+        .limit(10)
+    ]);
+
+    if (facilitatorResult.error) {
+      throw facilitatorResult.error;
+    }
+
+    if (noteResult.error) {
+      throw noteResult.error;
+    }
+
+    if (feedbackResult.error) {
+      throw feedbackResult.error;
+    }
+
+    state.productOps.facilitator = Array.isArray(facilitatorResult.data) ? facilitatorResult.data[0] || null : null;
+    state.productOps.note = noteResult.data || null;
+    state.productOps.feedbackRows = Array.isArray(feedbackResult.data) ? feedbackResult.data : [];
+    clearMessage(dom.productOpsMessage);
+  } catch (error) {
+    showMessage(dom.productOpsMessage, error.message || "The product operations data could not be loaded yet.", "error");
+  } finally {
+    setBusy("productOps", false);
+  }
+}
+
 async function importStarterContent() {
   if (!canEdit()) {
     showMessage(dom.authMessage, "Only owner or editor accounts can sync starter content.", "error");
@@ -1313,6 +1430,119 @@ async function importStarterContent() {
   }
 }
 
+async function saveProductFacilitator() {
+  if (!canEdit()) {
+    showMessage(dom.productOpsMessage, "Only owner or editor accounts can save facilitator assignments.", "error");
+    return;
+  }
+
+  const product = getSelectedProduct();
+
+  if (!product) {
+    showMessage(dom.productOpsMessage, "Choose a product before saving facilitator details.", "error");
+    return;
+  }
+
+  const facilitatorName = dom.facilitatorNameInput.value.trim();
+
+  if (!facilitatorName) {
+    showMessage(dom.productOpsMessage, "Add the facilitator name before saving this product assignment.", "error");
+    return;
+  }
+
+  const payload = {
+    product_slug: product.slug,
+    product_name: product.name,
+    facilitator_name: facilitatorName,
+    facilitator_role: dom.facilitatorRoleInput.value,
+    facilitator_email: dom.facilitatorEmailInput.value.trim() || null,
+    facilitator_bio: dom.facilitatorBioInput.value.trim() || null,
+    public_note: dom.facilitatorNoteInput.value.trim() || null,
+    is_public: Boolean(dom.facilitatorPublicInput.checked),
+    sort_order: 0,
+    updated_by: state.session.user.id
+  };
+
+  if (!state.productOps.facilitator?.id) {
+    payload.created_by = state.session.user.id;
+  }
+
+  setBusy("productOps", true);
+  showMessage(dom.productOpsMessage, `Saving facilitator details for ${product.name}...`);
+
+  let query = state.supabase
+    .from("product_facilitators");
+
+  if (state.productOps.facilitator?.id) {
+    query = query.update(payload).eq("id", state.productOps.facilitator.id);
+  } else {
+    query = query.insert([payload]);
+  }
+
+  const { error } = await query;
+
+  if (error) {
+    setBusy("productOps", false);
+    showMessage(dom.productOpsMessage, error.message, "error");
+    return;
+  }
+
+  await loadProductOpsData();
+  showMessage(dom.productOpsMessage, `Facilitator details for ${product.name} were saved successfully.`, "success");
+}
+
+async function saveProductNote() {
+  if (!canEdit()) {
+    showMessage(dom.productOpsMessage, "Only owner or editor accounts can save private product notes.", "error");
+    return;
+  }
+
+  const product = getSelectedProduct();
+
+  if (!product) {
+    showMessage(dom.productOpsMessage, "Choose a product before saving private notes.", "error");
+    return;
+  }
+
+  const noteTitle = dom.productNoteTitleInput.value.trim();
+  const noteBody = dom.productNoteBodyInput.value.trim();
+
+  if (!noteTitle || !noteBody) {
+    showMessage(dom.productOpsMessage, "Add both a note title and note body before saving private notes.", "error");
+    return;
+  }
+
+  const payload = {
+    product_slug: product.slug,
+    product_name: product.name,
+    note_key: "delivery-notes",
+    note_title: noteTitle,
+    note_body: noteBody,
+    note_scope: dom.productNoteScopeInput.value,
+    updated_by: state.session.user.id
+  };
+
+  if (!state.productOps.note?.id) {
+    payload.created_by = state.session.user.id;
+  }
+
+  setBusy("productOps", true);
+  showMessage(dom.productOpsMessage, `Saving private notes for ${product.name}...`);
+
+  const { error } = await state.supabase
+    .from("product_private_notes")
+    .upsert(payload, { onConflict: "product_slug,note_key" });
+
+  if (error) {
+    setBusy("productOps", false);
+    showMessage(dom.productOpsMessage, error.message, "error");
+    return;
+  }
+
+  await loadProductOpsData();
+  showMessage(dom.productOpsMessage, `Private notes for ${product.name} were saved successfully.`, "success");
+}
+
 async function saveCurrentSection(nextStatus) {
   if (!canEdit()) {
     showMessage(dom.editorMessage, "Only owner or editor accounts can save content changes.", "error");
@@ -1405,6 +1635,8 @@ function renderStudio() {
   renderPageList();
   renderSectionList();
   renderEditor();
+  renderProductOps();
+  renderProductFeedback();
   renderInquiryCounts();
 }
 
@@ -1536,6 +1768,97 @@ function renderEditor() {
   }
 }
 
+function renderProductOps() {
+  renderProductSelectorOptions();
+
+  const selectedProduct = getSelectedProduct();
+  const facilitator = state.productOps.facilitator;
+  const note = state.productOps.note;
+  const editable = canEdit();
+  const disabled = !editable || state.busy.productOps;
+
+  if (dom.productSelector && selectedProduct && dom.productSelector.value !== selectedProduct.slug) {
+    dom.productSelector.value = selectedProduct.slug;
+  }
+
+  dom.productSelector.disabled = !editable;
+  dom.facilitatorNameInput.disabled = disabled;
+  dom.facilitatorRoleInput.disabled = disabled;
+  dom.facilitatorEmailInput.disabled = disabled;
+  dom.facilitatorBioInput.disabled = disabled;
+  dom.facilitatorNoteInput.disabled = disabled;
+  dom.facilitatorPublicInput.disabled = disabled;
+  dom.saveFacilitatorButton.disabled = disabled;
+  dom.productNoteTitleInput.disabled = disabled;
+  dom.productNoteScopeInput.disabled = disabled;
+  dom.productNoteBodyInput.disabled = disabled;
+  dom.saveProductNoteButton.disabled = disabled;
+
+  dom.facilitatorNameInput.value = facilitator?.facilitator_name || "";
+  dom.facilitatorRoleInput.value = facilitator?.facilitator_role || "approved";
+  dom.facilitatorEmailInput.value = facilitator?.facilitator_email || "";
+  dom.facilitatorBioInput.value = facilitator?.facilitator_bio || "";
+  dom.facilitatorNoteInput.value = facilitator?.public_note || "";
+  dom.facilitatorPublicInput.checked = facilitator?.is_public ?? false;
+
+  dom.productNoteTitleInput.value = note?.note_title || "";
+  dom.productNoteScopeInput.value = note?.note_scope || "facilitator_and_admin";
+  dom.productNoteBodyInput.value = note?.note_body || "";
+}
+
+function renderProductSelectorOptions() {
+  if (!dom.productSelector || dom.productSelector.dataset.optionsReady === "true") {
+    return;
+  }
+
+  const optionsMarkup = PRODUCT_LIBRARY.map((product) => {
+    return `<option value="${product.slug}">${product.audience} | ${product.name}</option>`;
+  }).join("");
+
+  dom.productSelector.innerHTML = optionsMarkup;
+  dom.productSelector.dataset.optionsReady = "true";
+}
+
+function renderProductFeedback() {
+  const feedbackRows = state.productOps.feedbackRows;
+  const shareableCount = feedbackRows.filter((row) => row.share_publicly).length;
+  const latestDate = feedbackRows[0]?.created_at ? new Date(feedbackRows[0].created_at) : null;
+
+  dom.productFeedbackCount.textContent = String(feedbackRows.length);
+  dom.productFeedbackShareable.textContent = String(shareableCount);
+  dom.productFeedbackLatest.textContent = latestDate ? formatShortDate(latestDate) : "—";
+
+  dom.productFeedbackList.innerHTML = "";
+  dom.productFeedbackEmptyState.classList.toggle("hidden", feedbackRows.length > 0);
+
+  if (!feedbackRows.length) {
+    return;
+  }
+
+  feedbackRows.forEach((row) => {
+    const article = document.createElement("article");
+    article.className = "product-feedback-card";
+
+    const credit = normalizeValue(row.display_name) || normalizeValue(row.organization_name) || "Participant reflection";
+    const insight = normalizeValue(row.future_takeaway) || normalizeValue(row.teamwork_insight) || normalizeValue(row.lasting_moment);
+    const latestTag = row.share_publicly ? "Shareable" : "Private";
+
+    article.innerHTML = `
+      <div class="product-feedback-card-head">
+        <div>
+          <h3>${escapeHtml(credit)}</h3>
+          <p class="product-feedback-meta">${escapeHtml(formatFeedbackMeta(row))}</p>
+        </div>
+        <span class="status-pill${row.share_publicly ? " status-live" : ""}">${latestTag}</span>
+      </div>
+      <p><strong>Safe space:</strong> ${row.safe_space_rating}/5 · <strong>Activity meaning:</strong> ${row.activity_meaning_rating}/5 · <strong>Reflection value:</strong> ${row.reflection_value_rating}/5</p>
+      <div class="product-feedback-quote">${escapeHtml(insight || "No written reflection shared yet.")}</div>
+    `;
+
+    dom.productFeedbackList.appendChild(article);
+  });
+}
+
 function renderInquiryCounts() {
   PIPELINE_KEYS.forEach((key) => {
     dom.inquiryCounts[key].textContent = String(state.inquiryCounts[key] || 0);
@@ -1560,6 +1883,10 @@ function getCurrentPage() {
 
 function getCurrentSection() {
   return getCurrentPage()?.sections?.[state.currentSectionIndex] || null;
+}
+
+function getSelectedProduct() {
+  return PRODUCT_LIBRARY.find((product) => product.slug === state.productOps.selectedProductSlug) || PRODUCT_LIBRARY[0];
 }
 
 function canEdit() {
@@ -1596,17 +1923,19 @@ function setBusy(scope, isBusy) {
 
 function showMessage(element, message, tone = "info") {
   element.textContent = message;
-  element.classList.remove("hidden", "is-error");
+  element.classList.remove("hidden", "is-error", "is-success");
 
   if (tone === "error") {
     element.classList.add("is-error");
+  } else if (tone === "success") {
+    element.classList.add("is-success");
   }
 }
 
 function clearMessage(element) {
   element.textContent = "";
   element.classList.add("hidden");
-  element.classList.remove("is-error");
+  element.classList.remove("is-error", "is-success");
 }
 
 function statusLabel(status) {
@@ -1629,6 +1958,51 @@ function zeroInquiryCounts() {
     scheduled: 0,
     closed: 0
   };
+}
+
+function formatShortDate(value) {
+  if (!(value instanceof Date) || Number.isNaN(value.getTime())) {
+    return "—";
+  }
+
+  return new Intl.DateTimeFormat("en-IN", {
+    day: "2-digit",
+    month: "short"
+  }).format(value);
+}
+
+function formatFeedbackMeta(row) {
+  const audience = normalizeValue(row.audience_type) || "mixed";
+  const dateLabel = row.created_at ? formatShortDate(new Date(row.created_at)) : "unknown date";
+  return `${humanizeAudience(audience)} · ${dateLabel}`;
+}
+
+function humanizeAudience(audience) {
+  switch (audience) {
+    case "school":
+      return "School";
+    case "college":
+      return "College";
+    case "corporate":
+      return "Corporate";
+    case "community":
+      return "Community";
+    case "government":
+      return "Government";
+    case "mixed":
+      return "Mixed group";
+    default:
+      return audience ? audience[0].toUpperCase() + audience.slice(1) : "Mixed group";
+  }
+}
+
+function escapeHtml(text) {
+  return String(text)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
 }
 
 function sleep(duration) {

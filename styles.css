@@ -1541,6 +1541,33 @@ a.journey-map-card:focus-visible {
   font-size: 1.2rem;
 }
 
+.product-facilitator-shell {
+  display: grid;
+  gap: 1rem;
+}
+
+.product-facilitator-card h4 {
+  margin: 0 0 0.35rem;
+  font-family: "Fraunces", serif;
+  font-size: 1.25rem;
+  color: var(--ink);
+}
+
+.product-facilitator-role {
+  margin: 0 0 0.8rem;
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--forest);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.product-facilitator-note {
+  margin-top: 0.85rem;
+  font-weight: 700;
+  color: var(--clay);
+}
+
 .feedback-insight-grid {
   margin-top: 2rem;
 }

@@ -47,6 +47,10 @@ tabButtons.forEach((button) => {
   });
 });
 
+if (publicSupabase && document.querySelector("[data-public-facilitator-list]")) {
+  void loadPublicFacilitators(publicSupabase);
+}
+
 const planningStates = [
   ["Warm-up", "Action", "Pause", "Insight"],
   ["Arrival", "Challenge", "Reflection", "Takeaway"],
@@ -396,4 +400,75 @@ function showInquiryMessage(element, text, tone) {
 
 function normalizeValue(value) {
   return typeof value === "string" ? value.trim() : "";
+}
+
+async function loadPublicFacilitators(supabase) {
+  const shell = document.querySelector("[data-public-facilitator-list]");
+  const productSlug = normalizeValue(document.body?.dataset.feedbackProductSlug);
+
+  if (!shell || !productSlug) {
+    return;
+  }
+
+  const { data, error } = await supabase
+    .from("product_facilitators")
+    .select("facilitator_name, facilitator_role, facilitator_bio, public_note")
+    .eq("product_slug", productSlug)
+    .eq("is_public", true)
+    .order("sort_order", { ascending: true })
+    .limit(3);
+
+  if (error) {
+    console.warn("CoreXformer facilitator details could not be loaded.", error);
+    return;
+  }
+
+  const facilitators = Array.isArray(data) ? data.filter((row) => normalizeValue(row.facilitator_name)) : [];
+
+  if (!facilitators.length) {
+    return;
+  }
+
+  shell.innerHTML = facilitators
+    .map((facilitator) => {
+      const name = escapeHtml(facilitator.facilitator_name);
+      const role = humanizeFacilitatorRole(facilitator.facilitator_role);
+      const bio = escapeHtml(normalizeValue(facilitator.facilitator_bio));
+      const note = escapeHtml(normalizeValue(facilitator.public_note));
+
+      return `
+        <article class="product-facilitator-card">
+          <p class="eyebrow">Assigned facilitator</p>
+          <h4>${name}</h4>
+          <p class="product-facilitator-role">${escapeHtml(role)}</p>
+          ${bio ? `<p>${bio}</p>` : ""}
+          ${note ? `<p class="product-facilitator-note">${note}</p>` : ""}
+        </article>
+      `;
+    })
+    .join("");
+}
+
+function humanizeFacilitatorRole(role) {
+  switch (role) {
+    case "lead_facilitator":
+      return "Lead facilitator";
+    case "co_facilitator":
+      return "Co-facilitator";
+    case "shadow":
+      return "Shadow facilitator";
+    case "approved":
+      return "Approved facilitator";
+    default:
+      return "Facilitator";
+  }
+}
+
+function escapeHtml(text) {
+  return String(text)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
 }

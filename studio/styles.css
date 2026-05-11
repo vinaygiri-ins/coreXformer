@@ -172,6 +172,7 @@ label span {
 }
 
 input,
+select,
 textarea {
   width: 100%;
   border: 1px solid var(--line);
@@ -330,6 +331,12 @@ button:disabled {
   color: #7a4123;
 }
 
+.message-banner.is-success {
+  border-color: rgba(47, 107, 80, 0.28);
+  background: rgba(47, 107, 80, 0.12);
+  color: var(--accent);
+}
+
 .empty-state h3 {
   margin-bottom: 8px;
 }
@@ -368,6 +375,39 @@ button:disabled {
   margin-bottom: 8px;
 }
 
+.studio-fieldset {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 20px;
+  border: 1px solid rgba(217, 206, 185, 0.88);
+  background: rgba(244, 240, 232, 0.66);
+}
+
+.studio-fieldset-head {
+  display: grid;
+  gap: 6px;
+}
+
+.studio-fieldset-head p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.studio-checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-weight: 700;
+}
+
+.studio-checkbox-row input {
+  width: 18px;
+  height: 18px;
+  margin-top: 3px;
+}
+
 .pipeline-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -395,6 +435,57 @@ button:disabled {
   margin: 10px 0 8px;
   font-size: 2rem;
   font-family: "Fraunces", serif;
+}
+
+.product-stats-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-bottom: 20px;
+}
+
+.product-feedback-list {
+  display: grid;
+  gap: 14px;
+}
+
+.product-feedback-card {
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.product-feedback-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.product-feedback-card h3 {
+  margin-bottom: 6px;
+}
+
+.product-feedback-meta {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.product-feedback-card p {
+  margin: 0 0 10px;
+}
+
+.product-feedback-quote {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(47, 107, 80, 0.07);
+  border: 1px solid rgba(47, 107, 80, 0.1);
+  color: var(--ink);
+  font-size: 0.96rem;
+  line-height: 1.6;
 }
 
 .doc-links a {
@@ -436,6 +527,10 @@ button:disabled {
   }
 
   .pipeline-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .product-stats-grid {
     grid-template-columns: 1fr;
   }
 

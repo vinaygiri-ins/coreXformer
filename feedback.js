@@ -14,7 +14,8 @@
     }
   });
 
-  applyFeedbackContext();
+  const feedbackContext = getFeedbackContext();
+  applyFeedbackContext(feedbackContext);
 
   const feedbackForm = document.querySelector("[data-feedback-form]");
   const shareToggle = document.querySelector("[data-share-toggle]");
@@ -29,16 +30,16 @@
   if (feedbackForm) {
     feedbackForm.addEventListener("submit", (event) => {
       event.preventDefault();
-      void submitFeedback(supabase, feedbackForm);
+      void submitFeedback(supabase, feedbackForm, feedbackContext);
     });
   }
 
   if (document.querySelector("[data-feedback-total], [data-feedback-quote-grid]")) {
-    void loadFeedbackInsights(supabase);
+    void loadFeedbackInsights(supabase, feedbackContext);
   }
 })();
 
-async function submitFeedback(supabase, feedbackForm) {
+async function submitFeedback(supabase, feedbackForm, feedbackContext) {
   const submitButton = feedbackForm.querySelector("[data-feedback-submit]");
   const messageElement = feedbackForm.querySelector("[data-feedback-message]");
   const shareToggle = feedbackForm.querySelector("[data-share-toggle]");
@@ -47,7 +48,11 @@ async function submitFeedback(supabase, feedbackForm) {
 
   const payload = {
     organization_name: normalizeValue(formData.get("organizationName")),
-    audience_type: normalizeValue(formData.get("audienceType")),
+    audience_type: normalizeValue(formData.get("audienceType")) || feedbackContext.audienceValue || null,
+    product_slug: feedbackContext.productSlug || null,
+    product_name: feedbackContext.productName || null,
+    session_title: feedbackContext.sessionTitle || null,
+    facilitator_name: feedbackContext.facilitatorName || null,
     safe_space_rating: Number(formData.get("safeSpaceRating")),
     activity_meaning_rating: Number(formData.get("activityMeaningRating")),
     reflection_value_rating: Number(formData.get("reflectionValueRating")),
@@ -112,17 +117,21 @@ async function submitFeedback(supabase, feedbackForm) {
 
   showFeedbackMessage(
     messageElement,
-    "Thank you. Your reflection has been received and will help shape the evolving story of this work.",
+    feedbackContext.productName
+      ? `Thank you. Your reflection for ${feedbackContext.productName} has been received and will help shape this product with more truth and care.`
+      : "Thank you. Your reflection has been received and will help shape the evolving story of this work.",
     "success"
   );
 
-  await loadFeedbackInsights(supabase);
+  await loadFeedbackInsights(supabase, feedbackContext);
 }
 
-async function loadFeedbackInsights(supabase) {
-  const { data, error } = await supabase
+async function loadFeedbackInsights(supabase, feedbackContext) {
+  let query = supabase
     .from("session_feedback")
     .select([
+      "product_slug",
+      "product_name",
       "audience_type",
       "safe_space_rating",
       "activity_meaning_rating",
@@ -137,6 +146,12 @@ async function loadFeedbackInsights(supabase) {
     .order("created_at", { ascending: false })
     .limit(120);
 
+  if (feedbackContext.productSlug) {
+    query = query.eq("product_slug", feedbackContext.productSlug);
+  }
+
+  const { data, error } = await query;
+
   if (error) {
     console.warn("CoreXformer feedback insights could not be loaded.", error);
     renderFeedbackFallback();
@@ -145,7 +160,7 @@ async function loadFeedbackInsights(supabase) {
 
   const rows = Array.isArray(data) ? data : [];
   renderFeedbackStats(rows);
-  renderFeedbackQuotes(rows);
+  renderFeedbackQuotes(rows, feedbackContext);
 }
 
 function renderFeedbackStats(rows) {
@@ -160,7 +175,7 @@ function renderFeedbackStats(rows) {
   setTextForAll("[data-feedback-reflection]", total ? `${reflectionAverage.toFixed(1)} / 5` : "—");
 }
 
-function renderFeedbackQuotes(rows) {
+function renderFeedbackQuotes(rows, feedbackContext) {
   const quotes = rows
     .filter((row) => row.share_publicly)
     .map((row) => buildQuotePayload(row))
@@ -177,8 +192,8 @@ function renderFeedbackQuotes(rows) {
       emptyCard.className = "reflection-card reflection-card-empty";
       emptyCard.innerHTML = `
         <p class="eyebrow">Participant reflections</p>
-        <h3>The first public reflections will appear here.</h3>
-        <p>Once participants allow a short line to be shared, this space will begin carrying their words forward.</p>
+        <h3>${feedbackContext.productName ? `The first ${escapeHtml(feedbackContext.productName)} reflections will appear here.` : "The first public reflections will appear here."}</h3>
+        <p>${feedbackContext.productName ? `Once participants allow a short line to be shared, this space will begin carrying their words forward for ${escapeHtml(feedbackContext.productName)} specifically.` : "Once participants allow a short line to be shared, this space will begin carrying their words forward."}</p>
       `;
       grid.appendChild(emptyCard);
       return;
@@ -224,15 +239,10 @@ function renderFeedbackFallback() {
   setTextForAll("[data-feedback-reflection]", "—");
 }
 
-function applyFeedbackContext() {
-  const banner = document.querySelector("[data-feedback-context-banner]");
-  const titleElement = document.querySelector("[data-feedback-context-title]");
-  const bodyElement = document.querySelector("[data-feedback-context-body]");
-  const audienceField = document.querySelector('[name="audienceType"]');
+function getFeedbackContext() {
   const params = new URLSearchParams(window.location.search);
-  const productName = normalizeValue(params.get("productName"));
-  const rawAudience = normalizeValue(params.get("audience")).toLowerCase();
-  const sessionTitle = normalizeValue(params.get("sessionTitle"));
+  const body = document.body;
+  const rawAudience = normalizeValue(params.get("audience") || body?.dataset.feedbackAudience).toLowerCase();
   const audienceMap = {
     schools: "school",
     school: "school",
@@ -243,34 +253,50 @@ function applyFeedbackContext() {
     corporate: "corporate",
     government: "government",
     communities: "community",
-    community: "community"
+    community: "community",
+    mixed: "mixed"
   };
-  const audienceValue = audienceMap[rawAudience] || "";
 
-  if (audienceField && audienceValue && !audienceField.value) {
-    audienceField.value = audienceValue;
+  return {
+    productSlug: normalizeValue(params.get("productSlug") || body?.dataset.feedbackProductSlug),
+    productName: normalizeValue(params.get("productName") || body?.dataset.feedbackProductName),
+    sessionTitle: normalizeValue(params.get("sessionTitle") || body?.dataset.feedbackSessionTitle),
+    facilitatorName: normalizeValue(params.get("facilitatorName") || body?.dataset.feedbackFacilitatorName),
+    rawAudience,
+    audienceValue: audienceMap[rawAudience] || ""
+  };
+}
+
+function applyFeedbackContext(feedbackContext) {
+  const banner = document.querySelector("[data-feedback-context-banner]");
+  const titleElement = document.querySelector("[data-feedback-context-title]");
+  const bodyElement = document.querySelector("[data-feedback-context-body]");
+  const audienceField = document.querySelector('[name="audienceType"]');
+
+  if (audienceField && feedbackContext.audienceValue && !audienceField.value) {
+    audienceField.value = feedbackContext.audienceValue;
   }
 
-  if (!banner || !titleElement || !bodyElement || !productName) {
+  if (!banner || !titleElement || !bodyElement || !feedbackContext.productName) {
     return;
   }
 
   const contextBits = [];
 
-  if (sessionTitle) {
-    contextBits.push(`session: ${sessionTitle}`);
+  if (feedbackContext.sessionTitle) {
+    contextBits.push(`session: ${feedbackContext.sessionTitle}`);
   }
 
-  if (audienceValue) {
-    contextBits.push(`audience: ${audienceValue}`);
+  if (feedbackContext.audienceValue) {
+    contextBits.push(`audience: ${feedbackContext.audienceValue}`);
   }
 
-  titleElement.textContent = `Feedback for ${productName}`;
+  titleElement.textContent = `Feedback for ${feedbackContext.productName}`;
   bodyElement.textContent = contextBits.length
-    ? `You arrived here from a specific CoreXformer product. This reflection is being written for ${productName} (${contextBits.join(" · ")}). As the product system matures, approved reflections from this flow will appear under that product directly.`
-    : `You arrived here from a specific CoreXformer product. This reflection is being written for ${productName}. As the product system matures, approved reflections from this flow will appear under that product directly.`;
+    ? `You arrived here from a specific CoreXformer product. This reflection is being written for ${feedbackContext.productName} (${contextBits.join(" · ")}). Approved reflections from this flow can now stay attached to that product directly.`
+    : `You arrived here from a specific CoreXformer product. This reflection is being written for ${feedbackContext.productName}. Approved reflections from this flow can now stay attached to that product directly.`;
   banner.classList.remove("hidden");
-  document.title = `CoreXformer | Feedback for ${productName}`;
+  document.title = `CoreXformer | Feedback for ${feedbackContext.productName}`;
 }
 
 function showFeedbackMessage(element, text, tone) {

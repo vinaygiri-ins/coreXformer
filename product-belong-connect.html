@@ -13,7 +13,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
-<body data-page-slug="product-belong-connect">
+<body
+  data-page-slug="product-belong-connect"
+  data-feedback-product-slug="belong-connect"
+  data-feedback-product-name="Belong &amp; Connect"
+  data-feedback-audience="school"
+>
   <header class="site-header">
     <div class="container nav-shell">
       <a class="brand" href="index.html">
@@ -216,19 +221,30 @@
                   </ul>
                 </div>
                 <div class="section-link-row">
-                  <a class="button" href="feedback.html?productName=Belong%20%26%20Connect&amp;audience=school">Write feedback for this product</a>
+                  <a class="button" href="feedback.html?productSlug=belong-connect&amp;productName=Belong%20%26%20Connect&amp;audience=school">Write feedback for this product</a>
                 </div>
               </article>
 
               <div class="content-stack">
-                <article class="reflection-card reflection-card-empty">
-                  <p class="eyebrow">Approved reflections</p>
-                  <h3>The first Belong &amp; Connect reflections will appear here.</h3>
-                  <p>
-                    Once this product starts collecting product-linked participant feedback, selected reflections will
-                    sit here directly below the product instead of blending into a general feedback pool.
-                  </p>
-                </article>
+                <div class="feedback-insight-grid feedback-insight-grid-compact">
+                  <article class="feedback-stat-card">
+                    <span>Reflections received</span>
+                    <strong data-feedback-total>0</strong>
+                    <p>Only reflections linked to Belong &amp; Connect are counted here.</p>
+                  </article>
+                  <article class="feedback-stat-card">
+                    <span>Safe beginning</span>
+                    <strong data-feedback-safe>—</strong>
+                    <p>Average sense of welcome and emotional safety at the start.</p>
+                  </article>
+                  <article class="feedback-stat-card">
+                    <span>Reflection value</span>
+                    <strong data-feedback-reflection>—</strong>
+                    <p>How valuable the post-activity reflection felt for this product.</p>
+                  </article>
+                </div>
+
+                <div class="quote-wall" data-feedback-quote-grid data-feedback-quote-limit="2"></div>
 
                 <article class="feedback-use-card">
                   <h4>What future visitors will see here</h4>
@@ -252,11 +268,13 @@
                   understand how to hold early group dynamics with care. The public version of this tab can later show the
                   lead facilitator assigned to a session, or the facilitators currently approved to conduct this product.
                 </p>
-                <ul class="batch-points">
-                  <li>Assigned according to age group and school context</li>
-                  <li>Linked only after product approval or training</li>
-                  <li>Can later show lead, co-facilitator, or shadow role</li>
-                </ul>
+                <div class="feedback-use-card product-facilitator-shell" data-public-facilitator-list>
+                  <h4>No public facilitator linked yet</h4>
+                  <p>
+                    Once a facilitator is assigned to this product inside the private studio, the public version can
+                    show the right person here with the appropriate role and context.
+                  </p>
+                </div>
               </article>
 
               <div class="content-stack">
@@ -338,6 +356,7 @@
   <script src="config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="content-loader.js"></script>
+  <script src="feedback.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
