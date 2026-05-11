@@ -14,6 +14,8 @@
     }
   });
 
+  applyFeedbackContext();
+
   const feedbackForm = document.querySelector("[data-feedback-form]");
   const shareToggle = document.querySelector("[data-share-toggle]");
   const shareNameWrap = document.querySelector("[data-share-name-wrap]");
@@ -220,6 +222,55 @@ function renderFeedbackFallback() {
   setTextForAll("[data-feedback-safe]", "—");
   setTextForAll("[data-feedback-activity]", "—");
   setTextForAll("[data-feedback-reflection]", "—");
+}
+
+function applyFeedbackContext() {
+  const banner = document.querySelector("[data-feedback-context-banner]");
+  const titleElement = document.querySelector("[data-feedback-context-title]");
+  const bodyElement = document.querySelector("[data-feedback-context-body]");
+  const audienceField = document.querySelector('[name="audienceType"]');
+  const params = new URLSearchParams(window.location.search);
+  const productName = normalizeValue(params.get("productName"));
+  const rawAudience = normalizeValue(params.get("audience")).toLowerCase();
+  const sessionTitle = normalizeValue(params.get("sessionTitle"));
+  const audienceMap = {
+    schools: "school",
+    school: "school",
+    colleges: "college",
+    college: "college",
+    teachers: "school",
+    corporates: "corporate",
+    corporate: "corporate",
+    government: "government",
+    communities: "community",
+    community: "community"
+  };
+  const audienceValue = audienceMap[rawAudience] || "";
+
+  if (audienceField && audienceValue && !audienceField.value) {
+    audienceField.value = audienceValue;
+  }
+
+  if (!banner || !titleElement || !bodyElement || !productName) {
+    return;
+  }
+
+  const contextBits = [];
+
+  if (sessionTitle) {
+    contextBits.push(`session: ${sessionTitle}`);
+  }
+
+  if (audienceValue) {
+    contextBits.push(`audience: ${audienceValue}`);
+  }
+
+  titleElement.textContent = `Feedback for ${productName}`;
+  bodyElement.textContent = contextBits.length
+    ? `You arrived here from a specific CoreXformer product. This reflection is being written for ${productName} (${contextBits.join(" · ")}). As the product system matures, approved reflections from this flow will appear under that product directly.`
+    : `You arrived here from a specific CoreXformer product. This reflection is being written for ${productName}. As the product system matures, approved reflections from this flow will appear under that product directly.`;
+  banner.classList.remove("hidden");
+  document.title = `CoreXformer | Feedback for ${productName}`;
 }
 
 function showFeedbackMessage(element, text, tone) {

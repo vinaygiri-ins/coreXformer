@@ -612,6 +612,20 @@ p {
   line-height: 1.8;
 }
 
+.product-pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.product-tab-panels {
+  margin-top: 1rem;
+}
+
+.product-session-grid {
+  margin-top: 1.5rem;
+}
+
 .trajectory-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1368,6 +1382,19 @@ a.journey-map-card:focus-visible {
 
 .feedback-form-head {
   margin-bottom: 1.4rem;
+}
+
+.feedback-context-banner {
+  margin-bottom: 1.2rem;
+  padding: 1.1rem 1.15rem;
+  border-radius: var(--radius-lg);
+  background: rgba(47, 90, 67, 0.08);
+  border: 1px solid rgba(47, 90, 67, 0.12);
+}
+
+.feedback-context-banner h3,
+.feedback-context-banner p {
+  margin-bottom: 0;
 }
 
 .feedback-form {
