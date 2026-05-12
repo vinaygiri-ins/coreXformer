@@ -448,6 +448,220 @@
         </ul>
       </article>
     </section>
+
+    <section class="studio-grid collaboration-grid">
+      <article class="panel collaboration-panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Product Room</p>
+            <h2>Discuss the product together</h2>
+          </div>
+          <span class="status-pill">Private</span>
+        </div>
+
+        <p class="collaboration-intro">
+          Keep product learning attached to the actual offering. Use this space for adaptations, field learnings,
+          issues, and change requests that should stay with the product instead of getting lost in chat.
+        </p>
+
+        <div id="productThreadList" class="collaboration-list"></div>
+        <div id="productThreadEmptyState" class="empty-state hidden">
+          <h3>No product discussions yet</h3>
+          <p>Start the first internal discussion for this product and build reusable knowledge from the field.</p>
+        </div>
+
+        <div class="studio-fieldset">
+          <div class="studio-fieldset-head">
+            <h3>Open a product thread</h3>
+            <p>Create a discussion that future facilitators and admins can return to when this product needs clarity.</p>
+          </div>
+
+          <label>
+            <span>Thread category</span>
+            <select id="productThreadCategoryInput">
+              <option value="field_learning">Field learning</option>
+              <option value="adaptation">Adaptation</option>
+              <option value="issue">Issue</option>
+              <option value="change_request">Change request</option>
+              <option value="question">Question</option>
+            </select>
+          </label>
+          <label>
+            <span>Status</span>
+            <select id="productThreadStatusInput">
+              <option value="open">Open</option>
+              <option value="trial_next_session">Trial next session</option>
+              <option value="approved_practice">Approved practice</option>
+              <option value="closed">Closed</option>
+            </select>
+          </label>
+          <label>
+            <span>Thread title</span>
+            <input id="productThreadTitleInput" type="text" placeholder="For example: How Belong &amp; Connect should adapt for Class 11 groups">
+          </label>
+          <label>
+            <span>Opening note</span>
+            <textarea id="productThreadBodyInput" rows="5" placeholder="Capture the field observation, the issue, or the question that needs shared thinking."></textarea>
+          </label>
+          <div class="editor-actions">
+            <button id="saveProductThreadButton" type="button" class="button">Start discussion</button>
+          </div>
+        </div>
+
+        <div class="studio-fieldset">
+          <div class="studio-fieldset-head">
+            <h3>Thread conversation</h3>
+            <p>Once a thread is selected, add comments here so the discussion stays attached to one product context.</p>
+          </div>
+
+          <div id="productCommentList" class="comment-list"></div>
+          <div id="productCommentEmptyState" class="empty-state hidden">
+            <h3>No comments yet</h3>
+            <p>Select a thread and add the next step, test idea, or caution for the facilitation team.</p>
+          </div>
+
+          <label>
+            <span>Add a comment</span>
+            <textarea id="productCommentInput" rows="4" placeholder="Add what you observed, what you would test next, or what the team should remember."></textarea>
+          </label>
+          <div class="editor-actions">
+            <button id="saveProductCommentButton" type="button" class="button button-ghost">Add comment</button>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel collaboration-panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Session Room</p>
+            <h2>Prepare and debrief the live session</h2>
+          </div>
+          <span class="status-pill">Private</span>
+        </div>
+
+        <div id="sessionRoomMeta" class="notice-box hidden"></div>
+
+        <div class="studio-fieldset">
+          <div class="studio-fieldset-head">
+            <h3>Add a session-room post</h3>
+            <p>Use this for preparation notes, logistics, risks, or debrief learnings tied to the actual session run.</p>
+          </div>
+
+          <label>
+            <span>Post type</span>
+            <select id="sessionPostTypeInput">
+              <option value="prep">Preparation</option>
+              <option value="logistics">Logistics</option>
+              <option value="delivery_note">Delivery note</option>
+              <option value="debrief">Debrief</option>
+              <option value="risk">Risk or caution</option>
+            </select>
+          </label>
+          <label>
+            <span>Title</span>
+            <input id="sessionPostTitleInput" type="text" placeholder="Optional short heading for the session update">
+          </label>
+          <label>
+            <span>Session note</span>
+            <textarea id="sessionPostBodyInput" rows="5" placeholder="Capture what the assigned facilitators need to know before or after the session."></textarea>
+          </label>
+          <div class="editor-actions">
+            <button id="saveSessionPostButton" type="button" class="button">Save session note</button>
+          </div>
+        </div>
+
+        <div id="sessionPostList" class="collaboration-feed"></div>
+        <div id="sessionPostEmptyState" class="empty-state hidden">
+          <h3>No session-room notes yet</h3>
+          <p>Once a session is created for this product, preparation and debrief notes will collect here.</p>
+        </div>
+      </article>
+    </section>
+
+    <section class="studio-grid collaboration-grid">
+      <article class="panel collaboration-panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Facilitator Commons</p>
+            <h2>Shared updates across the team</h2>
+          </div>
+          <span class="status-pill">Internal</span>
+        </div>
+
+        <p class="collaboration-intro">
+          Use this for announcements, questions, resources, and internal updates that should reach the wider
+          facilitator community without being tied to one product or one session.
+        </p>
+
+        <div class="studio-fieldset">
+          <div class="studio-fieldset-head">
+            <h3>Post to the commons</h3>
+            <p>Keep this space for things the whole facilitation team may need to see, revisit, or respond to.</p>
+          </div>
+
+          <label>
+            <span>Post type</span>
+            <select id="commonsPostTypeInput">
+              <option value="announcement">Announcement</option>
+              <option value="question">Question</option>
+              <option value="resource">Resource</option>
+              <option value="update">Update</option>
+            </select>
+          </label>
+          <label>
+            <span>Title</span>
+            <input id="commonsPostTitleInput" type="text" placeholder="For example: New reflection language for college sessions">
+          </label>
+          <label>
+            <span>Message</span>
+            <textarea id="commonsPostBodyInput" rows="5" placeholder="Share the update, the question, or the resource the team should know about."></textarea>
+          </label>
+          <label class="studio-checkbox-row">
+            <input id="commonsPinnedInput" type="checkbox">
+            <span>Pin this at the top of the commons feed</span>
+          </label>
+          <div class="editor-actions">
+            <button id="saveCommonsPostButton" type="button" class="button">Post to commons</button>
+          </div>
+        </div>
+
+        <div id="commonsPostList" class="collaboration-feed"></div>
+        <div id="commonsPostEmptyState" class="empty-state hidden">
+          <h3>No commons posts yet</h3>
+          <p>Start with internal announcements, product updates, or questions that need wider facilitator attention.</p>
+        </div>
+
+        <div id="collaborationMessage" class="message-banner hidden"></div>
+      </article>
+
+      <article class="panel docs-panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">How to use this</p>
+            <h2>Keep collaboration attached to the work</h2>
+          </div>
+        </div>
+
+        <ul class="ops-list">
+          <li>
+            <strong>Product Room</strong>
+            <span>Use it when a product itself needs reflection, adaptation, or a change request.</span>
+          </li>
+          <li>
+            <strong>Session Room</strong>
+            <span>Use it when one live session needs preparation, coordination, or debriefing.</span>
+          </li>
+          <li>
+            <strong>Facilitator Commons</strong>
+            <span>Use it for broader internal updates, shared questions, and facilitator-wide learning.</span>
+          </li>
+          <li>
+            <strong>Decision-ready collaboration</strong>
+            <span>The aim is not endless chat. Product discussions should slowly turn into approved practices, product notes, or next-session tests.</span>
+          </li>
+        </ul>
+      </article>
+    </section>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

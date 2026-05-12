@@ -896,6 +896,32 @@ const dom = {
   productFeedbackLatest: document.getElementById("productFeedbackLatest"),
   productFeedbackList: document.getElementById("productFeedbackList"),
   productFeedbackEmptyState: document.getElementById("productFeedbackEmptyState"),
+  productThreadList: document.getElementById("productThreadList"),
+  productThreadEmptyState: document.getElementById("productThreadEmptyState"),
+  productThreadCategoryInput: document.getElementById("productThreadCategoryInput"),
+  productThreadStatusInput: document.getElementById("productThreadStatusInput"),
+  productThreadTitleInput: document.getElementById("productThreadTitleInput"),
+  productThreadBodyInput: document.getElementById("productThreadBodyInput"),
+  saveProductThreadButton: document.getElementById("saveProductThreadButton"),
+  productCommentList: document.getElementById("productCommentList"),
+  productCommentEmptyState: document.getElementById("productCommentEmptyState"),
+  productCommentInput: document.getElementById("productCommentInput"),
+  saveProductCommentButton: document.getElementById("saveProductCommentButton"),
+  sessionRoomMeta: document.getElementById("sessionRoomMeta"),
+  sessionPostTypeInput: document.getElementById("sessionPostTypeInput"),
+  sessionPostTitleInput: document.getElementById("sessionPostTitleInput"),
+  sessionPostBodyInput: document.getElementById("sessionPostBodyInput"),
+  saveSessionPostButton: document.getElementById("saveSessionPostButton"),
+  sessionPostList: document.getElementById("sessionPostList"),
+  sessionPostEmptyState: document.getElementById("sessionPostEmptyState"),
+  commonsPostTypeInput: document.getElementById("commonsPostTypeInput"),
+  commonsPostTitleInput: document.getElementById("commonsPostTitleInput"),
+  commonsPostBodyInput: document.getElementById("commonsPostBodyInput"),
+  commonsPinnedInput: document.getElementById("commonsPinnedInput"),
+  saveCommonsPostButton: document.getElementById("saveCommonsPostButton"),
+  commonsPostList: document.getElementById("commonsPostList"),
+  commonsPostEmptyState: document.getElementById("commonsPostEmptyState"),
+  collaborationMessage: document.getElementById("collaborationMessage"),
   inquiryCounts: {
     new: document.getElementById("countNew"),
     contacted: document.getElementById("countContacted"),
@@ -930,11 +956,21 @@ const state = {
     note: null,
     feedbackRows: []
   },
+  collaboration: {
+    isAvailable: true,
+    availabilityMessage: "",
+    selectedProductThreadId: "",
+    productThreads: [],
+    productComments: [],
+    sessionPosts: [],
+    commonsPosts: []
+  },
   busy: {
     auth: false,
     save: false,
     import: false,
-    productOps: false
+    productOps: false,
+    collaboration: false
   }
 };
 
@@ -1035,6 +1071,22 @@ function bindEvents() {
   dom.saveProductNoteButton?.addEventListener("click", () => {
     void saveProductNote();
   });
+
+  dom.saveProductThreadButton?.addEventListener("click", () => {
+    void saveProductThread();
+  });
+
+  dom.saveProductCommentButton?.addEventListener("click", () => {
+    void saveProductComment();
+  });
+
+  dom.saveSessionPostButton?.addEventListener("click", () => {
+    void saveSessionPost();
+  });
+
+  dom.saveCommonsPostButton?.addEventListener("click", () => {
+    void saveCommonsPost();
+  });
 }
 
 async function handleSession(session) {
@@ -1056,9 +1108,11 @@ async function handleSession(session) {
     state.productOps.publicFacilitatorRow = null;
     state.productOps.note = null;
     state.productOps.feedbackRows = [];
+    resetCollaborationState();
     clearMessage(dom.editorMessage);
     clearMessage(dom.authMessage);
     clearMessage(dom.productOpsMessage);
+    clearMessage(dom.collaborationMessage);
     setAuthState("Signed out. Use your email and password to enter the private studio.");
     renderStudio();
     return;
@@ -1282,6 +1336,7 @@ async function loadProductOpsData() {
   state.productOps.publicFacilitatorRow = null;
   state.productOps.note = null;
   state.productOps.feedbackRows = [];
+  resetCollaborationState();
 
   if (!state.session || !canEdit() || !product) {
     renderStudio();
@@ -1383,12 +1438,349 @@ async function loadProductOpsData() {
       state.productOps.sessionAssignment = assignmentData || null;
     }
 
+    await loadCollaborationData();
     clearMessage(dom.productOpsMessage);
   } catch (error) {
     showMessage(dom.productOpsMessage, error.message || "The product operations data could not be loaded yet.", "error");
   } finally {
     setBusy("productOps", false);
   }
+}
+
+async function loadCollaborationData() {
+  const product = getSelectedProduct();
+  const previouslySelectedThreadId = state.collaboration.selectedProductThreadId;
+
+  resetCollaborationState();
+
+  if (!state.session || !canEdit() || !product) {
+    renderStudio();
+    return;
+  }
+
+  setBusy("collaboration", true);
+
+  try {
+    const [threadResult, commonsResult, sessionPostResult] = await Promise.all([
+      state.supabase
+        .from("product_discussion_threads")
+        .select("id, product_slug, product_name, title, category, status, body, author_name, created_at, updated_at")
+        .eq("product_slug", product.slug)
+        .order("updated_at", { ascending: false }),
+      state.supabase
+        .from("facilitator_commons_posts")
+        .select("id, post_type, title, body, is_pinned, author_name, created_at, updated_at")
+        .eq("status", "active")
+        .order("is_pinned", { ascending: false })
+        .order("updated_at", { ascending: false })
+        .limit(10),
+      state.productOps.sessionRun?.id
+        ? state.supabase
+          .from("session_room_posts")
+          .select("id, session_run_id, product_slug, product_name, post_type, title, body, author_name, created_at, updated_at")
+          .eq("session_run_id", state.productOps.sessionRun.id)
+          .order("created_at", { ascending: false })
+        : Promise.resolve({ data: [], error: null })
+    ]);
+
+    if (threadResult.error) {
+      throw threadResult.error;
+    }
+
+    if (commonsResult.error) {
+      throw commonsResult.error;
+    }
+
+    if (sessionPostResult.error) {
+      throw sessionPostResult.error;
+    }
+
+    state.collaboration.productThreads = Array.isArray(threadResult.data) ? threadResult.data : [];
+    state.collaboration.commonsPosts = Array.isArray(commonsResult.data) ? commonsResult.data : [];
+    state.collaboration.sessionPosts = Array.isArray(sessionPostResult.data) ? sessionPostResult.data : [];
+
+    const validSelectedThread = previouslySelectedThreadId
+      && state.collaboration.productThreads.some((thread) => thread.id === previouslySelectedThreadId);
+
+    if (!validSelectedThread) {
+      state.collaboration.selectedProductThreadId = state.collaboration.productThreads[0]?.id || "";
+    } else {
+      state.collaboration.selectedProductThreadId = previouslySelectedThreadId;
+    }
+
+    if (state.collaboration.selectedProductThreadId) {
+      const { data: commentData, error: commentError } = await state.supabase
+        .from("product_discussion_comments")
+        .select("id, thread_id, body, author_name, created_at, updated_at")
+        .eq("thread_id", state.collaboration.selectedProductThreadId)
+        .order("created_at", { ascending: true });
+
+      if (commentError) {
+        throw commentError;
+      }
+
+      state.collaboration.productComments = Array.isArray(commentData) ? commentData : [];
+    }
+
+    clearMessage(dom.collaborationMessage);
+  } catch (error) {
+    if (isCollaborationWorkspaceMissingError(error)) {
+      setCollaborationUnavailable();
+      showMessage(dom.collaborationMessage, state.collaboration.availabilityMessage, "info");
+    } else {
+      showMessage(dom.collaborationMessage, error.message || "The collaboration workspace could not be loaded yet.", "error");
+    }
+  } finally {
+    setBusy("collaboration", false);
+  }
+}
+
+async function saveProductThread() {
+  if (!canEdit()) {
+    showMessage(dom.collaborationMessage, "Only owner or editor accounts can open product discussions right now.", "error");
+    return;
+  }
+
+  if (!ensureCollaborationWorkspaceEnabled()) {
+    return;
+  }
+
+  const product = getSelectedProduct();
+  const title = dom.productThreadTitleInput.value.trim();
+  const body = dom.productThreadBodyInput.value.trim();
+
+  if (!product) {
+    showMessage(dom.collaborationMessage, "Choose a product before starting a product-room discussion.", "error");
+    return;
+  }
+
+  if (!title || !body) {
+    showMessage(dom.collaborationMessage, "Add both a thread title and opening note before starting the discussion.", "error");
+    return;
+  }
+
+  setBusy("collaboration", true);
+  showMessage(dom.collaborationMessage, `Opening a product-room thread for ${product.name}...`);
+
+  const payload = {
+    product_slug: product.slug,
+    product_name: product.name,
+    title,
+    category: dom.productThreadCategoryInput.value,
+    status: dom.productThreadStatusInput.value,
+    body,
+    author_name: buildAuthorName(),
+    created_by: state.session.user.id,
+    updated_by: state.session.user.id
+  };
+
+  const { data, error } = await state.supabase
+    .from("product_discussion_threads")
+    .insert([payload])
+    .select("id")
+    .single();
+
+  if (error) {
+    setBusy("collaboration", false);
+    if (isCollaborationWorkspaceMissingError(error)) {
+      setCollaborationUnavailable();
+      showMessage(dom.collaborationMessage, state.collaboration.availabilityMessage, "info");
+    } else {
+      showMessage(dom.collaborationMessage, error.message, "error");
+    }
+    return;
+  }
+
+  state.collaboration.selectedProductThreadId = data?.id || "";
+  dom.productThreadTitleInput.value = "";
+  dom.productThreadBodyInput.value = "";
+  dom.productThreadCategoryInput.value = "field_learning";
+  dom.productThreadStatusInput.value = "open";
+
+  await loadCollaborationData();
+  showMessage(dom.collaborationMessage, `The discussion thread for ${product.name} is now live in the product room.`, "success");
+}
+
+async function saveProductComment() {
+  if (!canEdit()) {
+    showMessage(dom.collaborationMessage, "Only owner or editor accounts can add product-room comments right now.", "error");
+    return;
+  }
+
+  if (!ensureCollaborationWorkspaceEnabled()) {
+    return;
+  }
+
+  const threadId = state.collaboration.selectedProductThreadId;
+  const body = dom.productCommentInput.value.trim();
+
+  if (!threadId) {
+    showMessage(dom.collaborationMessage, "Choose a product thread before adding a comment.", "error");
+    return;
+  }
+
+  if (!body) {
+    showMessage(dom.collaborationMessage, "Write the comment before adding it to the thread.", "error");
+    return;
+  }
+
+  setBusy("collaboration", true);
+  showMessage(dom.collaborationMessage, "Adding the next product-room comment...");
+
+  const { error: commentError } = await state.supabase
+    .from("product_discussion_comments")
+    .insert([{
+      thread_id: threadId,
+      body,
+      author_name: buildAuthorName(),
+      created_by: state.session.user.id,
+      updated_by: state.session.user.id
+    }]);
+
+  if (commentError) {
+    setBusy("collaboration", false);
+    if (isCollaborationWorkspaceMissingError(commentError)) {
+      setCollaborationUnavailable();
+      showMessage(dom.collaborationMessage, state.collaboration.availabilityMessage, "info");
+    } else {
+      showMessage(dom.collaborationMessage, commentError.message, "error");
+    }
+    return;
+  }
+
+  const selectedThread = state.collaboration.productThreads.find((thread) => thread.id === threadId);
+
+  if (selectedThread) {
+    const { error: threadUpdateError } = await state.supabase
+      .from("product_discussion_threads")
+      .update({
+        updated_by: state.session.user.id
+      })
+      .eq("id", threadId);
+
+    if (threadUpdateError) {
+      setBusy("collaboration", false);
+      showMessage(dom.collaborationMessage, threadUpdateError.message, "error");
+      return;
+    }
+  }
+
+  dom.productCommentInput.value = "";
+  await loadCollaborationData();
+  showMessage(dom.collaborationMessage, "The comment was added to the selected product thread.", "success");
+}
+
+async function saveSessionPost() {
+  if (!canEdit()) {
+    showMessage(dom.collaborationMessage, "Only owner or editor accounts can save session-room notes right now.", "error");
+    return;
+  }
+
+  if (!ensureCollaborationWorkspaceEnabled()) {
+    return;
+  }
+
+  const product = getSelectedProduct();
+  const sessionRun = state.productOps.sessionRun;
+  const body = dom.sessionPostBodyInput.value.trim();
+
+  if (!product || !sessionRun?.id) {
+    showMessage(dom.collaborationMessage, "Create or select a live session assignment before posting to the session room.", "error");
+    return;
+  }
+
+  if (!body) {
+    showMessage(dom.collaborationMessage, "Add the session note before saving it.", "error");
+    return;
+  }
+
+  setBusy("collaboration", true);
+  showMessage(dom.collaborationMessage, `Saving a session-room note for ${product.name}...`);
+
+  const { error } = await state.supabase
+    .from("session_room_posts")
+    .insert([{
+      session_run_id: sessionRun.id,
+      product_slug: product.slug,
+      product_name: product.name,
+      post_type: dom.sessionPostTypeInput.value,
+      title: dom.sessionPostTitleInput.value.trim() || null,
+      body,
+      author_name: buildAuthorName(),
+      created_by: state.session.user.id,
+      updated_by: state.session.user.id
+    }]);
+
+  if (error) {
+    setBusy("collaboration", false);
+    if (isCollaborationWorkspaceMissingError(error)) {
+      setCollaborationUnavailable();
+      showMessage(dom.collaborationMessage, state.collaboration.availabilityMessage, "info");
+    } else {
+      showMessage(dom.collaborationMessage, error.message, "error");
+    }
+    return;
+  }
+
+  dom.sessionPostTitleInput.value = "";
+  dom.sessionPostBodyInput.value = "";
+  dom.sessionPostTypeInput.value = "prep";
+
+  await loadCollaborationData();
+  showMessage(dom.collaborationMessage, "The session-room note was saved for the current session.", "success");
+}
+
+async function saveCommonsPost() {
+  if (!canEdit()) {
+    showMessage(dom.collaborationMessage, "Only owner or editor accounts can post to the facilitator commons right now.", "error");
+    return;
+  }
+
+  if (!ensureCollaborationWorkspaceEnabled()) {
+    return;
+  }
+
+  const title = dom.commonsPostTitleInput.value.trim();
+  const body = dom.commonsPostBodyInput.value.trim();
+
+  if (!title || !body) {
+    showMessage(dom.collaborationMessage, "Add both a title and message before posting to the facilitator commons.", "error");
+    return;
+  }
+
+  setBusy("collaboration", true);
+  showMessage(dom.collaborationMessage, "Posting to the facilitator commons...");
+
+  const { error } = await state.supabase
+    .from("facilitator_commons_posts")
+    .insert([{
+      post_type: dom.commonsPostTypeInput.value,
+      title,
+      body,
+      is_pinned: Boolean(dom.commonsPinnedInput.checked),
+      author_name: buildAuthorName(),
+      created_by: state.session.user.id,
+      updated_by: state.session.user.id
+    }]);
+
+  if (error) {
+    setBusy("collaboration", false);
+    if (isCollaborationWorkspaceMissingError(error)) {
+      setCollaborationUnavailable();
+      showMessage(dom.collaborationMessage, state.collaboration.availabilityMessage, "info");
+    } else {
+      showMessage(dom.collaborationMessage, error.message, "error");
+    }
+    return;
+  }
+
+  dom.commonsPostTitleInput.value = "";
+  dom.commonsPostBodyInput.value = "";
+  dom.commonsPostTypeInput.value = "announcement";
+  dom.commonsPinnedInput.checked = false;
+
+  await loadCollaborationData();
+  showMessage(dom.collaborationMessage, "The facilitator commons update is now live in the private workspace.", "success");
 }
 
 async function importStarterContent() {
@@ -1881,6 +2273,7 @@ function renderStudio() {
   renderEditor();
   renderProductOps();
   renderProductFeedback();
+  renderCollaboration();
   renderInquiryCounts();
 }
 
@@ -2157,6 +2550,201 @@ function renderProductFeedback() {
   });
 }
 
+function renderCollaboration() {
+  const editable = canEdit();
+  const collaborationEnabled = state.collaboration.isAvailable;
+  const disabled = !editable || state.busy.collaboration || !collaborationEnabled;
+  const sessionRun = state.productOps.sessionRun;
+
+  dom.productThreadCategoryInput.disabled = disabled;
+  dom.productThreadStatusInput.disabled = disabled;
+  dom.productThreadTitleInput.disabled = disabled;
+  dom.productThreadBodyInput.disabled = disabled;
+  dom.saveProductThreadButton.disabled = disabled;
+  dom.productCommentInput.disabled = disabled || !state.collaboration.selectedProductThreadId;
+  dom.saveProductCommentButton.disabled = disabled || !state.collaboration.selectedProductThreadId;
+  dom.sessionPostTypeInput.disabled = disabled || !sessionRun?.id;
+  dom.sessionPostTitleInput.disabled = disabled || !sessionRun?.id;
+  dom.sessionPostBodyInput.disabled = disabled || !sessionRun?.id;
+  dom.saveSessionPostButton.disabled = disabled || !sessionRun?.id;
+  dom.commonsPostTypeInput.disabled = disabled;
+  dom.commonsPostTitleInput.disabled = disabled;
+  dom.commonsPostBodyInput.disabled = disabled;
+  dom.commonsPinnedInput.disabled = disabled;
+  dom.saveCommonsPostButton.disabled = disabled;
+
+  renderProductThreads();
+  renderProductComments();
+  renderSessionRoom();
+  renderCommonsFeed();
+}
+
+function renderProductThreads() {
+  const threads = state.collaboration.productThreads;
+  dom.productThreadList.innerHTML = "";
+
+  if (!state.collaboration.isAvailable) {
+    dom.productThreadEmptyState.classList.remove("hidden");
+    dom.productThreadEmptyState.querySelector("h3").textContent = "Collaboration database not enabled yet";
+    dom.productThreadEmptyState.querySelector("p").textContent = state.collaboration.availabilityMessage;
+    return;
+  }
+
+  dom.productThreadEmptyState.classList.toggle("hidden", threads.length > 0);
+  dom.productThreadEmptyState.querySelector("h3").textContent = "No product discussions yet";
+  dom.productThreadEmptyState.querySelector("p").textContent = "Start the first internal discussion for this product and build reusable knowledge from the field.";
+
+  threads.forEach((thread) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `thread-card${thread.id === state.collaboration.selectedProductThreadId ? " is-active" : ""}`;
+    button.innerHTML = `
+      <div class="thread-card-head">
+        <div>
+          <h3>${escapeHtml(thread.title)}</h3>
+          <p class="thread-card-meta">${escapeHtml(formatProductThreadMeta(thread))}</p>
+        </div>
+        <span class="status-pill">${escapeHtml(humanizeProductThreadStatus(thread.status))}</span>
+      </div>
+      <p class="thread-card-copy">${escapeHtml(thread.body)}</p>
+    `;
+
+    button.addEventListener("click", () => {
+      state.collaboration.selectedProductThreadId = thread.id;
+      void loadCollaborationData();
+    });
+
+    dom.productThreadList.appendChild(button);
+  });
+}
+
+function renderProductComments() {
+  const comments = state.collaboration.productComments;
+  const hasThread = Boolean(state.collaboration.selectedProductThreadId);
+
+  dom.productCommentList.innerHTML = "";
+
+  if (!state.collaboration.isAvailable) {
+    dom.productCommentEmptyState.classList.remove("hidden");
+    dom.productCommentEmptyState.querySelector("h3").textContent = "Product-room comments are waiting on activation";
+    dom.productCommentEmptyState.querySelector("p").textContent = state.collaboration.availabilityMessage;
+    return;
+  }
+
+  dom.productCommentEmptyState.classList.toggle("hidden", hasThread && comments.length > 0);
+
+  if (!hasThread) {
+    dom.productCommentEmptyState.classList.remove("hidden");
+    dom.productCommentEmptyState.querySelector("h3").textContent = "Choose a thread first";
+    dom.productCommentEmptyState.querySelector("p").textContent = "Select a product-room discussion above to read or add comments.";
+    return;
+  }
+
+  dom.productCommentEmptyState.querySelector("h3").textContent = "No comments yet";
+  dom.productCommentEmptyState.querySelector("p").textContent = "Select a thread and add the next step, test idea, or caution for the facilitation team.";
+
+  comments.forEach((comment) => {
+    const article = document.createElement("article");
+    article.className = "comment-card";
+    article.innerHTML = `
+      <div class="comment-card-head">
+        <div>
+          <h3>${escapeHtml(normalizeValue(comment.author_name) || "CoreXformer team")}</h3>
+          <p class="comment-card-meta">${escapeHtml(formatDateTimeMeta(comment.created_at))}</p>
+        </div>
+      </div>
+      <p class="comment-card-copy">${escapeHtml(comment.body)}</p>
+    `;
+    dom.productCommentList.appendChild(article);
+  });
+}
+
+function renderSessionRoom() {
+  const sessionRun = state.productOps.sessionRun;
+  const posts = state.collaboration.sessionPosts;
+
+  if (!state.collaboration.isAvailable) {
+    dom.sessionRoomMeta.classList.add("hidden");
+    dom.sessionRoomMeta.innerHTML = "";
+    dom.sessionPostList.innerHTML = "";
+    dom.sessionPostEmptyState.classList.remove("hidden");
+    dom.sessionPostEmptyState.querySelector("h3").textContent = "Session-room collaboration is waiting on activation";
+    dom.sessionPostEmptyState.querySelector("p").textContent = state.collaboration.availabilityMessage;
+    return;
+  }
+
+  dom.sessionRoomMeta.classList.toggle("hidden", !sessionRun);
+  dom.sessionRoomMeta.innerHTML = sessionRun
+    ? `
+      <div class="session-room-meta-copy">
+        <h3>${escapeHtml(sessionRun.session_title || "Current session run")}</h3>
+        <p>${escapeHtml(formatSessionRoomMeta(sessionRun))}</p>
+      </div>
+    `
+    : "";
+
+  dom.sessionPostList.innerHTML = "";
+  dom.sessionPostEmptyState.classList.toggle("hidden", Boolean(sessionRun) && posts.length > 0);
+
+  if (!sessionRun) {
+    dom.sessionPostEmptyState.classList.remove("hidden");
+    dom.sessionPostEmptyState.querySelector("h3").textContent = "No session selected yet";
+    dom.sessionPostEmptyState.querySelector("p").textContent = "Create or save a session assignment in Product operations first. Then the session room can hold prep and debrief collaboration.";
+    return;
+  }
+
+  dom.sessionPostEmptyState.querySelector("h3").textContent = "No session-room notes yet";
+  dom.sessionPostEmptyState.querySelector("p").textContent = "Once a session is created for this product, preparation and debrief notes will collect here.";
+
+  posts.forEach((post) => {
+    const article = document.createElement("article");
+    article.className = "feed-card";
+    article.innerHTML = `
+      <div class="feed-card-head">
+        <div>
+          <h3>${escapeHtml(post.title || humanizeSessionPostType(post.post_type))}</h3>
+          <p class="feed-card-meta">${escapeHtml(formatSessionPostMeta(post))}</p>
+        </div>
+        <span class="status-pill">${escapeHtml(humanizeSessionPostType(post.post_type))}</span>
+      </div>
+      <p class="feed-card-copy">${escapeHtml(post.body)}</p>
+    `;
+    dom.sessionPostList.appendChild(article);
+  });
+}
+
+function renderCommonsFeed() {
+  const posts = state.collaboration.commonsPosts;
+  dom.commonsPostList.innerHTML = "";
+
+  if (!state.collaboration.isAvailable) {
+    dom.commonsPostEmptyState.classList.remove("hidden");
+    dom.commonsPostEmptyState.querySelector("h3").textContent = "Facilitator commons is waiting on activation";
+    dom.commonsPostEmptyState.querySelector("p").textContent = state.collaboration.availabilityMessage;
+    return;
+  }
+
+  dom.commonsPostEmptyState.classList.toggle("hidden", posts.length > 0);
+  dom.commonsPostEmptyState.querySelector("h3").textContent = "No facilitator commons posts yet";
+  dom.commonsPostEmptyState.querySelector("p").textContent = "Once the team begins sharing internal updates, the latest announcements, resources, and questions will appear here.";
+
+  posts.forEach((post) => {
+    const article = document.createElement("article");
+    article.className = "feed-card";
+    article.innerHTML = `
+      <div class="feed-card-head">
+        <div>
+          <h3>${escapeHtml(post.title)}</h3>
+          <p class="feed-card-meta">${escapeHtml(formatCommonsPostMeta(post))}</p>
+        </div>
+        <span class="status-pill${post.is_pinned ? " status-live" : ""}">${escapeHtml(humanizeCommonsPostType(post.post_type))}</span>
+      </div>
+      <p class="feed-card-copy">${escapeHtml(post.body)}</p>
+    `;
+    dom.commonsPostList.appendChild(article);
+  });
+}
+
 function renderInquiryCounts() {
   PIPELINE_KEYS.forEach((key) => {
     dom.inquiryCounts[key].textContent = String(state.inquiryCounts[key] || 0);
@@ -2277,6 +2865,19 @@ function formatShortDate(value) {
   }).format(value);
 }
 
+function formatShortDateTime(value) {
+  if (!(value instanceof Date) || Number.isNaN(value.getTime())) {
+    return "—";
+  }
+
+  return new Intl.DateTimeFormat("en-IN", {
+    day: "2-digit",
+    month: "short",
+    hour: "numeric",
+    minute: "2-digit"
+  }).format(value);
+}
+
 function formatFeedbackMeta(row) {
   const audience = normalizeValue(row.audience_type) || "mixed";
   const dateLabel = row.created_at ? formatShortDate(new Date(row.created_at)) : "unknown date";
@@ -2334,6 +2935,191 @@ function deriveSessionRunStatus(assignmentStatus) {
       return "cancelled";
     default:
       return "draft";
+  }
+}
+
+function buildAuthorName() {
+  return normalizeValue(state.profile?.full_name)
+    || normalizeValue(state.session?.user?.email)
+    || "CoreXformer team";
+}
+
+function resetCollaborationState() {
+  state.collaboration.isAvailable = true;
+  state.collaboration.availabilityMessage = "";
+  state.collaboration.selectedProductThreadId = "";
+  state.collaboration.productThreads = [];
+  state.collaboration.productComments = [];
+  state.collaboration.sessionPosts = [];
+  state.collaboration.commonsPosts = [];
+}
+
+function ensureCollaborationWorkspaceEnabled() {
+  if (state.collaboration.isAvailable) {
+    return true;
+  }
+
+  showMessage(dom.collaborationMessage, state.collaboration.availabilityMessage || collaborationUnavailableMessage(), "info");
+  return false;
+}
+
+function setCollaborationUnavailable() {
+  state.collaboration.isAvailable = false;
+  state.collaboration.availabilityMessage = collaborationUnavailableMessage();
+  state.collaboration.selectedProductThreadId = "";
+  state.collaboration.productThreads = [];
+  state.collaboration.productComments = [];
+  state.collaboration.sessionPosts = [];
+  state.collaboration.commonsPosts = [];
+}
+
+function isCollaborationWorkspaceMissingError(error) {
+  if (!error) {
+    return false;
+  }
+
+  const errorCode = normalizeValue(error.code);
+  const errorText = [
+    normalizeValue(error.message),
+    normalizeValue(error.details),
+    normalizeValue(error.hint)
+  ].join(" ").toLowerCase();
+
+  if (errorCode === "PGRST205") {
+    return true;
+  }
+
+  return errorText.includes("could not find the table")
+    || errorText.includes("schema cache")
+    || errorText.includes("product_discussion_threads")
+    || errorText.includes("product_discussion_comments")
+    || errorText.includes("session_room_posts")
+    || errorText.includes("facilitator_commons_posts");
+}
+
+function collaborationUnavailableMessage() {
+  return "The collaboration rooms are built into the studio, but the private collaboration database has not been enabled yet.";
+}
+
+function formatDateTimeMeta(value) {
+  if (!value) {
+    return "Unknown time";
+  }
+
+  return formatShortDateTime(new Date(value));
+}
+
+function formatProductThreadMeta(thread) {
+  const category = humanizeProductThreadCategory(thread.category);
+  const author = normalizeValue(thread.author_name) || "CoreXformer team";
+  return `${category} · ${author} · ${formatDateTimeMeta(thread.updated_at || thread.created_at)}`;
+}
+
+function formatSessionPostMeta(post) {
+  const author = normalizeValue(post.author_name) || "CoreXformer team";
+  return `${author} · ${formatDateTimeMeta(post.created_at)}`;
+}
+
+function formatCommonsPostMeta(post) {
+  const author = normalizeValue(post.author_name) || "CoreXformer team";
+  const pinned = post.is_pinned ? "Pinned · " : "";
+  return `${pinned}${author} · ${formatDateTimeMeta(post.updated_at || post.created_at)}`;
+}
+
+function formatSessionRoomMeta(sessionRun) {
+  const parts = [];
+
+  if (normalizeValue(sessionRun.organization_name)) {
+    parts.push(sessionRun.organization_name);
+  }
+
+  if (sessionRun.session_date) {
+    parts.push(formatDateTimeMeta(sessionRun.session_date));
+  }
+
+  if (normalizeValue(sessionRun.status)) {
+    parts.push(humanizeSessionRunStatus(sessionRun.status));
+  }
+
+  return parts.join(" · ");
+}
+
+function humanizeProductThreadCategory(category) {
+  switch (category) {
+    case "field_learning":
+      return "Field learning";
+    case "adaptation":
+      return "Adaptation";
+    case "issue":
+      return "Issue";
+    case "change_request":
+      return "Change request";
+    case "question":
+      return "Question";
+    default:
+      return category ? category.replaceAll("_", " ") : "Discussion";
+  }
+}
+
+function humanizeProductThreadStatus(status) {
+  switch (status) {
+    case "open":
+      return "Open";
+    case "trial_next_session":
+      return "Trial next session";
+    case "approved_practice":
+      return "Approved practice";
+    case "closed":
+      return "Closed";
+    default:
+      return status ? status.replaceAll("_", " ") : "Open";
+  }
+}
+
+function humanizeSessionPostType(type) {
+  switch (type) {
+    case "prep":
+      return "Preparation";
+    case "logistics":
+      return "Logistics";
+    case "delivery_note":
+      return "Delivery note";
+    case "debrief":
+      return "Debrief";
+    case "risk":
+      return "Risk";
+    default:
+      return type ? type.replaceAll("_", " ") : "Session note";
+  }
+}
+
+function humanizeCommonsPostType(type) {
+  switch (type) {
+    case "announcement":
+      return "Announcement";
+    case "question":
+      return "Question";
+    case "resource":
+      return "Resource";
+    case "update":
+      return "Update";
+    default:
+      return type ? type.replaceAll("_", " ") : "Update";
+  }
+}
+
+function humanizeSessionRunStatus(status) {
+  switch (status) {
+    case "draft":
+      return "Draft";
+    case "confirmed":
+      return "Confirmed";
+    case "delivered":
+      return "Delivered";
+    case "cancelled":
+      return "Cancelled";
+    default:
+      return status ? status[0].toUpperCase() + status.slice(1) : "Draft";
   }
 }
 
@@ -2405,6 +3191,15 @@ function humanizeAudience(audience) {
     default:
       return audience ? audience[0].toUpperCase() + audience.slice(1) : "Mixed group";
   }
+}
+
+function normalizeValue(value) {
+  if (typeof value !== "string") {
+    return "";
+  }
+
+  const trimmed = value.trim();
+  return trimmed || "";
 }
 
 function escapeHtml(text) {
