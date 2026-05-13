@@ -846,6 +846,7 @@ const dom = {
   signUpButton: document.getElementById("signUpButton"),
   signOutButton: document.getElementById("signOutButton"),
   importStarterButton: document.getElementById("importStarterButton"),
+  workspaceContent: document.getElementById("workspaceContent"),
   authMessage: document.getElementById("authMessage"),
   authState: document.getElementById("authState"),
   pageList: document.getElementById("pageList"),
@@ -1127,6 +1128,13 @@ async function handleSession(session) {
       showMessage(dom.authMessage, "Your account exists, but the studio profile has not been created yet. Wait a moment and sign in again.", "error");
       setAuthState("Signed in, but the admin profile is not ready yet.");
       state.pages = [];
+      renderStudio();
+      return;
+    }
+
+    if (!canEdit()) {
+      showMessage(dom.authMessage, "This sign-in does not currently have admin workspace access. Use the facilitator workspace instead.", "error");
+      setAuthState(buildAuthSummary());
       renderStudio();
       return;
     }
@@ -2267,6 +2275,10 @@ function replaceSectionInState(sectionRow) {
 }
 
 function renderStudio() {
+  if (dom.workspaceContent) {
+    dom.workspaceContent.classList.toggle("hidden", !canEdit());
+  }
+
   renderAuthControls();
   renderPageList();
   renderSectionList();

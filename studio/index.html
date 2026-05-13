@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CoreXformer Admin Workspace</title>
+  <title>CoreXformer Studio Access</title>
   <meta name="robots" content="noindex,nofollow">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,19 +15,19 @@
     <section class="studio-hero">
       <div class="hero-copy">
         <nav class="workspace-switcher" aria-label="Workspace switcher">
-          <a class="workspace-link is-active" href="/studio/">Admin workspace</a>
+          <a class="workspace-link is-active" href="/studio/">Studio access</a>
           <a class="workspace-link" href="/studio/facilitator.html">Facilitator workspace</a>
         </nav>
-        <p class="eyebrow">Private admin workspace</p>
-        <h1>CoreXformer Admin</h1>
+        <p class="eyebrow">Private studio access</p>
+        <h1>Choose the right private entry point.</h1>
         <p class="hero-text">
-          This workspace is for the people who run CoreXformer behind the scenes. It holds the website controls,
-          publishing flow, facilitator approvals, and operational records without exposing those tools to public visitors.
+          This page is the front door to the private CoreXformer platform. From here, admins can sign in to manage the
+          website and operations, while facilitators can move into their own private workspace for onboarding and live work.
         </p>
         <div class="hero-points">
-          <span>Website control</span>
-          <span>Publishing flow</span>
-          <span>Facilitator operations</span>
+          <span>Admin sign in</span>
+          <span>Facilitator sign in</span>
+          <span>Private only</span>
         </div>
       </div>
 
@@ -62,9 +62,21 @@
           <span>Checking Supabase connection...</span>
         </div>
         <button id="importStarterButton" type="button" class="button hidden">Sync missing starter pages and sections</button>
+
+        <div class="access-divider"></div>
+
+        <div class="access-secondary">
+          <p class="card-label">Facilitator access</p>
+          <h2>Facilitator sign in</h2>
+          <p class="card-note">
+            Facilitators should use their own workspace so onboarding, session preparation, and collaboration remain separate from admin controls.
+          </p>
+          <a class="button button-ghost access-link-button" href="/studio/facilitator.html">Open facilitator workspace</a>
+        </div>
       </aside>
     </section>
 
+    <div id="workspaceContent" class="hidden">
     <section class="studio-grid">
       <article class="panel page-panel">
         <div class="panel-head">
@@ -667,6 +679,7 @@
         </ul>
       </article>
     </section>
+    </div>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

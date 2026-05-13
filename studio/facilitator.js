@@ -42,6 +42,7 @@ const dom = {
   signOutButton: document.getElementById("signOutButton"),
   authMessage: document.getElementById("authMessage"),
   authState: document.getElementById("authState"),
+  workspaceContent: document.getElementById("facilitatorWorkspaceContent"),
   facilitatorContextWrap: document.getElementById("facilitatorContextWrap"),
   facilitatorContextSelect: document.getElementById("facilitatorContextSelect"),
   facilitatorIdentity: document.getElementById("facilitatorIdentity"),
@@ -441,6 +442,10 @@ function renderWorkspace() {
   const signedIn = Boolean(state.session);
   const hasFacilitator = Boolean(state.activeFacilitator);
   const showJourney = state.view === "journey";
+
+  if (dom.workspaceContent) {
+    dom.workspaceContent.classList.toggle("hidden", !signedIn);
+  }
 
   dom.signOutButton.classList.toggle("hidden", !signedIn);
   dom.facilitatorContextWrap.classList.toggle("hidden", !signedIn || !canAdminPreview() || state.facilitatorProfiles.length <= 1);
