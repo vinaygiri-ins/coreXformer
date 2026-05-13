@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CoreXformer Studio</title>
+  <title>CoreXformer Admin Workspace</title>
   <meta name="robots" content="noindex,nofollow">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,24 +14,28 @@
   <main class="studio-shell">
     <section class="studio-hero">
       <div class="hero-copy">
-        <p class="eyebrow">Private control surface</p>
-        <h1>CoreXformer Studio</h1>
+        <nav class="workspace-switcher" aria-label="Workspace switcher">
+          <a class="workspace-link is-active" href="/studio/">Admin workspace</a>
+          <a class="workspace-link" href="/studio/facilitator.html">Facilitator workspace</a>
+        </nav>
+        <p class="eyebrow">Private admin workspace</p>
+        <h1>CoreXformer Admin</h1>
         <p class="hero-text">
-          This is the first scaffold for the admin-controlled version of CoreXformer. It is designed for private
-          editing, structured content management, and future publish flow, without exposing editing tools to public visitors.
+          This workspace is for the people who run CoreXformer behind the scenes. It holds the website controls,
+          publishing flow, facilitator approvals, and operational records without exposing those tools to public visitors.
         </p>
         <div class="hero-points">
-          <span>Private login</span>
-          <span>Section-based editing</span>
-          <span>Publish-safe content flow</span>
+          <span>Website control</span>
+          <span>Publishing flow</span>
+          <span>Facilitator operations</span>
         </div>
       </div>
 
       <aside class="login-card">
-        <p class="card-label">Private studio access</p>
+        <p class="card-label">Admin access</p>
         <h2>Admin sign in</h2>
         <p class="card-note">
-          Sign in with your private CoreXformer credentials. If this is the first time, create the first owner account here and the profile will become the master admin for the studio.
+          Sign in with your private CoreXformer credentials. If this is the first time, create the first owner account here and the profile will become the master admin for the workspace.
         </p>
         <form id="loginForm" class="login-form">
           <label>
@@ -438,6 +442,7 @@
 
         <ul class="doc-links">
           <li><a href="/">View the public CoreXformer site</a></li>
+          <li><a href="/studio/facilitator.html">Open the facilitator workspace</a></li>
           <li><a href="/concept.html">Review the live Concept page</a></li>
           <li><a href="/approach.html">Review the live Approach page</a></li>
           <li><a href="/products.html">Review the live Products page</a></li>

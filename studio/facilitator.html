@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CoreXformer Facilitator Workspace</title>
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="studio-shell facilitator-shell">
+    <section class="studio-hero">
+      <div class="hero-copy">
+        <nav class="workspace-switcher" aria-label="Workspace switcher">
+          <a class="workspace-link" href="/studio/">Admin workspace</a>
+          <a class="workspace-link is-active" href="/studio/facilitator.html">Facilitator workspace</a>
+        </nav>
+        <p class="eyebrow">Private facilitator workspace</p>
+        <h1>One home for onboarding, preparation, and delivery.</h1>
+        <p class="hero-text">
+          This workspace is designed for facilitators and facilitator leads. It separates the personal journey into one
+          side and the actual session work into another, so the private platform feels clearer than one long mixed control page.
+        </p>
+        <div class="hero-points">
+          <span>My Journey</span>
+          <span>My Work</span>
+          <span>Private collaboration</span>
+        </div>
+      </div>
+
+      <aside class="login-card">
+        <p class="card-label">Workspace access</p>
+        <h2>Facilitator sign in</h2>
+        <p class="card-note">
+          Sign in with your private CoreXformer credentials. For now, this page is best used as the facilitator-facing
+          workspace and as an admin preview of what facilitators will eventually use directly.
+        </p>
+        <form id="loginForm" class="login-form">
+          <label>
+            <span>Email</span>
+            <input id="emailInput" type="email" placeholder="facilitator@corexformer.com" required>
+          </label>
+          <label>
+            <span>Password</span>
+            <input id="passwordInput" type="password" placeholder="••••••••" required>
+          </label>
+          <div class="login-actions login-actions-single">
+            <button id="signInButton" type="submit" class="button">Sign in</button>
+          </div>
+          <button id="signOutButton" type="button" class="button button-muted hidden">Sign out</button>
+        </form>
+        <div id="authMessage" class="message-banner hidden"></div>
+        <div id="authState" class="auth-state">
+          <strong>Session status</strong>
+          <span>Checking Supabase connection...</span>
+        </div>
+      </aside>
+    </section>
+
+    <section class="studio-grid">
+      <article class="panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Workspace context</p>
+            <h2>Who this workspace is showing</h2>
+          </div>
+          <span class="status-pill">Private</span>
+        </div>
+
+        <div id="facilitatorContextWrap" class="studio-fieldset hidden">
+          <div class="studio-fieldset-head">
+            <h3>Facilitator preview</h3>
+            <p>Admins can switch between facilitator records here. Later, a facilitator will only see their own workspace.</p>
+          </div>
+          <label>
+            <span>Facilitator record</span>
+            <select id="facilitatorContextSelect"></select>
+          </label>
+        </div>
+
+        <div id="facilitatorIdentity" class="identity-card"></div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Workspace map</p>
+            <h2>Two clear doors</h2>
+          </div>
+        </div>
+
+        <div class="pipeline-grid">
+          <div class="pipeline-card">
+            <span>My Journey</span>
+            <strong>Onboarding</strong>
+            <p>Profile, foundations, product path, approvals, and support-related needs.</p>
+          </div>
+          <div class="pipeline-card">
+            <span>My Work</span>
+            <strong>Operations</strong>
+            <p>Assigned products, sessions, preparation notes, delivery context, and team collaboration.</p>
+          </div>
+        </div>
+
+        <div class="notice-box">
+          <h3>Why this split matters</h3>
+          <p>
+            A facilitator should not have to decode admin controls before finding their own next step. This page keeps
+            the personal journey separate from the session work so the platform can stay calm as more facilitators join.
+          </p>
+        </div>
+      </article>
+    </section>
+
+    <section class="workspace-tab-bar" aria-label="Workspace sections">
+      <button id="journeyTabButton" type="button" class="workspace-tab is-active">My Journey</button>
+      <button id="workTabButton" type="button" class="workspace-tab">My Work</button>
+    </section>
+
+    <section id="journeySection" class="workspace-section">
+      <section class="studio-grid">
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Journey snapshot</p>
+              <h2>Where this facilitator stands</h2>
+            </div>
+          </div>
+
+          <div id="journeyStats" class="pipeline-grid"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Profile</p>
+              <h2>Personal details and availability</h2>
+            </div>
+          </div>
+
+          <div id="profileDetails" class="detail-list"></div>
+        </article>
+      </section>
+
+      <section class="studio-grid">
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Onboarding</p>
+              <h2>CoreXformer foundations</h2>
+            </div>
+          </div>
+
+          <div id="onboardingChecklist" class="checklist"></div>
+          <div class="notice-box">
+            <h3>What this side is for</h3>
+            <p>
+              This part of the workspace is about understanding the organization and growing into the facilitator role,
+              not about live session execution.
+            </p>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Product path</p>
+              <h2>What this facilitator can grow into</h2>
+            </div>
+          </div>
+
+          <div id="productPathGrid" class="path-grid"></div>
+        </article>
+      </section>
+
+      <section class="studio-grid">
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Support and related issues</p>
+              <h2>What should eventually route here</h2>
+            </div>
+          </div>
+
+          <ul class="ops-list">
+            <li>
+              <strong>Training question</strong>
+              <span>When a facilitator needs clarity on product design, reflection language, or delivery expectations.</span>
+            </li>
+            <li>
+              <strong>Availability issue</strong>
+              <span>When timing, travel, health, or workload affects whether a session can be taken.</span>
+            </li>
+            <li>
+              <strong>Session concern</strong>
+              <span>When there is a risk, mismatch, or context concern that admin should know before delivery.</span>
+            </li>
+            <li>
+              <strong>Personal support</strong>
+              <span>When the facilitator needs guidance, mentoring, or space to raise a sensitive issue privately.</span>
+            </li>
+          </ul>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Next step</p>
+              <h2>What this page will become</h2>
+            </div>
+          </div>
+
+          <div id="journeyNextStep" class="notice-box"></div>
+        </article>
+      </section>
+    </section>
+
+    <section id="workSection" class="workspace-section hidden">
+      <section class="studio-grid">
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Work snapshot</p>
+              <h2>Current delivery picture</h2>
+            </div>
+          </div>
+
+          <div id="workStats" class="pipeline-grid"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Session brief</p>
+              <h2>Closest live context</h2>
+            </div>
+          </div>
+
+          <div id="sessionBriefCard" class="brief-card hidden"></div>
+          <div id="sessionBriefEmptyState" class="empty-state hidden">
+            <h3>No session brief yet</h3>
+            <p>Once this facilitator is assigned to a live session, the most relevant brief will surface here first.</p>
+          </div>
+        </article>
+      </section>
+
+      <section class="studio-grid">
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">My sessions</p>
+              <h2>Upcoming and recent delivery work</h2>
+            </div>
+          </div>
+
+          <div id="sessionList" class="session-list"></div>
+          <div id="sessionListEmptyState" class="empty-state hidden">
+            <h3>No assigned sessions yet</h3>
+            <p>Once a facilitator is attached to live work, the session list and history will gather here.</p>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Product notes</p>
+              <h2>Private guidance tied to the work</h2>
+            </div>
+          </div>
+
+          <div id="productNotesList" class="session-list"></div>
+          <div id="productNotesEmptyState" class="empty-state hidden">
+            <h3>No facilitator-visible notes yet</h3>
+            <p>Delivery cautions, adaptations, and approved guidance for accessible products will collect here.</p>
+          </div>
+        </article>
+      </section>
+
+      <section class="studio-grid">
+        <article class="panel collaboration-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Product and session collaboration</p>
+              <h2>What the facilitation team is discussing</h2>
+            </div>
+            <span class="status-pill">Private</span>
+          </div>
+
+          <div id="collaborationStatusNote" class="notice-box hidden"></div>
+          <div id="collaborationSummary" class="session-list"></div>
+          <div id="collaborationSummaryEmptyState" class="empty-state hidden">
+            <h3>No collaboration activity yet</h3>
+            <p>Once the private collaboration tables are enabled, product-room and session-room activity will start surfacing here.</p>
+          </div>
+        </article>
+
+        <article class="panel collaboration-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Facilitator commons</p>
+              <h2>Team-wide internal updates</h2>
+            </div>
+            <span class="status-pill">Internal</span>
+          </div>
+
+          <div id="commonsList" class="session-list"></div>
+          <div id="commonsEmptyState" class="empty-state hidden">
+            <h3>No facilitator-wide updates yet</h3>
+            <p>Announcements, questions, and shared resources will appear here as the private commons grows.</p>
+          </div>
+        </article>
+      </section>
+    </section>
+
+    <div id="workspaceMessage" class="message-banner hidden"></div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="facilitator.js"></script>
+</body>
+</html>
