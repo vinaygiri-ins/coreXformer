@@ -148,6 +148,11 @@ h3 {
   color: var(--accent);
 }
 
+.access-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+
 .hero-points span,
 .status-pill {
   display: inline-flex;

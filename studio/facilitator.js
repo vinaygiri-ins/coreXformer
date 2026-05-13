@@ -191,6 +191,12 @@ async function handleSession(session) {
       return;
     }
 
+    if (canAdminPreview() && !shouldStayOnFacilitatorWorkspace()) {
+      setAuthState("This account belongs to the admin side. Redirecting to the admin workspace...");
+      window.location.replace(window.COREXFORMER_STUDIO_CONFIG?.adminWorkspacePath || "/studio/admin.html");
+      return;
+    }
+
     await loadWorkspaceData();
     clearMessage(dom.authMessage);
     setAuthState(buildAuthSummary());
@@ -976,6 +982,11 @@ function compareAssignments(left, right) {
 
 function canAdminPreview() {
   return Boolean(state.session && state.profile && EDITOR_ROLES.includes(state.profile.role));
+}
+
+function shouldStayOnFacilitatorWorkspace() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("preview") === "1";
 }
 
 function buildAuthSummary() {

@@ -1133,9 +1133,8 @@ async function handleSession(session) {
     }
 
     if (!canEdit()) {
-      showMessage(dom.authMessage, "This sign-in does not currently have admin workspace access. Use the facilitator workspace instead.", "error");
-      setAuthState(buildAuthSummary());
-      renderStudio();
+      setAuthState("This account belongs to the facilitator side. Redirecting to the facilitator workspace...");
+      window.location.replace(window.COREXFORMER_STUDIO_CONFIG?.facilitatorWorkspacePath || "/studio/facilitator.html");
       return;
     }
 
