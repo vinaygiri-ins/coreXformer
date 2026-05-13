@@ -1,4 +1,5 @@
-const EDITOR_ROLES = ["owner", "editor"];
+const ADMIN_ROLES = ["owner", "editor"];
+const FACILITATOR_ROLES = ["candidate", "facilitator", "facilitator_lead"];
 const ACCESS_COPY = {
   admin: {
     label: "Admin access",
@@ -227,10 +228,8 @@ async function signUpOwner() {
 async function routeByCredential(session, source, attemptedMode = state.mode) {
   const config = window.COREXFORMER_STUDIO_CONFIG;
   const profile = await waitForProfile(session.user.id);
-  const isAdmin = Boolean(
-    (profile && EDITOR_ROLES.includes(profile.role))
-    || (!profile && source === "admin-signup")
-  );
+  const isAdmin = Boolean((profile && ADMIN_ROLES.includes(profile.role)) || (!profile && source === "admin-signup"));
+  const isFacilitator = Boolean(profile && FACILITATOR_ROLES.includes(profile.role));
 
   if (isAdmin) {
     showMessage(
@@ -239,6 +238,16 @@ async function routeByCredential(session, source, attemptedMode = state.mode) {
     );
     setAuthState("Admin access confirmed.");
     window.location.replace(config.adminWorkspacePath || "/studio/admin.html");
+    return;
+  }
+
+  if (!isFacilitator) {
+    showMessage(
+      dom.accessAuthMessage,
+      "This account is not approved for private studio access yet. CoreXformer will first review and activate facilitator-side accounts through onboarding.",
+      "error"
+    );
+    setAuthState("Signed in, but this account is not activated for admin or facilitator access yet.");
     return;
   }
 

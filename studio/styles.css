@@ -839,9 +839,85 @@ button:disabled {
   background: rgba(47, 107, 80, 0.05);
 }
 
+.application-list {
+  display: grid;
+  gap: 16px;
+}
+
+.application-card {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.application-card-head,
+.application-actions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.application-card-head h3 {
+  margin-bottom: 6px;
+}
+
+.application-meta {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.application-field-grid,
+.application-review-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.application-field-block {
+  display: grid;
+  gap: 8px;
+}
+
+.application-field-block strong {
+  font-size: 0.92rem;
+}
+
+.application-field-block p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.application-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.application-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(47, 107, 80, 0.08);
+  color: var(--accent);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
 @media (max-width: 980px) {
   .studio-hero,
   .studio-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .application-field-grid,
+  .application-review-grid {
     grid-template-columns: 1fr;
   }
 
@@ -878,6 +954,8 @@ button:disabled {
     grid-template-columns: 1fr;
   }
 
+  .application-card-head,
+  .application-actions,
   .detail-row,
   .checklist-head,
   .path-column-head,

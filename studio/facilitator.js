@@ -1,4 +1,5 @@
-const EDITOR_ROLES = ["owner", "editor"];
+const ADMIN_ROLES = ["owner", "editor"];
+const FACILITATOR_SIDE_ROLES = ["candidate", "facilitator", "facilitator_lead"];
 const JOURNEY_STEPS = [
   {
     key: "profile",
@@ -194,6 +195,13 @@ async function handleSession(session) {
     if (canAdminPreview() && !shouldStayOnFacilitatorWorkspace()) {
       setAuthState("This account belongs to the admin side. Redirecting to the admin workspace...");
       window.location.replace(window.COREXFORMER_STUDIO_CONFIG?.adminWorkspacePath || "/studio/admin.html");
+      return;
+    }
+
+    if (!canAdminPreview() && !isFacilitatorSideRole()) {
+      showMessage(dom.authMessage, "This account is not activated for the facilitator workspace yet. CoreXformer first moves people through review and onboarding before live facilitator access begins.", "error");
+      setAuthState("Signed in, but facilitator access is not active for this account yet.");
+      renderWorkspace();
       return;
     }
 
@@ -981,7 +989,11 @@ function compareAssignments(left, right) {
 }
 
 function canAdminPreview() {
-  return Boolean(state.session && state.profile && EDITOR_ROLES.includes(state.profile.role));
+  return Boolean(state.session && state.profile && ADMIN_ROLES.includes(state.profile.role));
+}
+
+function isFacilitatorSideRole() {
+  return Boolean(state.session && state.profile && FACILITATOR_SIDE_ROLES.includes(state.profile.role));
 }
 
 function shouldStayOnFacilitatorWorkspace() {

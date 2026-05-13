@@ -199,6 +199,43 @@
       </article>
     </section>
 
+    <section id="applicationReviewSection" class="studio-grid hidden">
+      <article class="panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Facilitator applications</p>
+            <h2>Review who wants to join CoreXformer</h2>
+          </div>
+          <span class="status-pill">Private intake</span>
+        </div>
+
+        <div id="applicationStats" class="pipeline-grid"></div>
+        <div class="notice-box">
+          <h3>How this should work</h3>
+          <p>
+            A public application should enter here first. Only after review should the person be invited into onboarding
+            and later receive facilitator-side credentials.
+          </p>
+        </div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Application queue</p>
+            <h2>Current review list</h2>
+          </div>
+        </div>
+
+        <div id="applicationList" class="application-list"></div>
+        <div id="applicationEmptyState" class="empty-state hidden">
+          <h3>No applications yet</h3>
+          <p>Once the public join form is live against the backend, new facilitator and supporter applications will collect here.</p>
+        </div>
+        <div id="applicationsMessage" class="message-banner hidden"></div>
+      </article>
+    </section>
+
     <section class="studio-grid">
       <article class="panel product-ops-panel">
         <div class="panel-head">
@@ -670,5 +707,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
   <script src="app.js"></script>
+  <script src="applications.js"></script>
 </body>
 </html>
