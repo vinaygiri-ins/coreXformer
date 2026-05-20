@@ -394,6 +394,34 @@ p {
   grid-template-columns: repeat(2, 1fr);
 }
 
+.entry-path-grid,
+.faq-grid {
+  margin-top: 2rem;
+}
+
+.fit-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.fit-card {
+  padding: 1.35rem;
+}
+
+.fit-card.is-warning {
+  background:
+    radial-gradient(circle at top right, rgba(217, 150, 68, 0.14), transparent 15rem),
+    rgba(255, 250, 241, 0.9);
+}
+
+.fit-card.is-practical {
+  background:
+    radial-gradient(circle at top right, rgba(47, 90, 67, 0.12), transparent 15rem),
+    rgba(255, 250, 241, 0.9);
+}
+
 .feature-card,
 .timeline-card,
 .journey-panel {
@@ -1012,6 +1040,10 @@ a.journey-map-card:focus-visible {
 .timeline-grid {
   grid-template-columns: repeat(4, 1fr);
   margin-top: 2rem;
+}
+
+.timeline-grid-six {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .timeline-card span {
@@ -1719,6 +1751,8 @@ a.journey-map-card:focus-visible {
 
   .timeline-grid,
   .feature-grid,
+  .fit-grid,
+  .faq-grid,
   .sensor-grid,
   .journey-map-grid,
   .product-grid,
@@ -1773,6 +1807,8 @@ a.journey-map-card:focus-visible {
 
   .timeline-grid,
   .feature-grid,
+  .fit-grid,
+  .faq-grid,
   .sensor-grid,
   .stat-row,
   .journey-map-grid,
