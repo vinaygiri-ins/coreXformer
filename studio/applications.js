@@ -63,6 +63,7 @@ function bindApplicationEvents() {
     const saveButton = event.target.closest("[data-application-save]");
     const inviteButton = event.target.closest("[data-application-invite]");
     const copyInviteButton = event.target.closest("[data-application-copy-invite]");
+    const copySignInButton = event.target.closest("[data-application-copy-signin]");
 
     if (inviteButton) {
       const card = inviteButton.closest("[data-application-card]");
@@ -83,6 +84,17 @@ function bindApplicationEvents() {
       }
 
       void copyApplicationInvite(card.dataset.applicationCard);
+      return;
+    }
+
+    if (copySignInButton) {
+      const card = copySignInButton.closest("[data-application-card]");
+
+      if (!card) {
+        return;
+      }
+
+      void copyApplicationSignIn(card.dataset.applicationCard);
       return;
     }
 
@@ -159,7 +171,7 @@ async function loadApplications() {
 
   const { data, error } = await applicationState.supabase
     .from("facilitator_applications")
-    .select("id, full_name, email, phone, city, background, experience_summary, audience_interest, product_interest, availability, motivation, application_status, review_notes, reviewed_at, created_at")
+    .select("id, full_name, email, phone, city, background, experience_summary, audience_interest, product_interest, availability, motivation, application_status, review_notes, reviewed_at, created_at, invited_profile_id")
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -197,12 +209,20 @@ async function inviteApplicationToOnboarding(applicationId) {
     notesInput.value = buildInviteReviewNote();
   }
 
-  await performApplicationReviewSave(applicationId, {
-    successMessage: "Application marked as invited to onboarding."
+  const saved = await performApplicationReviewSave(applicationId, {
+    successMessage: "Application marked as invited to onboarding. Send the onboarding note as the next step."
+  });
+
+  if (!saved) {
+    return;
+  }
+
+  await copyApplicationInvite(applicationId, {
+    successMessage: "Application marked as invited, and the onboarding note is ready to paste."
   });
 }
 
-async function copyApplicationInvite(applicationId) {
+async function copyApplicationInvite(applicationId, options = {}) {
   const application = applicationState.applications.find((item) => item.id === applicationId);
 
   if (!application) {
@@ -213,10 +233,28 @@ async function copyApplicationInvite(applicationId) {
 
   try {
     await navigator.clipboard.writeText(inviteCopy);
-    showApplicationAdminMessage("Onboarding invitation copy is ready to paste.", "success");
+    showApplicationAdminMessage(options.successMessage || "Onboarding note is ready to paste.", "success");
   } catch (error) {
-    showApplicationAdminMessage("The invitation copy could not reach the clipboard on this browser yet.", "error");
+    showApplicationAdminMessage("The onboarding note could not reach the clipboard on this browser yet.", "error");
     console.warn("CoreXformer application invite copy failed.", error);
+  }
+}
+
+async function copyApplicationSignIn(applicationId) {
+  const application = applicationState.applications.find((item) => item.id === applicationId);
+
+  if (!application) {
+    return;
+  }
+
+  const signInCopy = buildSignInCopy(application);
+
+  try {
+    await navigator.clipboard.writeText(signInCopy);
+    showApplicationAdminMessage("Facilitator sign-in guidance is ready to paste.", "success");
+  } catch (error) {
+    showApplicationAdminMessage("The sign-in guidance could not reach the clipboard on this browser yet.", "error");
+    console.warn("CoreXformer sign-in copy failed.", error);
   }
 }
 
@@ -265,7 +303,7 @@ async function performApplicationReviewSave(applicationId, options = {}) {
 
   if (error) {
     showApplicationAdminMessage(error.message || "The application review could not be saved.", "error");
-    return;
+    return false;
   }
 
   const application = applicationState.applications.find((item) => item.id === applicationId);
@@ -278,6 +316,7 @@ async function performApplicationReviewSave(applicationId, options = {}) {
 
   showApplicationAdminMessage(options.successMessage || "Application review saved.", "success");
   renderApplications();
+  return true;
 }
 
 function renderApplications() {
@@ -345,6 +384,11 @@ function renderApplicationCard(application) {
   const availability = escapeApplicationHtml(normalizeApplicationValue(application.availability) || "Not specified");
   const motivation = escapeApplicationHtml(normalizeApplicationValue(application.motivation) || "No motivation shared.");
   const reviewNotes = escapeApplicationHtml(normalizeApplicationValue(application.review_notes));
+  const accessState = describeApplicationAccess(application);
+  const inviteActionLabel = application.application_status === "invited_to_onboarding"
+    ? "Refresh onboarding note"
+    : "Invite to onboarding";
+  const canCopySignIn = Boolean(application.application_status === "invited_to_onboarding" || application.invited_profile_id);
 
   return `
     <article class="application-card" data-application-card="${escapeApplicationHtml(application.id)}">
@@ -388,6 +432,12 @@ function renderApplicationCard(application) {
         </div>
       </div>
 
+      <div class="application-field-block">
+        <strong>Facilitator access state</strong>
+        <p>${escapeApplicationHtml(accessState.title)}</p>
+        <p>${escapeApplicationHtml(accessState.copy)}</p>
+      </div>
+
       <div class="application-field-grid application-review-grid">
         <label>
           <span>Review status</span>
@@ -404,8 +454,9 @@ function renderApplicationCard(application) {
       <div class="application-actions">
         <div class="inline-action-group">
           <button type="button" class="button" data-application-save>Save review</button>
-          <button type="button" class="button button-ghost" data-application-invite>Invite to onboarding</button>
-          <button type="button" class="button button-muted" data-application-copy-invite>Copy invite note</button>
+          <button type="button" class="button button-ghost" data-application-invite>${escapeApplicationHtml(inviteActionLabel)}</button>
+          <button type="button" class="button button-muted" data-application-copy-invite>Copy onboarding note</button>
+          ${canCopySignIn ? '<button type="button" class="button button-muted" data-application-copy-signin>Copy sign-in note</button>' : ""}
         </div>
         <p class="application-meta">Submitted ${formatApplicationDate(application.created_at)}${application.reviewed_at ? ` · reviewed ${formatApplicationDate(application.reviewed_at)}` : ""}</p>
       </div>
@@ -517,7 +568,7 @@ function normalizeApplicationValue(value) {
 }
 
 function buildInviteReviewNote() {
-  return "Invite this person into onboarding. Once the backend activation flow is live, they should activate access through /studio/ using Facilitator > Activate invited account.";
+  return "Invite this person into onboarding. Their next step is /studio/ -> Facilitator -> Activate invited account. If the account already exists, guide them to confirm email and then use Facilitator sign in.";
 }
 
 function buildInviteCopy(application) {
@@ -534,12 +585,69 @@ function buildInviteCopy(application) {
     "4. Use the same email address you applied with and create your password",
     "",
     "After activation, you will enter the facilitator workspace through the onboarding side first.",
+    "If the account was already created earlier, confirm the email first and then return to Facilitator sign in.",
     "",
-    "If the activation step does not work yet, reply back and CoreXformer will complete the backend activation for your invite.",
+    "If the activation step does not work yet, reply back and CoreXformer will help you complete the onboarding access.",
     "",
     "Warmly,",
     "CoreXformer"
   ].join("\n");
+}
+
+function buildSignInCopy(application) {
+  const firstName = normalizeApplicationValue(application.full_name).split(" ")[0] || "there";
+  return [
+    `Hello ${firstName},`,
+    "",
+    "Your CoreXformer facilitator-side access has already been prepared.",
+    "",
+    "Next step:",
+    "1. If you have a confirmation email from Supabase/CoreXformer, open it first and confirm your email address.",
+    "2. Open https://corexformer.pages.dev/studio/",
+    "3. Choose Facilitator",
+    "4. Stay on Sign in",
+    "5. Use the same email and password you created during activation",
+    "",
+    "If you do not remember creating your password yet, return to Activate invited account once more or ask CoreXformer to resend the onboarding note.",
+    "",
+    "Warmly,",
+    "CoreXformer"
+  ].join("\n");
+}
+
+function describeApplicationAccess(application) {
+  if (application.invited_profile_id) {
+    return {
+      title: "Candidate account created",
+      copy: "A facilitator-side candidate profile already exists for this person. The next step is usually email confirmation and then Facilitator sign in."
+    };
+  }
+
+  if (application.application_status === "invited_to_onboarding") {
+    return {
+      title: "Invited to onboarding",
+      copy: "This person has been approved to activate access through the studio entry page. They still need to create their facilitator-side account."
+    };
+  }
+
+  if (application.application_status === "shortlisted" || application.application_status === "screening") {
+    return {
+      title: "Under review",
+      copy: "This person is still being screened. Once ready, mark them as invited and send the onboarding note."
+    };
+  }
+
+  if (application.application_status === "rejected" || application.application_status === "archived") {
+    return {
+      title: "Closed",
+      copy: "This application is not currently moving into onboarding."
+    };
+  }
+
+  return {
+    title: "Awaiting first review",
+    copy: "This person has applied, but onboarding access has not been offered yet."
+  };
 }
 
 function escapeApplicationHtml(text) {
