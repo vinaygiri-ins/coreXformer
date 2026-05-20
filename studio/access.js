@@ -226,6 +226,18 @@ async function signIn() {
   setBusy(false);
 
   if (error) {
+    if (isEmailNotConfirmedError(error)) {
+      showMessage(
+        dom.accessAuthMessage,
+        state.mode === "facilitator"
+          ? "Your facilitator account exists, but the email is still waiting for confirmation. Open the confirmation email first, then return here and sign in."
+          : "This account exists, but the email is still waiting for confirmation. Confirm the email first, then sign in again.",
+        "error"
+      );
+      setAuthState("Email confirmation is still pending.");
+      return;
+    }
+
     showMessage(dom.accessAuthMessage, error.message, "error");
     setAuthState("Sign-in failed. Check the credentials and try again.");
     return;
@@ -326,10 +338,29 @@ async function activateFacilitatorAccount() {
   const invitationRow = Array.isArray(invitationCheck.data) ? invitationCheck.data[0] : invitationCheck.data;
 
   if (!invitationRow?.is_invited) {
+    const existingAccessResult = await tryExistingFacilitatorAccess(email, password);
+
+    if (existingAccessResult.type === "confirmed-email-pending") {
+      setBusy(false);
+      showMessage(
+        dom.accessAuthMessage,
+        "Your invited account has already been created. Confirm the facilitator email first, then return to Facilitator sign in.",
+        "success"
+      );
+      setAuthState("Invited account already created. Waiting for email confirmation.");
+      return;
+    }
+
+    if (existingAccessResult.type === "signed-in") {
+      setBusy(false);
+      await routeByCredential(existingAccessResult.session, "facilitator-existing", "facilitator");
+      return;
+    }
+
     setBusy(false);
     showMessage(
       dom.accessAuthMessage,
-      "This email is not currently marked as invited to onboarding. Ask CoreXformer to review your application and send the onboarding invitation first.",
+      "This email is not currently marked as invited to onboarding. If you already activated once, switch to Facilitator sign in. Otherwise, ask CoreXformer to review your application and send the onboarding invitation first.",
       "error"
     );
     setAuthState("Waiting for an onboarding invitation from CoreXformer.");
@@ -350,6 +381,16 @@ async function activateFacilitatorAccount() {
   setBusy(false);
 
   if (error) {
+    if (isEmailNotConfirmedError(error)) {
+      showMessage(
+        dom.accessAuthMessage,
+        "Your invited account already exists and is waiting for email confirmation. Confirm the email first, then return to Facilitator sign in.",
+        "success"
+      );
+      setAuthState("Invited account already created. Waiting for email confirmation.");
+      return;
+    }
+
     showMessage(dom.accessAuthMessage, error.message, "error");
     setAuthState("The invited account could not be activated yet.");
     return;
@@ -485,6 +526,36 @@ function showMessage(element, message, tone = "info") {
   } else if (tone === "success") {
     element.classList.add("is-success");
   }
+}
+
+async function tryExistingFacilitatorAccess(email, password) {
+  const { data, error } = await state.supabase.auth.signInWithPassword({ email, password });
+
+  if (!error && data?.session) {
+    return {
+      type: "signed-in",
+      session: data.session
+    };
+  }
+
+  if (isEmailNotConfirmedError(error)) {
+    return {
+      type: "confirmed-email-pending"
+    };
+  }
+
+  return {
+    type: "no-match",
+    error
+  };
+}
+
+function isEmailNotConfirmedError(error) {
+  if (!error) {
+    return false;
+  }
+
+  return error.code === "email_not_confirmed" || /email not confirmed/i.test(error.message || "");
 }
 
 function clearMessage(element) {
