@@ -62,14 +62,17 @@ const dom = {
   accessSignInButton: document.getElementById("accessSignInButton"),
   accessSignUpButton: document.getElementById("accessSignUpButton"),
   accessAuthMessage: document.getElementById("accessAuthMessage"),
-  accessAuthState: document.getElementById("accessAuthState")
+  accessAuthState: document.getElementById("accessAuthState"),
+  accessSessionActionButton: document.getElementById("accessSessionActionButton")
 };
 
 const state = {
   supabase: null,
   busy: false,
   mode: "admin",
-  facilitatorAction: "sign_in"
+  facilitatorAction: "sign_in",
+  session: null,
+  sessionProfile: null
 };
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -98,7 +101,7 @@ async function initAccess() {
     }
   });
 
-  setAuthState(ACCESS_COPY[state.mode].checking);
+  setAuthState(getActiveCopy().checking);
 
   const {
     data: { session },
@@ -111,15 +114,22 @@ async function initAccess() {
   }
 
   if (session) {
-    await routeByCredential(session, "session", state.mode);
+    await handleExistingSession(session);
   } else {
-    setAuthState(ACCESS_COPY[state.mode].state);
+    setAuthState(getActiveCopy().state);
   }
 
   state.supabase.auth.onAuthStateChange((_event, sessionUpdate) => {
     if (sessionUpdate) {
-      void routeByCredential(sessionUpdate, "session", state.mode);
+      state.session = sessionUpdate;
+      return;
     }
+
+    state.session = null;
+    state.sessionProfile = null;
+    clearMessage(dom.accessAuthMessage);
+    setAuthState(getActiveCopy().state);
+    renderSessionActionButton();
   });
 }
 
@@ -148,6 +158,10 @@ function bindEvents() {
   dom.accessSignUpButton?.addEventListener("click", () => {
     void signUpOwner();
   });
+
+  dom.accessSessionActionButton?.addEventListener("click", () => {
+    void signOutCurrentSession();
+  });
 }
 
 function setMode(mode) {
@@ -161,6 +175,10 @@ function setMode(mode) {
   }
   clearMessage(dom.accessAuthMessage);
   applyMode();
+
+  if (state.session && state.sessionProfile && getSessionSide() === state.mode) {
+    void routeByCredential(state.session, "session", state.mode);
+  }
 }
 
 function setFacilitatorAction(action) {
@@ -171,6 +189,10 @@ function setFacilitatorAction(action) {
   state.facilitatorAction = action;
   clearMessage(dom.accessAuthMessage);
   applyMode();
+
+  if (state.session && state.sessionProfile && getSessionSide() === "facilitator") {
+    void routeByCredential(state.session, "session", "facilitator");
+  }
 }
 
 function applyMode() {
@@ -198,8 +220,16 @@ function applyMode() {
   dom.facilitatorActivateModeButton?.setAttribute("aria-pressed", String(state.facilitatorAction === "activate"));
 
   if (!state.busy) {
-    setAuthState(copy.state);
+    if (hasRoleMismatchSession()) {
+      setAuthState(buildSessionMismatchState());
+    } else if (state.session && state.sessionProfile) {
+      setAuthState(buildSignedInState());
+    } else {
+      setAuthState(copy.state);
+    }
   }
+
+  renderSessionActionButton();
 }
 
 async function signIn() {
@@ -220,6 +250,12 @@ async function signIn() {
   clearMessage(dom.accessAuthMessage);
   showMessage(dom.accessAuthMessage, getActiveCopy().progress);
   setAuthState(getActiveCopy().authing);
+
+  if (state.session) {
+    await state.supabase.auth.signOut();
+    state.session = null;
+    state.sessionProfile = null;
+  }
 
   const { data, error } = await state.supabase.auth.signInWithPassword({ email, password });
 
@@ -265,6 +301,12 @@ async function signUpOwner() {
   setBusy(true);
   showMessage(dom.accessAuthMessage, "Creating the first owner account...");
   setAuthState("Creating the admin account...");
+
+  if (state.session) {
+    await state.supabase.auth.signOut();
+    state.session = null;
+    state.sessionProfile = null;
+  }
 
   const { data, error } = await state.supabase.auth.signUp({
     email,
@@ -318,6 +360,12 @@ async function activateFacilitatorAccount() {
   clearMessage(dom.accessAuthMessage);
   showMessage(dom.accessAuthMessage, ACCESS_COPY.facilitator.activate.progress);
   setAuthState(ACCESS_COPY.facilitator.activate.authing);
+
+  if (state.session) {
+    await state.supabase.auth.signOut();
+    state.session = null;
+    state.sessionProfile = null;
+  }
 
   const invitationCheck = await state.supabase.rpc("check_facilitator_invitation", {
     invite_email: email
@@ -412,13 +460,15 @@ async function activateFacilitatorAccount() {
 async function routeByCredential(session, source, attemptedMode = state.mode) {
   const config = window.COREXFORMER_STUDIO_CONFIG;
   const profile = await waitForProfile(session.user.id);
+  state.session = session;
+  state.sessionProfile = profile;
   const isAdmin = Boolean((profile && ADMIN_ROLES.includes(profile.role)) || (!profile && source === "admin-signup"));
   const isFacilitator = Boolean(profile && FACILITATOR_ROLES.includes(profile.role));
 
   if (isAdmin) {
     showMessage(
       dom.accessAuthMessage,
-      attemptedMode === "facilitator" ? ACCESS_COPY.facilitator.mismatch : ACCESS_COPY.admin.success
+      attemptedMode === "facilitator" ? getFacilitatorCopy().mismatch : ACCESS_COPY.admin.success
     );
     setAuthState("Admin access confirmed.");
     window.location.replace(config.adminWorkspacePath || "/studio/admin.html");
@@ -443,7 +493,7 @@ async function routeByCredential(session, source, attemptedMode = state.mode) {
 
   showMessage(
     dom.accessAuthMessage,
-    attemptedMode === "admin" ? ACCESS_COPY.admin.mismatch : ACCESS_COPY.facilitator.success
+    attemptedMode === "admin" ? ACCESS_COPY.admin.mismatch : getFacilitatorCopy().success
   );
   setAuthState("Facilitator access confirmed.");
   window.location.replace(config.facilitatorWorkspacePath || "/studio/facilitator.html");
@@ -451,10 +501,14 @@ async function routeByCredential(session, source, attemptedMode = state.mode) {
 
 function getActiveCopy() {
   if (state.mode === "facilitator") {
-    return ACCESS_COPY.facilitator[state.facilitatorAction] || ACCESS_COPY.facilitator.sign_in;
+    return getFacilitatorCopy();
   }
 
   return ACCESS_COPY.admin;
+}
+
+function getFacilitatorCopy() {
+  return ACCESS_COPY.facilitator[state.facilitatorAction] || ACCESS_COPY.facilitator.sign_in;
 }
 
 function applyRequestedMode() {
@@ -475,6 +529,33 @@ function applyRequestedMode() {
     state.mode = "facilitator";
     state.facilitatorAction = "sign_in";
   }
+}
+
+async function handleExistingSession(session) {
+  state.session = session;
+  state.sessionProfile = await waitForProfile(session.user.id);
+
+  if (!state.sessionProfile) {
+    showMessage(dom.accessAuthMessage, "A session exists, but the studio profile is not ready yet. Sign out and try again in a moment.", "error");
+    setAuthState("Signed in, but the studio profile is not ready yet.");
+    renderSessionActionButton();
+    return;
+  }
+
+  const sessionSide = getSessionSide();
+
+  if (sessionSide === state.mode) {
+    await routeByCredential(session, "session", state.mode);
+    return;
+  }
+
+  showMessage(
+    dom.accessAuthMessage,
+    `You are already signed in as ${state.sessionProfile.email} on the ${humanizeSessionSide(sessionSide)} side. Sign out current session to switch accounts, or use that side directly.`,
+    "success"
+  );
+  setAuthState(buildSessionMismatchState());
+  renderSessionActionButton();
 }
 
 async function waitForProfile(userId, attempts = 6) {
@@ -511,6 +592,7 @@ function setBusy(isBusy) {
   dom.accessConfirmPasswordInput.disabled = isBusy;
   dom.accessSignInButton.disabled = isBusy;
   dom.accessSignUpButton.disabled = isBusy || state.mode !== "admin";
+  dom.accessSessionActionButton.disabled = isBusy;
 }
 
 function setAuthState(text) {
@@ -526,6 +608,31 @@ function showMessage(element, message, tone = "info") {
   } else if (tone === "success") {
     element.classList.add("is-success");
   }
+}
+
+async function signOutCurrentSession() {
+  if (!state.session) {
+    clearMessage(dom.accessAuthMessage);
+    setAuthState(getActiveCopy().state);
+    renderSessionActionButton();
+    return;
+  }
+
+  setBusy(true);
+  const { error } = await state.supabase.auth.signOut();
+  setBusy(false);
+
+  if (error) {
+    showMessage(dom.accessAuthMessage, error.message, "error");
+    return;
+  }
+
+  state.session = null;
+  state.sessionProfile = null;
+  dom.accessPasswordInput.value = "";
+  clearMessage(dom.accessAuthMessage);
+  setAuthState(getActiveCopy().state);
+  renderSessionActionButton();
 }
 
 async function tryExistingFacilitatorAccess(email, password) {
@@ -556,6 +663,51 @@ function isEmailNotConfirmedError(error) {
   }
 
   return error.code === "email_not_confirmed" || /email not confirmed/i.test(error.message || "");
+}
+
+function getSessionSide() {
+  if (!state.sessionProfile?.role) {
+    return "unknown";
+  }
+
+  if (ADMIN_ROLES.includes(state.sessionProfile.role)) {
+    return "admin";
+  }
+
+  if (FACILITATOR_ROLES.includes(state.sessionProfile.role)) {
+    return "facilitator";
+  }
+
+  return "unknown";
+}
+
+function hasRoleMismatchSession() {
+  return Boolean(state.session && state.sessionProfile && getSessionSide() !== "unknown" && getSessionSide() !== state.mode);
+}
+
+function buildSessionMismatchState() {
+  return `Already signed in as ${state.sessionProfile?.email || "this user"} on the ${humanizeSessionSide(getSessionSide())} side. Sign out current session to switch roles or accounts.`;
+}
+
+function buildSignedInState() {
+  return `Already signed in as ${state.sessionProfile?.email || "this user"}. Redirecting to the ${humanizeSessionSide(getSessionSide())} workspace...`;
+}
+
+function humanizeSessionSide(side) {
+  if (side === "admin") {
+    return "admin";
+  }
+
+  if (side === "facilitator") {
+    return "facilitator";
+  }
+
+  return "private studio";
+}
+
+function renderSessionActionButton() {
+  const hasSession = Boolean(state.session && state.sessionProfile);
+  dom.accessSessionActionButton.classList.toggle("hidden", !hasSession);
 }
 
 function clearMessage(element) {

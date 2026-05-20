@@ -28,34 +28,20 @@
       </div>
 
       <aside class="login-card">
-        <p class="card-label">Admin access</p>
-        <h2>Admin sign in</h2>
+        <p class="card-label">Workspace access</p>
+        <h2>Access is managed through the studio entry page.</h2>
         <p class="card-note">
-          Sign in with your private CoreXformer credentials. If this is the first time, create the first owner account here and the profile will become the master admin for the workspace.
+          This page is only for an authenticated admin session. If you are signed out, the studio will return you to the
+          shared access page and then bring you back here after admin sign in succeeds.
         </p>
-        <form id="loginForm" class="login-form">
-          <label>
-            <span>Full name</span>
-            <input id="fullNameInput" type="text" placeholder="Vinay Giri">
-          </label>
-          <label>
-            <span>Email</span>
-            <input id="emailInput" type="email" placeholder="admin@corexformer.com" required>
-          </label>
-          <label>
-            <span>Password</span>
-            <input id="passwordInput" type="password" placeholder="••••••••" required>
-          </label>
-          <div class="login-actions">
-            <button id="signInButton" type="submit" class="button">Sign in</button>
-            <button id="signUpButton" type="button" class="button button-ghost">Create first owner account</button>
-          </div>
+        <div class="access-secondary">
+          <a class="button access-link-button" href="/studio/?mode=admin">Go to studio access</a>
           <button id="signOutButton" type="button" class="button button-muted hidden">Sign out</button>
-        </form>
+        </div>
         <div id="authMessage" class="message-banner hidden"></div>
         <div id="authState" class="auth-state">
           <strong>Session status</strong>
-          <span>Checking Supabase connection...</span>
+          <span>Checking private admin session...</span>
         </div>
         <button id="importStarterButton" type="button" class="button hidden">Sync missing starter pages and sections</button>
       </aside>

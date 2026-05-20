@@ -1020,20 +1020,20 @@ async function initStudio() {
 }
 
 function bindEvents() {
-  dom.loginForm.addEventListener("submit", (event) => {
+  dom.loginForm?.addEventListener("submit", (event) => {
     event.preventDefault();
     void signIn();
   });
 
-  dom.signUpButton.addEventListener("click", () => {
+  dom.signUpButton?.addEventListener("click", () => {
     void signUp();
   });
 
-  dom.signOutButton.addEventListener("click", () => {
+  dom.signOutButton?.addEventListener("click", () => {
     void signOut();
   });
 
-  dom.importStarterButton.addEventListener("click", () => {
+  dom.importStarterButton?.addEventListener("click", () => {
     void importStarterContent();
   });
 
@@ -1114,8 +1114,9 @@ async function handleSession(session) {
     clearMessage(dom.authMessage);
     clearMessage(dom.productOpsMessage);
     clearMessage(dom.collaborationMessage);
-    setAuthState("Signed out. Use your email and password to enter the private studio.");
+    setAuthState("Signed out. Redirecting you to private studio access...");
     renderStudio();
+    window.location.replace(buildAdminAccessPath());
     return;
   }
 
@@ -1241,7 +1242,9 @@ async function signOut() {
     return;
   }
 
-  dom.passwordInput.value = "";
+  if (dom.passwordInput) {
+    dom.passwordInput.value = "";
+  }
   showMessage(dom.authMessage, "Signed out successfully.");
 }
 
@@ -2293,20 +2296,45 @@ function renderAuthControls() {
   const editable = canEdit();
   const pagesLoaded = state.pages.length > 0;
 
-  dom.fullNameInput.disabled = signedIn || state.busy.auth;
-  dom.emailInput.disabled = signedIn || state.busy.auth;
-  dom.passwordInput.disabled = signedIn || state.busy.auth;
-  dom.signInButton.disabled = signedIn || state.busy.auth;
-  dom.signUpButton.disabled = signedIn || state.busy.auth;
-  dom.signOutButton.disabled = !signedIn;
+  if (dom.fullNameInput) {
+    dom.fullNameInput.disabled = signedIn || state.busy.auth;
+  }
 
-  dom.signOutButton.classList.toggle("hidden", !signedIn);
-  dom.importStarterButton.classList.toggle("hidden", !editable);
-  dom.importStarterButton.disabled = state.busy.import;
-  dom.importStarterButton.textContent = pagesLoaded
-    ? "Sync missing starter pages and sections"
-    : "Import starter pages and sections";
+  if (dom.emailInput) {
+    dom.emailInput.disabled = signedIn || state.busy.auth;
+  }
+
+  if (dom.passwordInput) {
+    dom.passwordInput.disabled = signedIn || state.busy.auth;
+  }
+
+  if (dom.signInButton) {
+    dom.signInButton.disabled = signedIn || state.busy.auth;
+  }
+
+  if (dom.signUpButton) {
+    dom.signUpButton.disabled = signedIn || state.busy.auth;
+  }
+
+  if (dom.signOutButton) {
+    dom.signOutButton.disabled = !signedIn;
+    dom.signOutButton.classList.toggle("hidden", !signedIn);
+  }
+
+  if (dom.importStarterButton) {
+    dom.importStarterButton.classList.toggle("hidden", !editable);
+    dom.importStarterButton.disabled = state.busy.import;
+    dom.importStarterButton.textContent = pagesLoaded
+      ? "Sync missing starter pages and sections"
+      : "Import starter pages and sections";
+  }
+
   dom.pageEmptyState.classList.toggle("hidden", pagesLoaded || !editable);
+}
+
+function buildAdminAccessPath() {
+  const basePath = window.COREXFORMER_STUDIO_CONFIG?.studioAccessPath || "/studio/";
+  return `${basePath}?mode=admin`;
 }
 
 function renderPageList() {
