@@ -37,9 +37,6 @@ const FOUNDATION_POINTS = [
 ];
 
 const dom = {
-  loginForm: document.getElementById("loginForm"),
-  emailInput: document.getElementById("emailInput"),
-  passwordInput: document.getElementById("passwordInput"),
   signOutButton: document.getElementById("signOutButton"),
   authMessage: document.getElementById("authMessage"),
   authState: document.getElementById("authState"),
@@ -141,11 +138,6 @@ async function initWorkspace() {
 }
 
 function bindEvents() {
-  dom.loginForm?.addEventListener("submit", (event) => {
-    event.preventDefault();
-    void signIn();
-  });
-
   dom.signOutButton?.addEventListener("click", () => {
     void signOut();
   });
@@ -175,7 +167,11 @@ async function handleSession(session) {
   if (!state.session) {
     clearMessage(dom.workspaceMessage);
     clearMessage(dom.authMessage);
-    setAuthState("Signed out. Use your email and password to enter the facilitator workspace.");
+    setAuthState("Signed out. Redirecting you to private studio access...");
+    if (!shouldStayOnFacilitatorWorkspace()) {
+      window.location.replace(buildAccessPath());
+      return;
+    }
     renderWorkspace();
     return;
   }
@@ -209,8 +205,17 @@ async function handleSession(session) {
     clearMessage(dom.authMessage);
     setAuthState(buildAuthSummary());
   } catch (error) {
-    showMessage(dom.authMessage, error.message || "The facilitator workspace could not load its data yet.", "error");
-    setAuthState("Signed in, but the facilitator workspace could not be loaded.");
+    if (isFacilitatorWorkspaceActivationError(error)) {
+      showMessage(
+        dom.authMessage,
+        "The facilitator-side backend access is not fully activated yet. CoreXformer still needs the facilitator access migration before this account can load its private records properly.",
+        "error"
+      );
+      setAuthState("Signed in, but facilitator-side database access is still being activated.");
+    } else {
+      showMessage(dom.authMessage, error.message || "The facilitator workspace could not load its data yet.", "error");
+      setAuthState("Signed in, but the facilitator workspace could not be loaded.");
+    }
   }
 
   renderWorkspace();
@@ -238,30 +243,6 @@ async function waitForProfile(userId, attempts = 6) {
   return null;
 }
 
-async function signIn() {
-  const email = dom.emailInput.value.trim();
-  const password = dom.passwordInput.value;
-
-  if (!email || !password) {
-    showMessage(dom.authMessage, "Enter both email and password to sign in.", "error");
-    return;
-  }
-
-  setBusy("auth", true);
-  showMessage(dom.authMessage, "Signing you into the facilitator workspace...");
-
-  const { error } = await state.supabase.auth.signInWithPassword({ email, password });
-
-  setBusy("auth", false);
-
-  if (error) {
-    showMessage(dom.authMessage, error.message, "error");
-    return;
-  }
-
-  showMessage(dom.authMessage, "Signed in. Loading your workspace...");
-}
-
 async function signOut() {
   const { error } = await state.supabase.auth.signOut();
 
@@ -270,8 +251,10 @@ async function signOut() {
     return;
   }
 
-  dom.passwordInput.value = "";
   showMessage(dom.authMessage, "Signed out successfully.");
+  if (!shouldStayOnFacilitatorWorkspace()) {
+    window.location.replace(buildAccessPath());
+  }
 }
 
 async function loadWorkspaceData() {
@@ -456,6 +439,7 @@ function renderWorkspace() {
   const signedIn = Boolean(state.session);
   const hasFacilitator = Boolean(state.activeFacilitator);
   const showJourney = state.view === "journey";
+  const candidateView = isCandidateView();
 
   if (dom.workspaceContent) {
     dom.workspaceContent.classList.toggle("hidden", !signedIn);
@@ -464,11 +448,12 @@ function renderWorkspace() {
   dom.signOutButton.classList.toggle("hidden", !signedIn);
   dom.facilitatorContextWrap.classList.toggle("hidden", !signedIn || !canAdminPreview() || state.facilitatorProfiles.length <= 1);
   dom.journeySection.classList.toggle("hidden", !showJourney);
-  dom.workSection.classList.toggle("hidden", showJourney);
+  dom.workSection.classList.toggle("hidden", showJourney || candidateView);
   dom.journeyTabButton.classList.toggle("is-active", showJourney);
-  dom.workTabButton.classList.toggle("is-active", !showJourney);
+  dom.workTabButton.classList.toggle("is-active", !showJourney && !candidateView);
   dom.journeyTabButton.disabled = !signedIn;
-  dom.workTabButton.disabled = !signedIn;
+  dom.workTabButton.disabled = !signedIn || candidateView;
+  dom.workTabButton.textContent = candidateView ? "My Work (after approval)" : "My Work";
 
   renderFacilitatorContext();
   renderIdentity();
@@ -509,7 +494,7 @@ function renderIdentity() {
   if (!state.session) {
     dom.facilitatorIdentity.innerHTML = `
       <h3>Private access only</h3>
-      <p class="hero-text">Sign in first to load the facilitator-facing side of the CoreXformer platform.</p>
+      <p class="hero-text">Use the private studio access page first. This page becomes a workspace only after authentication succeeds.</p>
     `;
     return;
   }
@@ -528,14 +513,18 @@ function renderIdentity() {
   const email = escapeHtml(normalizeValue(state.activeFacilitator.email) || state.session.user.email || "Private email");
   const availability = escapeHtml(humanizeAvailability(state.activeFacilitator.availability_status));
   const bio = escapeHtml(normalizeValue(state.activeFacilitator.public_bio_short) || "No public-facing facilitator introduction has been written yet.");
+  const rolePill = isCandidateView() ? "Candidate onboarding" : role;
+  const bioCopy = isCandidateView()
+    ? "This account is in the onboarding-side facilitator journey. The main focus right now is profile, foundations, and product-path readiness before live work expands."
+    : bio;
 
   dom.facilitatorIdentity.innerHTML = `
     <div class="identity-stack">
       <p class="eyebrow">Active facilitator context</p>
       <h2>${name}</h2>
-      <p class="identity-copy">${bio}</p>
+      <p class="identity-copy">${bioCopy}</p>
       <div class="identity-meta">
-        <span class="status-pill">${role}</span>
+        <span class="status-pill">${rolePill}</span>
         <span class="status-pill">${availability}</span>
       </div>
       <div class="detail-list">
@@ -550,9 +539,14 @@ function renderJourneyStats() {
   const approvedCount = countLinksByStatus("approved");
   const shadowingCount = countLinksByStatus("shadowing");
   const nextStep = getNextJourneyStepLabel();
+  const statusLabel = isCandidateView()
+    ? "Candidate onboarding"
+    : state.activeFacilitator
+      ? humanizeFacilitatorStatus(state.activeFacilitator.facilitator_status)
+      : "Waiting";
 
   dom.journeyStats.innerHTML = [
-    renderMetricCard("Status", state.activeFacilitator ? humanizeFacilitatorStatus(state.activeFacilitator.facilitator_status) : "Waiting", state.activeFacilitator ? "Current placement in the facilitator lifecycle." : "Sign in and connect a facilitator record first."),
+    renderMetricCard("Status", statusLabel, state.activeFacilitator ? "Current placement in the facilitator lifecycle." : "Sign in and connect a facilitator record first."),
     renderMetricCard("Availability", state.activeFacilitator ? humanizeAvailability(state.activeFacilitator.availability_status) : "Unknown", state.activeFacilitator ? "What scheduling currently looks like for this facilitator." : "Availability appears after the facilitator record is ready."),
     renderMetricCard("Approved products", String(approvedCount), approvedCount ? "Products this facilitator can currently hold with confidence." : "Approved product readiness will gather here."),
     renderMetricCard("Next step", nextStep, shadowingCount ? "The next growth move comes from current shadowing and approval signals." : "Use this to orient the facilitator toward their next development action.")
@@ -853,6 +847,10 @@ function countLinksByStatus(status) {
 }
 
 function getNextJourneyStepLabel() {
+  if (isCandidateView()) {
+    return "Complete onboarding";
+  }
+
   if (!state.activeFacilitator) {
     return "Create facilitator record";
   }
@@ -882,6 +880,8 @@ function getNextJourneyStepLabel() {
 
 function buildNextStepCopy() {
   switch (getNextJourneyStepLabel()) {
+    case "Complete onboarding":
+      return "This account is in the candidate stage. The best use of the workspace right now is to complete profile details, understand CoreXformer foundations, and begin the first product path before live delivery expands.";
     case "Create facilitator record":
       return "An admin should first create the private facilitator record, because that is what anchors everything else in this workspace.";
     case "Complete profile":
@@ -996,9 +996,18 @@ function isFacilitatorSideRole() {
   return Boolean(state.session && state.profile && FACILITATOR_SIDE_ROLES.includes(state.profile.role));
 }
 
+function isCandidateView() {
+  return Boolean(state.session && state.profile && state.profile.role === "candidate");
+}
+
 function shouldStayOnFacilitatorWorkspace() {
   const params = new URLSearchParams(window.location.search);
   return params.get("preview") === "1";
+}
+
+function buildAccessPath() {
+  const basePath = window.COREXFORMER_STUDIO_CONFIG?.studioAccessPath || "/studio/";
+  return `${basePath}?mode=facilitator`;
 }
 
 function buildAuthSummary() {
@@ -1235,9 +1244,32 @@ function isCollaborationWorkspaceMissingError(error) {
 
   return errorText.includes("could not find the table")
     || errorText.includes("schema cache")
+    || errorText.includes("permission denied")
+    || errorText.includes("row-level")
     || errorText.includes("product_discussion_threads")
     || errorText.includes("session_room_posts")
     || errorText.includes("facilitator_commons_posts");
+}
+
+function isFacilitatorWorkspaceActivationError(error) {
+  if (!error) {
+    return false;
+  }
+
+  const errorText = [
+    normalizeValue(error.message),
+    normalizeValue(error.details),
+    normalizeValue(error.hint)
+  ].join(" ").toLowerCase();
+
+  return (errorText.includes("permission denied") || errorText.includes("row-level"))
+    && (
+      errorText.includes("facilitators")
+      || errorText.includes("facilitator_product_links")
+      || errorText.includes("session_runs")
+      || errorText.includes("session_facilitators")
+      || errorText.includes("product_private_notes")
+    );
 }
 
 function sleep(milliseconds) {

@@ -169,6 +169,10 @@ h3 {
   margin-bottom: 20px;
 }
 
+.access-submode-switch {
+  margin-top: -6px;
+}
+
 .access-mode-button {
   border: 1px solid rgba(47, 107, 80, 0.14);
   border-radius: 16px;
@@ -910,6 +914,12 @@ button:disabled {
   font-weight: 700;
 }
 
+.inline-action-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 @media (max-width: 980px) {
   .studio-hero,
   .studio-grid {
@@ -956,6 +966,7 @@ button:disabled {
 
   .application-card-head,
   .application-actions,
+  .inline-action-group,
   .detail-row,
   .checklist-head,
   .path-column-head,

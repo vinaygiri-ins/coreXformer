@@ -17,8 +17,8 @@
         <p class="eyebrow">Private studio access</p>
         <h1>Enter the private studio.</h1>
         <p class="hero-text">
-          Use one secure sign-in form and choose whether you are entering as an admin or a facilitator.
-          After sign-in, you will be taken to the correct private workspace automatically.
+          Use one secure access form and choose whether you are entering as an admin or a facilitator.
+          After sign-in or invited activation, you will be taken to the correct private workspace automatically.
         </p>
       </div>
     </section>
@@ -28,6 +28,10 @@
         <div class="access-mode-switch" role="tablist" aria-label="Choose private studio access type">
           <button id="adminModeButton" type="button" class="access-mode-button is-active" aria-pressed="true">Admin</button>
           <button id="facilitatorModeButton" type="button" class="access-mode-button" aria-pressed="false">Facilitator</button>
+        </div>
+        <div id="facilitatorActionSwitch" class="access-mode-switch access-submode-switch hidden" role="tablist" aria-label="Choose facilitator access action">
+          <button id="facilitatorSignInModeButton" type="button" class="access-mode-button is-active" aria-pressed="true">Sign in</button>
+          <button id="facilitatorActivateModeButton" type="button" class="access-mode-button" aria-pressed="false">Activate invited account</button>
         </div>
         <p id="accessCardLabel" class="card-label">Admin access</p>
         <h2 id="accessHeading">Admin sign in</h2>
@@ -46,6 +50,10 @@
           <label>
             <span>Password</span>
             <input id="accessPasswordInput" type="password" placeholder="••••••••" required>
+          </label>
+          <label id="accessConfirmPasswordRow" class="hidden">
+            <span>Confirm password</span>
+            <input id="accessConfirmPasswordInput" type="password" placeholder="••••••••">
           </label>
           <div class="login-actions">
             <button id="accessSignInButton" type="submit" class="button">Sign in</button>
