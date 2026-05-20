@@ -466,9 +466,14 @@ async function routeByCredential(session, source, attemptedMode = state.mode) {
   const isFacilitator = Boolean(profile && FACILITATOR_ROLES.includes(profile.role));
 
   if (isAdmin) {
+    if (attemptedMode === "facilitator") {
+      await resolveRoleMismatch("admin");
+      return;
+    }
+
     showMessage(
       dom.accessAuthMessage,
-      attemptedMode === "facilitator" ? getFacilitatorCopy().mismatch : ACCESS_COPY.admin.success
+      ACCESS_COPY.admin.success
     );
     setAuthState("Admin access confirmed.");
     window.location.replace(config.adminWorkspacePath || "/studio/admin.html");
@@ -491,9 +496,14 @@ async function routeByCredential(session, source, attemptedMode = state.mode) {
     return;
   }
 
+  if (attemptedMode === "admin") {
+    await resolveRoleMismatch("facilitator");
+    return;
+  }
+
   showMessage(
     dom.accessAuthMessage,
-    attemptedMode === "admin" ? ACCESS_COPY.admin.mismatch : getFacilitatorCopy().success
+    getFacilitatorCopy().success
   );
   setAuthState("Facilitator access confirmed.");
   window.location.replace(config.facilitatorWorkspacePath || "/studio/facilitator.html");
@@ -633,6 +643,31 @@ async function signOutCurrentSession() {
   clearMessage(dom.accessAuthMessage);
   setAuthState(getActiveCopy().state);
   renderSessionActionButton();
+}
+
+async function resolveRoleMismatch(correctSide) {
+  if (state.session) {
+    await state.supabase.auth.signOut();
+  }
+
+  state.session = null;
+  state.sessionProfile = null;
+  dom.accessPasswordInput.value = "";
+
+  if (correctSide === "admin") {
+    state.mode = "admin";
+    state.facilitatorAction = "sign_in";
+    applyMode();
+    showMessage(dom.accessAuthMessage, "These credentials belong to admin access. Use the Admin tab to continue.", "error");
+    setAuthState("This account is for the admin side. Choose Admin and sign in there.");
+    return;
+  }
+
+  state.mode = "facilitator";
+  state.facilitatorAction = "sign_in";
+  applyMode();
+  showMessage(dom.accessAuthMessage, "These credentials belong to facilitator access. Use the Facilitator tab to continue.", "error");
+  setAuthState("This account is for the facilitator side. Choose Facilitator and sign in there.");
 }
 
 async function tryExistingFacilitatorAccess(email, password) {
