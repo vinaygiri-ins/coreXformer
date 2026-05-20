@@ -352,6 +352,82 @@ button:disabled {
   gap: 0;
 }
 
+.candidate-welcome-card,
+.candidate-access-map,
+.candidate-action-plan {
+  display: grid;
+  gap: 16px;
+}
+
+.candidate-welcome-card {
+  padding: 22px;
+  border-radius: 22px;
+  background:
+    linear-gradient(135deg, rgba(47, 107, 80, 0.1), rgba(186, 123, 60, 0.08)),
+    rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(47, 107, 80, 0.14);
+}
+
+.candidate-welcome-copy {
+  display: grid;
+  gap: 10px;
+}
+
+.candidate-welcome-copy p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.candidate-welcome-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+.candidate-mini-card,
+.candidate-access-block,
+.candidate-action-item {
+  padding: 16px 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(217, 206, 185, 0.88);
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.candidate-mini-card span,
+.candidate-access-head h3,
+.candidate-action-head h3 {
+  display: block;
+}
+
+.candidate-mini-card span {
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+
+.candidate-mini-card strong {
+  font-size: 1.05rem;
+}
+
+.candidate-mini-card p,
+.candidate-access-block p,
+.candidate-action-item p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.candidate-access-head,
+.candidate-action-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .page-list,
 .section-list {
   display: grid;

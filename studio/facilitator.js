@@ -44,6 +44,9 @@ const dom = {
   facilitatorContextWrap: document.getElementById("facilitatorContextWrap"),
   facilitatorContextSelect: document.getElementById("facilitatorContextSelect"),
   facilitatorIdentity: document.getElementById("facilitatorIdentity"),
+  candidateWelcomeSection: document.getElementById("candidateWelcomeSection"),
+  candidateWelcomeCard: document.getElementById("candidateWelcomeCard"),
+  candidateAccessMap: document.getElementById("candidateAccessMap"),
   journeyTabButton: document.getElementById("journeyTabButton"),
   workTabButton: document.getElementById("workTabButton"),
   journeySection: document.getElementById("journeySection"),
@@ -53,6 +56,8 @@ const dom = {
   onboardingChecklist: document.getElementById("onboardingChecklist"),
   productPathGrid: document.getElementById("productPathGrid"),
   journeyNextStep: document.getElementById("journeyNextStep"),
+  candidateActionPlanPanel: document.getElementById("candidateActionPlanPanel"),
+  candidateActionPlan: document.getElementById("candidateActionPlan"),
   workStats: document.getElementById("workStats"),
   sessionBriefCard: document.getElementById("sessionBriefCard"),
   sessionBriefEmptyState: document.getElementById("sessionBriefEmptyState"),
@@ -447,6 +452,7 @@ function renderWorkspace() {
 
   dom.signOutButton.classList.toggle("hidden", !signedIn);
   dom.facilitatorContextWrap.classList.toggle("hidden", !signedIn || !canAdminPreview() || state.facilitatorProfiles.length <= 1);
+  dom.candidateWelcomeSection.classList.toggle("hidden", !signedIn || !candidateView);
   dom.journeySection.classList.toggle("hidden", !showJourney);
   dom.workSection.classList.toggle("hidden", showJourney || candidateView);
   dom.journeyTabButton.classList.toggle("is-active", showJourney);
@@ -457,11 +463,14 @@ function renderWorkspace() {
 
   renderFacilitatorContext();
   renderIdentity();
+  renderCandidateWelcome();
+  renderCandidateAccessMap();
   renderJourneyStats();
   renderProfileDetails();
   renderOnboardingChecklist();
   renderProductPath();
   renderJourneyNextStep();
+  renderCandidateActionPlan();
   renderWorkStats();
   renderSessionBrief();
   renderSessionList();
@@ -533,6 +542,94 @@ function renderIdentity() {
       </div>
     </div>
   `;
+}
+
+function renderCandidateWelcome() {
+  if (!dom.candidateWelcomeCard) {
+    return;
+  }
+
+  if (!state.session || !isCandidateView()) {
+    dom.candidateWelcomeCard.innerHTML = "";
+    return;
+  }
+
+  const name = escapeHtml(
+    normalizeValue(state.activeFacilitator?.display_name)
+    || normalizeValue(state.activeFacilitator?.full_name)
+    || normalizeValue(state.profile?.full_name)
+    || "Facilitator"
+  );
+
+  const nextStep = escapeHtml(getNextJourneyStepLabel());
+  const actionCount = getCandidateActionItems().length;
+
+  dom.candidateWelcomeCard.innerHTML = `
+    <div class="candidate-welcome-copy">
+      <p class="eyebrow">Welcome into onboarding</p>
+      <h3>${name}, this stage is about readiness, not rush.</h3>
+      <p>
+        You are inside the private facilitator workspace as a candidate. Right now the goal is to complete your
+        onboarding, understand how CoreXformer works, and begin a thoughtful product path before live delivery opens up.
+      </p>
+    </div>
+    <div class="candidate-welcome-meta">
+      <div class="candidate-mini-card">
+        <span>Current role</span>
+        <strong>Candidate</strong>
+        <p>Private onboarding access is active.</p>
+      </div>
+      <div class="candidate-mini-card">
+        <span>Next step</span>
+        <strong>${nextStep}</strong>
+        <p>The workspace is pointing you to the next most useful move.</p>
+      </div>
+      <div class="candidate-mini-card">
+        <span>Action list</span>
+        <strong>${escapeHtml(String(actionCount))} items</strong>
+        <p>These are the clearest first actions for this stage.</p>
+      </div>
+    </div>
+  `;
+}
+
+function renderCandidateAccessMap() {
+  if (!dom.candidateAccessMap) {
+    return;
+  }
+
+  if (!state.session || !isCandidateView()) {
+    dom.candidateAccessMap.innerHTML = "";
+    return;
+  }
+
+  const blocks = [
+    {
+      label: "Available now",
+      state: "Open",
+      copy: "My Journey, profile details, CoreXformer foundations, your first product path, and onboarding guidance."
+    },
+    {
+      label: "Opens with shadowing",
+      state: "Next",
+      copy: "Product-specific notes, guided observation, product-room context, and supported learning from real sessions."
+    },
+    {
+      label: "Opens after approval",
+      state: "Later",
+      copy: "My Work, session briefs, assignment timelines, delivery collaboration, and post-session reflection loops."
+    }
+  ];
+
+  dom.candidateAccessMap.innerHTML = blocks.map((block) => `
+    <article class="candidate-access-block">
+      <div class="candidate-access-head">
+        <h3>${escapeHtml(block.label)}</h3>
+        <span class="status-pill">${escapeHtml(block.state)}</span>
+      </div>
+      <p>${escapeHtml(block.copy)}</p>
+    </article>
+  `).join("");
 }
 
 function renderJourneyStats() {
@@ -626,6 +723,31 @@ function renderJourneyNextStep() {
     <h3>Current next step</h3>
     <p>${escapeHtml(buildNextStepCopy())}</p>
   `;
+}
+
+function renderCandidateActionPlan() {
+  if (!dom.candidateActionPlanPanel || !dom.candidateActionPlan) {
+    return;
+  }
+
+  const candidateView = isCandidateView();
+  dom.candidateActionPlanPanel.classList.toggle("hidden", !candidateView);
+
+  if (!candidateView) {
+    dom.candidateActionPlan.innerHTML = "";
+    return;
+  }
+
+  const items = getCandidateActionItems();
+  dom.candidateActionPlan.innerHTML = items.map((item) => `
+    <article class="candidate-action-item">
+      <div class="candidate-action-head">
+        <h3>${escapeHtml(item.title)}</h3>
+        <span class="status-pill">${escapeHtml(item.state)}</span>
+      </div>
+      <p>${escapeHtml(item.copy)}</p>
+    </article>
+  `).join("");
 }
 
 function renderWorkStats() {
@@ -897,6 +1019,55 @@ function buildNextStepCopy() {
     default:
       return "The facilitator has live work ahead. This page should now help them prepare, collaborate, and learn from real delivery.";
   }
+}
+
+function getCandidateActionItems() {
+  const items = [];
+  const hasLocation = Boolean(normalizeValue(state.activeFacilitator?.base_location));
+  const hasPhone = Boolean(normalizeValue(state.activeFacilitator?.phone));
+  const hasProducts = state.productLinks.length > 0;
+  const hasShadowing = countLinksByStatus("shadowing") > 0;
+  const hasApproval = countLinksByStatus("approved") > 0;
+
+  items.push({
+    title: hasLocation && hasPhone ? "Profile basics are in place" : "Complete your personal record",
+    state: hasLocation && hasPhone ? "In place" : "Current",
+    copy: hasLocation && hasPhone
+      ? "Your base location and contact details are already present, so the organization can place you more accurately."
+      : "Make sure your location, phone, and availability details are complete. That gives CoreXformer enough context to place you well."
+  });
+
+  items.push({
+    title: "Read the CoreXformer foundations closely",
+    state: "Current",
+    copy: "This is the right time to understand safe space, reflection language, and how facilitation here is meant to feel before you try to hold a group."
+  });
+
+  items.push({
+    title: hasProducts ? "Deepen your first product lane" : "Choose your first product lane",
+    state: hasProducts ? "In motion" : "Next",
+    copy: hasProducts
+      ? "You already have an early product path. Use this stage to understand where you are only interested, where you may shadow, and where you could grow into real readiness."
+      : "Pick the first products you want to learn through. A clear first lane is more helpful than trying to hold every product at once."
+  });
+
+  items.push({
+    title: hasShadowing ? "Shadowing has started" : "Move toward shadowing",
+    state: hasShadowing ? "In place" : "Later",
+    copy: hasShadowing
+      ? "Once shadowing is visible here, this workspace can start connecting you to real delivery context in a guided way."
+      : "After the first product path is clear, the next meaningful step is supported observation or co-facilitation rather than immediate full delivery."
+  });
+
+  items.push({
+    title: hasApproval ? "Approval is beginning to open" : "Work access opens after approval",
+    state: hasApproval ? "Emerging" : "Later",
+    copy: hasApproval
+      ? "As product approvals gather, the My Work side will start becoming more useful with live assignments and session preparation."
+      : "Your operations side stays intentionally quiet until product-specific approval exists. That keeps the workspace calm and prevents premature overload."
+  });
+
+  return items;
 }
 
 function getUpcomingAssignments() {
