@@ -874,6 +874,117 @@ p {
   max-width: 56rem;
 }
 
+.section-heading-left {
+  max-width: 100%;
+}
+
+.module-nav-section {
+  padding-top: 0;
+  padding-bottom: 1rem;
+}
+
+.module-nav {
+  align-items: center;
+}
+
+.module-nav a {
+  font-size: 0.92rem;
+}
+
+.facilitator-module-shell {
+  gap: 2rem;
+}
+
+.module-purpose-box {
+  margin-top: 1.75rem;
+}
+
+.module-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.module-card {
+  min-height: 100%;
+}
+
+.module-card-core {
+  background:
+    radial-gradient(circle at top right, rgba(47, 90, 67, 0.14), transparent 15rem),
+    rgba(255, 250, 241, 0.92);
+}
+
+.module-card-kicker {
+  margin: 0 0 0.45rem;
+  color: var(--clay);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.module-timeline-grid {
+  margin-top: 2rem;
+}
+
+.workspace-handoff-grid {
+  align-content: start;
+}
+
+.compact-fit-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.faq-stack {
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 2rem;
+}
+
+.faq-item {
+  border-radius: var(--radius-xl);
+  background: rgba(255, 250, 241, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.76);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.faq-item summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 1.2rem 1.35rem;
+  font-weight: 800;
+  color: var(--ink);
+  position: relative;
+}
+
+.faq-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq-item summary::after {
+  content: "+";
+  position: absolute;
+  right: 1.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--forest);
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.faq-item[open] summary::after {
+  content: "\2212";
+}
+
+.faq-item p {
+  margin: 0;
+  padding: 0 1.35rem 1.25rem;
+  color: var(--muted);
+  line-height: 1.8;
+}
+
 .section-link-row {
   margin-top: 1.5rem;
 }
@@ -1751,6 +1862,7 @@ a.journey-map-card:focus-visible {
 
   .timeline-grid,
   .feature-grid,
+  .module-card-grid,
   .fit-grid,
   .faq-grid,
   .sensor-grid,
@@ -1807,6 +1919,7 @@ a.journey-map-card:focus-visible {
 
   .timeline-grid,
   .feature-grid,
+  .module-card-grid,
   .fit-grid,
   .faq-grid,
   .sensor-grid,
@@ -1853,5 +1966,9 @@ a.journey-map-card:focus-visible {
 
   .footer-links {
     justify-content: flex-start;
+  }
+
+  .module-nav {
+    flex-wrap: nowrap;
   }
 }
