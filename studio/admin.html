@@ -15,24 +15,25 @@
     <section class="studio-hero">
       <div class="hero-copy">
         <p class="eyebrow">Private admin workspace</p>
-        <h1>CoreXformer Admin</h1>
+        <h1>Facilitator Entry Admin</h1>
         <p class="hero-text">
-          This workspace is for the people who run CoreXformer behind the scenes. It holds the website controls,
-          publishing flow, facilitator approvals, and operational records without exposing those tools to public visitors.
+          This admin page is now dedicated only to the `Become a Facilitator` module. It should help CoreXformer
+          review incoming applications, decide the right entry path, control onboarding access, and verify how the
+          public facilitator page hands people into the private system.
         </p>
         <div class="hero-points">
-          <span>Website control</span>
-          <span>Publishing flow</span>
-          <span>Facilitator operations</span>
+          <span>Public intake</span>
+          <span>Admin review</span>
+          <span>Onboarding handoff</span>
         </div>
       </div>
 
       <aside class="login-card">
         <p class="card-label">Workspace access</p>
-        <h2>Access is managed through the studio entry page.</h2>
+        <h2>Admin access is routed through the shared studio entry.</h2>
         <p class="card-note">
-          This page is only for an authenticated admin session. If you are signed out, the studio will return you to the
-          shared access page and then bring you back here after admin sign in succeeds.
+          This route should only open for an authenticated admin session. If you are signed out, the studio returns you
+          to the shared access page and then brings you back here after admin sign in succeeds.
         </p>
         <div class="access-secondary">
           <a class="button access-link-button" href="/studio/?mode=admin">Go to studio access</a>
@@ -43,656 +44,174 @@
           <strong>Session status</strong>
           <span>Checking private admin session...</span>
         </div>
-        <button id="importStarterButton" type="button" class="button hidden">Sync missing starter pages and sections</button>
+        <div id="adminIdentity" class="notice-box hidden">
+          <h3>Current admin</h3>
+          <p id="adminIdentityText">Loading admin identity...</p>
+        </div>
       </aside>
     </section>
 
     <div id="workspaceContent" class="hidden">
-    <section class="studio-grid">
-      <article class="panel page-panel">
-        <div class="panel-head">
-          <div>
-            <p class="eyebrow">Editable pages</p>
-            <h2>Content dashboard</h2>
+      <section class="studio-grid">
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Module relationships</p>
+              <h2>What this admin page must stay connected to</h2>
+            </div>
+            <span class="status-pill">Facilitator entry</span>
           </div>
-          <span class="status-pill">Prototype ready</span>
-        </div>
 
-        <div id="pageList" class="page-list" aria-label="Page list"></div>
-        <div id="pageEmptyState" class="empty-state hidden">
-          <h3>No pages loaded yet</h3>
-          <p>Once you sign in as an owner or editor, you can import the starter CoreXformer structure into the database.</p>
-        </div>
-      </article>
-
-      <article class="panel section-panel">
-        <div class="panel-head">
-          <div>
-            <p class="eyebrow">Current selection</p>
-            <h2 id="selectedPageTitle">Homepage</h2>
+          <div class="pipeline-grid">
+            <div class="pipeline-card">
+              <span>Public page</span>
+              <strong>Intake</strong>
+              <p>The public `Become a Facilitator` page collects intent, entry path, audience fit, and product interest.</p>
+            </div>
+            <div class="pipeline-card">
+              <span>Admin control</span>
+              <strong>Decision</strong>
+              <p>Admin reviews fit, saves notes, changes status, and decides whether private onboarding should open.</p>
+            </div>
+            <div class="pipeline-card">
+              <span>Facilitator workspace</span>
+              <strong>Handoff</strong>
+              <p>Approved people should enter `My Journey` first, not jump into all facilitator operations at once.</p>
+            </div>
+            <div class="pipeline-card">
+              <span>Products and scope</span>
+              <strong>Readiness</strong>
+              <p>Applications should help reveal what products, audiences, or support paths make the most sense next.</p>
+            </div>
           </div>
-          <span id="selectedPageStatus" class="status-pill status-live">Published</span>
-        </div>
+        </article>
 
-        <div id="sectionList" class="section-list"></div>
-      </article>
-    </section>
-
-    <section class="studio-grid">
-      <article class="panel editor-panel">
-        <div class="panel-head">
-          <div>
-            <p class="eyebrow">Section editor</p>
-            <h2 id="selectedSectionTitle">Homepage Hero</h2>
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Admin decisions</p>
+              <h2>What this page should help admin decide clearly</h2>
+            </div>
           </div>
-          <span id="selectedSectionType" class="status-pill">hero</span>
-        </div>
 
-        <form class="editor-form">
-          <label>
-            <span>Eyebrow</span>
-            <input id="fieldEyebrow" type="text" value="" disabled>
-          </label>
-          <label>
-            <span>Heading</span>
-            <input id="fieldHeading" type="text" value="" disabled>
-          </label>
-          <label>
-            <span>Summary</span>
-            <textarea id="fieldSummary" rows="4" disabled></textarea>
-          </label>
-          <label>
-            <span>Body / Notes</span>
-            <textarea id="fieldBody" rows="7" disabled></textarea>
-          </label>
+          <ul class="ops-list">
+            <li>
+              <strong>Entry path</strong>
+              <span>Should this person begin through shadowing, facilitator-track onboarding, support, or associate contribution?</span>
+            </li>
+            <li>
+              <strong>Progress status</strong>
+              <span>Should the application remain submitted, move into screening, be invited, or be closed for now?</span>
+            </li>
+            <li>
+              <strong>Private access</strong>
+              <span>Is this the moment to create candidate-side access, or should the person remain in review first?</span>
+            </li>
+            <li>
+              <strong>Future fit</strong>
+              <span>Which audience and product relationships seem most aligned for this person as they move deeper into CoreXformer?</span>
+            </li>
+          </ul>
 
-          <div class="editor-actions">
-            <button id="saveDraftButton" type="button" class="button button-ghost" disabled>Save draft</button>
-            <button id="publishButton" type="button" class="button" disabled>Publish update</button>
+          <div class="notice-box">
+            <h3>Important boundary</h3>
+            <p>
+              This admin page should not try to control the entire website anymore. Its job here is narrower and
+              cleaner: square up the admin side of the facilitator-entry module whenever the public facilitator flow changes.
+            </p>
           </div>
-        </form>
-        <div id="editorMessage" class="message-banner hidden"></div>
-      </article>
+        </article>
+      </section>
 
-      <article class="panel ops-panel">
-        <div class="panel-head">
-          <div>
-            <p class="eyebrow">Operational view</p>
-            <h2>What this studio will control</h2>
+      <section id="applicationReviewSection" class="studio-grid hidden">
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Facilitator applications</p>
+              <h2>Review who is entering the CoreXformer system</h2>
+            </div>
+            <span class="status-pill">Private intake</span>
           </div>
-        </div>
 
-        <ul class="ops-list">
-          <li>
-            <strong>Public content</strong>
-            <span>Hero copy, deep-dive articles, audience cards, founder details, contact content.</span>
-          </li>
-          <li>
-            <strong>Inquiry flow</strong>
-            <span>New, contacted, scheduled, and closed inquiry states from the website form.</span>
-          </li>
-          <li>
-            <strong>Publishing</strong>
-            <span>Draft and published states so the live site only shows approved content.</span>
-          </li>
-          <li>
-            <strong>Future media</strong>
-            <span>Founder image, session photos, gallery assets, and testimonial visuals.</span>
-          </li>
-        </ul>
-
-        <div class="notice-box">
-          <h3>Important boundary</h3>
-          <p>
-            Admin editing should update content records in the backend. It should not directly rewrite layout code.
-            That keeps the design stable while letting you update words and sections freely.
-          </p>
-        </div>
-      </article>
-    </section>
-
-    <section class="studio-grid">
-      <article class="panel inquiry-panel">
-        <div class="panel-head">
-          <div>
-            <p class="eyebrow">Inquiry pipeline</p>
-            <h2>Future admin queue</h2>
-          </div>
-        </div>
-
-        <div class="pipeline-grid">
-          <div class="pipeline-card">
-            <span>New</span>
-            <strong id="countNew">0</strong>
-            <p>Fresh inquiries waiting for first contact.</p>
-          </div>
-          <div class="pipeline-card">
-            <span>Contacted</span>
-            <strong id="countContacted">0</strong>
-            <p>Conversations started, awaiting date or scope alignment.</p>
-          </div>
-          <div class="pipeline-card">
-            <span>Scheduled</span>
-            <strong id="countScheduled">0</strong>
-            <p>Confirmed sessions ready for operational planning.</p>
-          </div>
-          <div class="pipeline-card">
-            <span>Closed</span>
-            <strong id="countClosed">0</strong>
-            <p>Completed or archived conversations for future reference.</p>
-          </div>
-        </div>
-      </article>
-    </section>
-
-    <section id="applicationReviewSection" class="studio-grid hidden">
-      <article class="panel">
-        <div class="panel-head">
-          <div>
-            <p class="eyebrow">Facilitator applications</p>
-            <h2>Review who wants to join CoreXformer</h2>
-          </div>
-          <span class="status-pill">Private intake</span>
-        </div>
-
-        <div id="applicationStats" class="pipeline-grid"></div>
-        <div class="notice-box">
+          <div id="applicationStats" class="pipeline-grid"></div>
+          <div class="notice-box">
             <h3>How this should work</h3>
             <p>
-              A public application should enter here first. Only after review should the person be invited into onboarding
+              A public application should land here first. Only after review should the person be invited into onboarding
               and later activate facilitator-side access through the shared studio entry.
             </p>
           </div>
-      </article>
+        </article>
 
-      <article class="panel">
-        <div class="panel-head">
-          <div>
-            <p class="eyebrow">Application queue</p>
-            <h2>Current review list</h2>
-          </div>
-        </div>
-
-        <div id="applicationList" class="application-list"></div>
-        <div id="applicationEmptyState" class="empty-state hidden">
-          <h3>No applications yet</h3>
-          <p>Once the public join form is live against the backend, new facilitator and supporter applications will collect here.</p>
-        </div>
-        <div id="applicationsMessage" class="message-banner hidden"></div>
-      </article>
-    </section>
-
-    <section class="studio-grid">
-      <article class="panel product-ops-panel">
-        <div class="panel-head">
-          <div>
-            <p class="eyebrow">Product operations</p>
-            <h2>Facilitator and product notes</h2>
-          </div>
-          <span class="status-pill">Private layer</span>
-        </div>
-
-        <form class="editor-form">
-          <label>
-            <span>Product</span>
-            <select id="productSelector"></select>
-          </label>
-
-          <div class="studio-fieldset">
-            <div class="studio-fieldset-head">
-              <h3>Facilitator profile</h3>
-              <p>Keep the internal facilitator record private, and only expose the public session-facing parts later.</p>
-            </div>
-
-            <label>
-              <span>Facilitator record</span>
-              <div class="inline-field-group">
-                <select id="facilitatorProfileSelect">
-                  <option value="">Create a new facilitator</option>
-                </select>
-                <button id="newFacilitatorButton" type="button" class="button button-muted">New</button>
-              </div>
-            </label>
-            <label>
-              <span>Full name</span>
-              <input id="facilitatorNameInput" type="text" placeholder="Facilitator linked to this product">
-            </label>
-            <label>
-              <span>Display name</span>
-              <input id="facilitatorDisplayNameInput" type="text" placeholder="Optional public-facing name if different">
-            </label>
-            <label>
-              <span>Facilitator email</span>
-              <input id="facilitatorEmailInput" type="email" placeholder="Private contact field for studio use">
-            </label>
-            <label>
-              <span>Phone</span>
-              <input id="facilitatorPhoneInput" type="text" placeholder="Optional internal phone number">
-            </label>
-            <label>
-              <span>Base location</span>
-              <input id="facilitatorLocationInput" type="text" placeholder="City or region the facilitator works from">
-            </label>
-            <label>
-              <span>Facilitator status</span>
-              <select id="facilitatorStatusInput">
-                <option value="applied">Applied</option>
-                <option value="screening">Screening</option>
-                <option value="shadowing">Shadowing</option>
-                <option value="approved">Approved</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-            </label>
-            <label>
-              <span>Availability</span>
-              <select id="facilitatorAvailabilityInput">
-                <option value="available">Available</option>
-                <option value="limited">Limited</option>
-                <option value="unavailable">Unavailable</option>
-              </select>
-            </label>
-            <label>
-              <span>Public short bio</span>
-              <textarea id="facilitatorBioInput" rows="4" placeholder="A short introduction shown only if this facilitator is made public for a session."></textarea>
-            </label>
-          </div>
-
-          <div class="studio-fieldset">
-            <div class="studio-fieldset-head">
-              <h3>Product approval for this facilitator</h3>
-              <p>This section is private. It defines whether the facilitator is only interested, shadowing, approved, or schedulable for this product.</p>
-            </div>
-
-            <label>
-              <span>Product fit status</span>
-              <select id="facilitatorInterestStatusInput">
-                <option value="interested">Interested</option>
-                <option value="under_review">Under review</option>
-                <option value="shadowing">Shadowing</option>
-                <option value="approved">Approved</option>
-                <option value="paused">Paused</option>
-              </select>
-            </label>
-            <label>
-              <span>Primary delivery role</span>
-              <select id="facilitatorRoleInput">
-                <option value="lead_facilitator">Lead facilitator</option>
-                <option value="co_facilitator">Co-facilitator</option>
-                <option value="shadow">Shadow facilitator</option>
-              </select>
-            </label>
-            <label>
-              <span>Private training or fit notes</span>
-              <textarea id="facilitatorInternalNoteInput" rows="4" placeholder="Private notes about fit, training, or what to watch for with this product."></textarea>
-            </label>
-            <label class="studio-checkbox-row">
-              <input id="facilitatorCanLeadInput" type="checkbox">
-              <span>Can lead this product alone</span>
-            </label>
-            <label class="studio-checkbox-row">
-              <input id="facilitatorCanCofacilitateInput" type="checkbox">
-              <span>Can co-facilitate this product</span>
-            </label>
-            <label class="studio-checkbox-row">
-              <input id="facilitatorSchedulingInput" type="checkbox">
-              <span>Active for scheduling on this product</span>
-            </label>
-            <div class="editor-actions">
-              <button id="saveFacilitatorButton" type="button" class="button">Save facilitator setup</button>
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Application queue</p>
+              <h2>Current review list</h2>
             </div>
           </div>
 
-          <div class="studio-fieldset">
-            <div class="studio-fieldset-head">
-              <h3>Session assignment snapshot</h3>
-              <p>Only this part is allowed to feed the public “facilitators conducting this session” view later.</p>
-            </div>
-
-            <label>
-              <span>Organization or school</span>
-              <input id="sessionOrganizationInput" type="text" placeholder="Optional client or institution name">
-            </label>
-            <label>
-              <span>Session title</span>
-              <input id="sessionTitleInput" type="text" placeholder="For example: Class 8 orientation or teacher cohort session">
-            </label>
-            <label>
-              <span>Session date and time</span>
-              <input id="sessionDateInput" type="datetime-local">
-            </label>
-            <label>
-              <span>Session assignment status</span>
-              <select id="sessionAssignmentStatusInput">
-                <option value="assigned">Assigned</option>
-                <option value="confirmed">Confirmed</option>
-                <option value="completed">Completed</option>
-                <option value="cancelled">Cancelled</option>
-              </select>
-            </label>
-            <label>
-              <span>Public session note</span>
-              <textarea id="facilitatorNoteInput" rows="3" placeholder="Optional note shown publicly when this facilitator is marked visible for the session."></textarea>
-            </label>
-            <label class="studio-checkbox-row">
-              <input id="facilitatorPublicInput" type="checkbox">
-              <span>Show this facilitator publicly as conducting this session</span>
-            </label>
+          <div id="applicationList" class="application-list"></div>
+          <div id="applicationEmptyState" class="empty-state hidden">
+            <h3>No applications yet</h3>
+            <p>Once the public join flow is active, new facilitator and supporter applications will collect here.</p>
           </div>
+          <div id="applicationsMessage" class="message-banner hidden"></div>
+        </article>
+      </section>
 
-          <div class="studio-fieldset">
-            <div class="studio-fieldset-head">
-              <h3>Private product notes</h3>
-              <p>These notes stay inside the studio so the public product page remains clean.</p>
-            </div>
-
-            <label>
-              <span>Note title</span>
-              <input id="productNoteTitleInput" type="text" placeholder="Delivery notes, cautions, or product evolution">
-            </label>
-            <label>
-              <span>Note visibility</span>
-              <select id="productNoteScopeInput">
-                <option value="facilitator_and_admin">Facilitator and admin</option>
-                <option value="admin_only">Admin only</option>
-              </select>
-            </label>
-            <label>
-              <span>Private note</span>
-              <textarea id="productNoteBodyInput" rows="8" placeholder="Capture facilitation cautions, age-specific adaptations, school context reminders, or future product improvements."></textarea>
-            </label>
-            <div class="editor-actions">
-              <button id="saveProductNoteButton" type="button" class="button button-ghost">Save private note</button>
+      <section class="studio-grid">
+        <article class="panel docs-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Private handoff rules</p>
+              <h2>What should happen after a review decision</h2>
             </div>
           </div>
-        </form>
 
-        <div class="notice-box">
-          <h3>Current phase</h3>
-          <p>
-            This version separates facilitator profile, product approval, and session assignment. Public visitors should
-            only ever see the facilitator snapshot that you explicitly mark as conducting the session.
-          </p>
-        </div>
-        <div id="productOpsMessage" class="message-banner hidden"></div>
-      </article>
+          <ul class="ops-list">
+            <li>
+              <strong>Submitted or screening</strong>
+              <span>The person stays in admin review and should not receive a private login yet.</span>
+            </li>
+            <li>
+              <strong>Invited to onboarding</strong>
+              <span>Admin sends the onboarding note and prepares candidate-stage access through the shared studio entry.</span>
+            </li>
+            <li>
+              <strong>Candidate stage</strong>
+              <span>The facilitator should see `My Journey` first: profile, foundations, product path, and related issues.</span>
+            </li>
+            <li>
+              <strong>Approved later</strong>
+              <span>`My Work` should only open after product-specific readiness and real operational approval become clear.</span>
+            </li>
+          </ul>
+        </article>
 
-      <article class="panel docs-panel">
-        <div class="panel-head">
-          <div>
-            <p class="eyebrow">Product reflections</p>
-            <h2>What this product is receiving</h2>
-          </div>
-        </div>
-
-        <div class="pipeline-grid product-stats-grid">
-          <div class="pipeline-card">
-            <span>Feedback count</span>
-            <strong id="productFeedbackCount">0</strong>
-            <p>Recent reflections linked to the currently selected product.</p>
-          </div>
-          <div class="pipeline-card">
-            <span>Shareable</span>
-            <strong id="productFeedbackShareable">0</strong>
-            <p>Responses currently marked as allowed for public quote use.</p>
-          </div>
-          <div class="pipeline-card">
-            <span>Latest</span>
-            <strong id="productFeedbackLatest">—</strong>
-            <p>The most recent reflection date received for this product.</p>
-          </div>
-        </div>
-
-        <div id="productFeedbackList" class="product-feedback-list"></div>
-        <div id="productFeedbackEmptyState" class="empty-state hidden">
-          <h3>No reflections for this product yet</h3>
-          <p>Once participants submit product-linked feedback, the latest responses will appear here for review.</p>
-        </div>
-      </article>
-    </section>
-
-    <section class="studio-grid">
-      <article class="panel docs-panel">
-        <div class="panel-head">
-          <div>
-            <p class="eyebrow">Studio links</p>
-            <h2>Useful places while you manage content</h2>
-          </div>
-        </div>
-
-        <ul class="doc-links">
-          <li><a href="/">View the public CoreXformer site</a></li>
-          <li><a href="/studio/facilitator.html">Open the facilitator workspace</a></li>
-          <li><a href="/concept.html">Review the live Concept page</a></li>
-          <li><a href="/approach.html">Review the live Approach page</a></li>
-          <li><a href="/products.html">Review the live Products page</a></li>
-          <li><a href="/products-schools.html">Review the live Schools products page</a></li>
-          <li><a href="/product-belong-connect.html">Review the live Belong &amp; Connect page</a></li>
-          <li><a href="/feedback.html">Open the public feedback page</a></li>
-          <li><a href="https://github.com/vinaygiri-ins/coreXformer" target="_blank" rel="noreferrer">Open the GitHub source</a></li>
-        </ul>
-      </article>
-    </section>
-
-    <section class="studio-grid collaboration-grid">
-      <article class="panel collaboration-panel">
-        <div class="panel-head">
-          <div>
-            <p class="eyebrow">Product Room</p>
-            <h2>Discuss the product together</h2>
-          </div>
-          <span class="status-pill">Private</span>
-        </div>
-
-        <p class="collaboration-intro">
-          Keep product learning attached to the actual offering. Use this space for adaptations, field learnings,
-          issues, and change requests that should stay with the product instead of getting lost in chat.
-        </p>
-
-        <div id="productThreadList" class="collaboration-list"></div>
-        <div id="productThreadEmptyState" class="empty-state hidden">
-          <h3>No product discussions yet</h3>
-          <p>Start the first internal discussion for this product and build reusable knowledge from the field.</p>
-        </div>
-
-        <div class="studio-fieldset">
-          <div class="studio-fieldset-head">
-            <h3>Open a product thread</h3>
-            <p>Create a discussion that future facilitators and admins can return to when this product needs clarity.</p>
+        <article class="panel docs-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Module links</p>
+              <h2>Check both sides of the facilitator system</h2>
+            </div>
           </div>
 
-          <label>
-            <span>Thread category</span>
-            <select id="productThreadCategoryInput">
-              <option value="field_learning">Field learning</option>
-              <option value="adaptation">Adaptation</option>
-              <option value="issue">Issue</option>
-              <option value="change_request">Change request</option>
-              <option value="question">Question</option>
-            </select>
-          </label>
-          <label>
-            <span>Status</span>
-            <select id="productThreadStatusInput">
-              <option value="open">Open</option>
-              <option value="trial_next_session">Trial next session</option>
-              <option value="approved_practice">Approved practice</option>
-              <option value="closed">Closed</option>
-            </select>
-          </label>
-          <label>
-            <span>Thread title</span>
-            <input id="productThreadTitleInput" type="text" placeholder="For example: How Belong &amp; Connect should adapt for Class 11 groups">
-          </label>
-          <label>
-            <span>Opening note</span>
-            <textarea id="productThreadBodyInput" rows="5" placeholder="Capture the field observation, the issue, or the question that needs shared thinking."></textarea>
-          </label>
-          <div class="editor-actions">
-            <button id="saveProductThreadButton" type="button" class="button">Start discussion</button>
-          </div>
-        </div>
-
-        <div class="studio-fieldset">
-          <div class="studio-fieldset-head">
-            <h3>Thread conversation</h3>
-            <p>Once a thread is selected, add comments here so the discussion stays attached to one product context.</p>
-          </div>
-
-          <div id="productCommentList" class="comment-list"></div>
-          <div id="productCommentEmptyState" class="empty-state hidden">
-            <h3>No comments yet</h3>
-            <p>Select a thread and add the next step, test idea, or caution for the facilitation team.</p>
-          </div>
-
-          <label>
-            <span>Add a comment</span>
-            <textarea id="productCommentInput" rows="4" placeholder="Add what you observed, what you would test next, or what the team should remember."></textarea>
-          </label>
-          <div class="editor-actions">
-            <button id="saveProductCommentButton" type="button" class="button button-ghost">Add comment</button>
-          </div>
-        </div>
-      </article>
-
-      <article class="panel collaboration-panel">
-        <div class="panel-head">
-          <div>
-            <p class="eyebrow">Session Room</p>
-            <h2>Prepare and debrief the live session</h2>
-          </div>
-          <span class="status-pill">Private</span>
-        </div>
-
-        <div id="sessionRoomMeta" class="notice-box hidden"></div>
-
-        <div class="studio-fieldset">
-          <div class="studio-fieldset-head">
-            <h3>Add a session-room post</h3>
-            <p>Use this for preparation notes, logistics, risks, or debrief learnings tied to the actual session run.</p>
-          </div>
-
-          <label>
-            <span>Post type</span>
-            <select id="sessionPostTypeInput">
-              <option value="prep">Preparation</option>
-              <option value="logistics">Logistics</option>
-              <option value="delivery_note">Delivery note</option>
-              <option value="debrief">Debrief</option>
-              <option value="risk">Risk or caution</option>
-            </select>
-          </label>
-          <label>
-            <span>Title</span>
-            <input id="sessionPostTitleInput" type="text" placeholder="Optional short heading for the session update">
-          </label>
-          <label>
-            <span>Session note</span>
-            <textarea id="sessionPostBodyInput" rows="5" placeholder="Capture what the assigned facilitators need to know before or after the session."></textarea>
-          </label>
-          <div class="editor-actions">
-            <button id="saveSessionPostButton" type="button" class="button">Save session note</button>
-          </div>
-        </div>
-
-        <div id="sessionPostList" class="collaboration-feed"></div>
-        <div id="sessionPostEmptyState" class="empty-state hidden">
-          <h3>No session-room notes yet</h3>
-          <p>Once a session is created for this product, preparation and debrief notes will collect here.</p>
-        </div>
-      </article>
-    </section>
-
-    <section class="studio-grid collaboration-grid">
-      <article class="panel collaboration-panel">
-        <div class="panel-head">
-          <div>
-            <p class="eyebrow">Facilitator Commons</p>
-            <h2>Shared updates across the team</h2>
-          </div>
-          <span class="status-pill">Internal</span>
-        </div>
-
-        <p class="collaboration-intro">
-          Use this for announcements, questions, resources, and internal updates that should reach the wider
-          facilitator community without being tied to one product or one session.
-        </p>
-
-        <div class="studio-fieldset">
-          <div class="studio-fieldset-head">
-            <h3>Post to the commons</h3>
-            <p>Keep this space for things the whole facilitation team may need to see, revisit, or respond to.</p>
-          </div>
-
-          <label>
-            <span>Post type</span>
-            <select id="commonsPostTypeInput">
-              <option value="announcement">Announcement</option>
-              <option value="question">Question</option>
-              <option value="resource">Resource</option>
-              <option value="update">Update</option>
-            </select>
-          </label>
-          <label>
-            <span>Title</span>
-            <input id="commonsPostTitleInput" type="text" placeholder="For example: New reflection language for college sessions">
-          </label>
-          <label>
-            <span>Message</span>
-            <textarea id="commonsPostBodyInput" rows="5" placeholder="Share the update, the question, or the resource the team should know about."></textarea>
-          </label>
-          <label class="studio-checkbox-row">
-            <input id="commonsPinnedInput" type="checkbox">
-            <span>Pin this at the top of the commons feed</span>
-          </label>
-          <div class="editor-actions">
-            <button id="saveCommonsPostButton" type="button" class="button">Post to commons</button>
-          </div>
-        </div>
-
-        <div id="commonsPostList" class="collaboration-feed"></div>
-        <div id="commonsPostEmptyState" class="empty-state hidden">
-          <h3>No commons posts yet</h3>
-          <p>Start with internal announcements, product updates, or questions that need wider facilitator attention.</p>
-        </div>
-
-        <div id="collaborationMessage" class="message-banner hidden"></div>
-      </article>
-
-      <article class="panel docs-panel">
-        <div class="panel-head">
-          <div>
-            <p class="eyebrow">How to use this</p>
-            <h2>Keep collaboration attached to the work</h2>
-          </div>
-        </div>
-
-        <ul class="ops-list">
-          <li>
-            <strong>Product Room</strong>
-            <span>Use it when a product itself needs reflection, adaptation, or a change request.</span>
-          </li>
-          <li>
-            <strong>Session Room</strong>
-            <span>Use it when one live session needs preparation, coordination, or debriefing.</span>
-          </li>
-          <li>
-            <strong>Facilitator Commons</strong>
-            <span>Use it for broader internal updates, shared questions, and facilitator-wide learning.</span>
-          </li>
-          <li>
-            <strong>Decision-ready collaboration</strong>
-            <span>The aim is not endless chat. Product discussions should slowly turn into approved practices, product notes, or next-session tests.</span>
-          </li>
-        </ul>
-      </article>
-    </section>
+          <ul class="doc-links">
+            <li><a href="/become-a-facilitator">Review the live Become a Facilitator page</a></li>
+            <li><a href="/studio/">Open the shared studio access page</a></li>
+            <li><a href="/studio/facilitator">Open the facilitator workspace</a></li>
+            <li><a href="/products.html">Review the products page for facilitator-product relationship context</a></li>
+            <li><a href="https://github.com/vinaygiri-ins/coreXformer" target="_blank" rel="noreferrer">Open the GitHub source</a></li>
+          </ul>
+        </article>
+      </section>
     </div>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
-  <script src="app.js"></script>
+  <script src="admin.js"></script>
   <script src="applications.js"></script>
 </body>
 </html>
