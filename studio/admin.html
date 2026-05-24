@@ -15,16 +15,15 @@
     <section class="studio-hero">
       <div class="hero-copy">
         <p class="eyebrow">Private admin workspace</p>
-        <h1>Facilitator Entry Admin</h1>
+        <h1>CoreXformer Admin</h1>
         <p class="hero-text">
-          This admin page is now dedicated only to the `Become a Facilitator` module. It should help CoreXformer
-          review incoming applications, decide the right entry path, control onboarding access, and verify how the
-          public facilitator page hands people into the private system.
+          This workspace should not become one long mixed admin page. It should stay organized by module, so each part
+          of the website has its own admin view, review logic, and operational checks.
         </p>
         <div class="hero-points">
-          <span>Public intake</span>
-          <span>Admin review</span>
-          <span>Onboarding handoff</span>
+          <span>Module-first control</span>
+          <span>Category-based review</span>
+          <span>Future-safe admin structure</span>
         </div>
       </div>
 
@@ -52,12 +51,54 @@
     </section>
 
     <div id="workspaceContent" class="hidden">
-      <section class="studio-grid">
+      <section class="panel admin-module-shell">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Admin modules</p>
+            <h2>Choose the part of the system you want to manage</h2>
+          </div>
+        </div>
+
+        <div class="workspace-tab-bar admin-module-tabs" role="tablist" aria-label="Admin modules">
+          <button id="adminModuleFacilitator" type="button" class="workspace-tab is-active" data-admin-module="facilitator" role="tab" aria-selected="true">To Be Facilitator</button>
+          <button type="button" class="workspace-tab is-disabled" data-admin-module="products" role="tab" aria-selected="false" disabled>Products <span class="tab-soon">Soon</span></button>
+          <button type="button" class="workspace-tab is-disabled" data-admin-module="feedback" role="tab" aria-selected="false" disabled>Feedback <span class="tab-soon">Soon</span></button>
+          <button type="button" class="workspace-tab is-disabled" data-admin-module="public-pages" role="tab" aria-selected="false" disabled>Public Pages <span class="tab-soon">Soon</span></button>
+          <button type="button" class="workspace-tab is-disabled" data-admin-module="operations" role="tab" aria-selected="false" disabled>Operations <span class="tab-soon">Soon</span></button>
+        </div>
+
+        <div class="notice-box module-note-box">
+          <h3>Why this matters</h3>
+          <p>
+            Each website module should have its own admin layer. That way the admin side grows in a controlled way instead
+            of becoming a single long garbage box whenever we add products, feedback, or more private workflows.
+          </p>
+        </div>
+      </section>
+
+      <section class="panel admin-module-shell" data-admin-module-panel="facilitator">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">To Be Facilitator</p>
+            <h2>Review and organize the facilitator entry module</h2>
+          </div>
+          <span class="status-pill">Active module</span>
+        </div>
+
+        <div class="workspace-tab-bar admin-view-tabs" role="tablist" aria-label="Facilitator admin views">
+          <button type="button" class="workspace-tab is-active" data-admin-view="facilitator-overview" role="tab" aria-selected="true">Overview</button>
+          <button type="button" class="workspace-tab" data-admin-view="facilitator-requests" role="tab" aria-selected="false">Requests</button>
+          <button type="button" class="workspace-tab" data-admin-view="facilitator-handoff" role="tab" aria-selected="false">Onboarding handoff</button>
+          <button type="button" class="workspace-tab" data-admin-view="facilitator-links" role="tab" aria-selected="false">Cross-check links</button>
+        </div>
+      </section>
+
+      <section class="studio-grid admin-view-panel" data-admin-view-panel="facilitator-overview">
         <article class="panel">
           <div class="panel-head">
             <div>
               <p class="eyebrow">Module relationships</p>
-              <h2>What this admin page must stay connected to</h2>
+              <h2>What this admin module must stay connected to</h2>
             </div>
             <span class="status-pill">Facilitator entry</span>
           </div>
@@ -90,7 +131,7 @@
           <div class="panel-head">
             <div>
               <p class="eyebrow">Admin decisions</p>
-              <h2>What this page should help admin decide clearly</h2>
+              <h2>What this module should help admin decide clearly</h2>
             </div>
           </div>
 
@@ -116,14 +157,14 @@
           <div class="notice-box">
             <h3>Important boundary</h3>
             <p>
-              This admin page should not try to control the entire website anymore. Its job here is narrower and
-              cleaner: square up the admin side of the facilitator-entry module whenever the public facilitator flow changes.
+              This view should stay at the architecture level. Use it to remember what this module is responsible for, not
+              to carry every operational detail in one place.
             </p>
           </div>
         </article>
       </section>
 
-      <section id="applicationReviewSection" class="studio-grid hidden">
+      <section id="applicationReviewSection" class="studio-grid admin-view-panel hidden" data-admin-view-panel="facilitator-requests">
         <article class="panel">
           <div class="panel-head">
             <div>
@@ -160,7 +201,7 @@
         </article>
       </section>
 
-      <section class="studio-grid">
+      <section class="studio-grid admin-view-panel hidden" data-admin-view-panel="facilitator-handoff">
         <article class="panel docs-panel">
           <div class="panel-head">
             <div>
@@ -188,7 +229,9 @@
             </li>
           </ul>
         </article>
+      </section>
 
+      <section class="studio-grid admin-view-panel hidden" data-admin-view-panel="facilitator-links">
         <article class="panel docs-panel">
           <div class="panel-head">
             <div>

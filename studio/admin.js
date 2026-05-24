@@ -7,13 +7,19 @@ const adminDom = {
   authMessage: document.getElementById("authMessage"),
   authState: document.getElementById("authState"),
   adminIdentity: document.getElementById("adminIdentity"),
-  adminIdentityText: document.getElementById("adminIdentityText")
+  adminIdentityText: document.getElementById("adminIdentityText"),
+  moduleTabs: Array.from(document.querySelectorAll("[data-admin-module]")),
+  modulePanels: Array.from(document.querySelectorAll("[data-admin-module-panel]")),
+  viewTabs: Array.from(document.querySelectorAll("[data-admin-view]")),
+  viewPanels: Array.from(document.querySelectorAll("[data-admin-view-panel]"))
 };
 
 const adminState = {
   supabase: null,
   session: null,
-  profile: null
+  profile: null,
+  activeModule: "facilitator",
+  activeView: "facilitator-overview"
 };
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -62,6 +68,30 @@ function bindAdminEvents() {
     await adminState.supabase.auth.signOut();
     window.location.replace("/studio/?mode=admin");
   });
+
+  adminDom.moduleTabs.forEach((button) => {
+    button.addEventListener("click", () => {
+      const nextModule = button.dataset.adminModule;
+
+      if (!nextModule || button.disabled) {
+        return;
+      }
+
+      setActiveModule(nextModule);
+    });
+  });
+
+  adminDom.viewTabs.forEach((button) => {
+    button.addEventListener("click", () => {
+      const nextView = button.dataset.adminView;
+
+      if (!nextView) {
+        return;
+      }
+
+      setActiveView(nextView);
+    });
+  });
 }
 
 async function handleAdminSession(session) {
@@ -91,6 +121,7 @@ async function handleAdminSession(session) {
       clearAdminMessage();
       setAdminStateText(`Signed in as ${profile.email}.`);
       updateAdminIdentity(profile);
+      syncAdminShell();
       return;
     }
 
@@ -210,5 +241,42 @@ function humanizeAdminRole(role) {
 function delay(ms) {
   return new Promise((resolve) => {
     window.setTimeout(resolve, ms);
+  });
+}
+
+function setActiveModule(moduleKey) {
+  adminState.activeModule = moduleKey;
+
+  if (moduleKey === "facilitator" && !adminState.activeView.startsWith("facilitator-")) {
+    adminState.activeView = "facilitator-overview";
+  }
+
+  syncAdminShell();
+}
+
+function setActiveView(viewKey) {
+  adminState.activeView = viewKey;
+  syncAdminShell();
+}
+
+function syncAdminShell() {
+  adminDom.moduleTabs.forEach((button) => {
+    const isActive = button.dataset.adminModule === adminState.activeModule;
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-selected", isActive ? "true" : "false");
+  });
+
+  adminDom.modulePanels.forEach((panel) => {
+    panel.classList.toggle("hidden", panel.dataset.adminModulePanel !== adminState.activeModule);
+  });
+
+  adminDom.viewTabs.forEach((button) => {
+    const isActive = button.dataset.adminView === adminState.activeView;
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-selected", isActive ? "true" : "false");
+  });
+
+  adminDom.viewPanels.forEach((panel) => {
+    panel.classList.toggle("hidden", panel.dataset.adminViewPanel !== adminState.activeView);
   });
 }

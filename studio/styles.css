@@ -347,6 +347,35 @@ button:disabled {
   color: var(--accent);
 }
 
+.workspace-tab.is-disabled {
+  cursor: not-allowed;
+  opacity: 0.66;
+}
+
+.tab-soon {
+  margin-left: 6px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--highlight);
+}
+
+.admin-module-shell {
+  display: grid;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.admin-module-tabs,
+.admin-view-tabs {
+  margin-bottom: 0;
+}
+
+.module-note-box {
+  margin: 0;
+}
+
 .workspace-section {
   display: grid;
   gap: 0;

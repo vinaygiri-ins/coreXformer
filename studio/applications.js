@@ -320,7 +320,6 @@ async function performApplicationReviewSave(applicationId, options = {}) {
 }
 
 function renderApplications() {
-  applicationDom.section.classList.remove("hidden");
   renderApplicationStats();
   renderApplicationCards();
 }
@@ -533,7 +532,6 @@ function isApplicationsTableMissing(error) {
 }
 
 function hideApplications() {
-  applicationDom.section?.classList.add("hidden");
   applicationState.applications = [];
   clearApplicationAdminMessage();
 }
