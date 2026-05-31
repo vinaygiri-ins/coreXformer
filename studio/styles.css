@@ -953,6 +953,115 @@ button:disabled {
   gap: 16px;
 }
 
+.lead-map-panel {
+  display: grid;
+  gap: 20px;
+}
+
+.lead-map-workbench {
+  display: grid;
+  grid-template-columns: minmax(300px, 0.86fr) minmax(0, 1.14fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.lead-map-sidebar,
+.lead-map-main,
+.lead-results-list {
+  display: grid;
+  gap: 16px;
+}
+
+.lead-map-canvas {
+  min-height: 460px;
+  border-radius: 22px;
+  border: 1px solid rgba(217, 206, 185, 0.88);
+  overflow: hidden;
+}
+
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  font: inherit;
+}
+
+.lead-map-stats {
+  margin: 0;
+}
+
+.lead-map-area-summary,
+.lead-result-meta,
+.lead-result-details span {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.lead-result-card,
+.lead-stat-card {
+  padding: 20px;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.lead-result-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.lead-result-head h3 {
+  margin-bottom: 6px;
+}
+
+.lead-result-category {
+  margin: 0 0 8px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--highlight);
+}
+
+.lead-category-pill {
+  background: color-mix(in srgb, var(--lead-pill, var(--accent)) 12%, white);
+  color: var(--lead-pill, var(--accent));
+  border: 1px solid color-mix(in srgb, var(--lead-pill, var(--accent)) 24%, white);
+}
+
+.lead-result-details {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 18px;
+}
+
+.lead-result-details li {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.84);
+}
+
+.lead-result-details strong {
+  font-size: 0.92rem;
+}
+
+.lead-result-details a {
+  color: var(--accent);
+  word-break: break-word;
+}
+
+.saved-lead-card {
+  gap: 18px;
+}
+
 .application-card {
   display: grid;
   gap: 16px;
@@ -1031,6 +1140,10 @@ button:disabled {
     grid-template-columns: 1fr;
   }
 
+  .lead-map-workbench {
+    grid-template-columns: 1fr;
+  }
+
   .application-field-grid,
   .application-review-grid {
     grid-template-columns: 1fr;
@@ -1073,6 +1186,8 @@ button:disabled {
   .application-actions,
   .inline-action-group,
   .detail-row,
+  .lead-result-head,
+  .lead-result-details li,
   .checklist-head,
   .path-column-head,
   .session-card-head,

@@ -1,5 +1,6 @@
 const ADMIN_ALLOWED_ROLES = ["owner", "editor"];
 const FACILITATOR_SIDE_ROLES = ["candidate", "facilitator", "facilitator_lead"];
+const OWNER_ONLY_MODULES = new Set(["lead-map"]);
 
 const adminDom = {
   signOutButton: document.getElementById("signOutButton"),
@@ -11,7 +12,8 @@ const adminDom = {
   moduleTabs: Array.from(document.querySelectorAll("[data-admin-module]")),
   modulePanels: Array.from(document.querySelectorAll("[data-admin-module-panel]")),
   viewTabs: Array.from(document.querySelectorAll("[data-admin-view]")),
-  viewPanels: Array.from(document.querySelectorAll("[data-admin-view-panel]"))
+  viewPanels: Array.from(document.querySelectorAll("[data-admin-view-panel]")),
+  ownerOnlyModules: Array.from(document.querySelectorAll("[data-owner-only='true']"))
 };
 
 const adminState = {
@@ -97,6 +99,7 @@ function bindAdminEvents() {
 async function handleAdminSession(session) {
   adminState.session = session ?? null;
   adminState.profile = null;
+  publishAdminContext();
 
   if (!adminState.session) {
     hideAdminWorkspace();
@@ -121,7 +124,9 @@ async function handleAdminSession(session) {
       clearAdminMessage();
       setAdminStateText(`Signed in as ${profile.email}.`);
       updateAdminIdentity(profile);
+      enforceAdminModuleAccess();
       syncAdminShell();
+      publishAdminContext();
       return;
     }
 
@@ -145,6 +150,7 @@ async function handleAdminSession(session) {
     hideAdminWorkspace();
     setAdminMessage(error.message || "The admin workspace could not be loaded.", "error");
     setAdminStateText("Admin workspace unavailable.");
+    publishAdminContext();
   }
 }
 
@@ -251,6 +257,10 @@ function setActiveModule(moduleKey) {
     adminState.activeView = "facilitator-overview";
   }
 
+  if (moduleKey === "lead-map" && !adminState.activeView.startsWith("lead-map-")) {
+    adminState.activeView = "lead-map-overview";
+  }
+
   syncAdminShell();
 }
 
@@ -260,6 +270,8 @@ function setActiveView(viewKey) {
 }
 
 function syncAdminShell() {
+  enforceAdminModuleAccess();
+
   adminDom.moduleTabs.forEach((button) => {
     const isActive = button.dataset.adminModule === adminState.activeModule;
     button.classList.toggle("is-active", isActive);
@@ -279,4 +291,46 @@ function syncAdminShell() {
   adminDom.viewPanels.forEach((panel) => {
     panel.classList.toggle("hidden", panel.dataset.adminViewPanel !== adminState.activeView);
   });
+}
+
+function enforceAdminModuleAccess() {
+  const isOwner = adminState.profile?.role === "owner";
+
+  adminDom.ownerOnlyModules.forEach((button) => {
+    const allowed = isOwner;
+    button.disabled = !allowed;
+    button.classList.toggle("hidden", !allowed);
+    button.classList.toggle("is-disabled", !allowed);
+  });
+
+  adminDom.modulePanels.forEach((panel) => {
+    const moduleKey = panel.dataset.adminModulePanel;
+    const requiresOwner = OWNER_ONLY_MODULES.has(moduleKey);
+    panel.classList.toggle("hidden", requiresOwner ? !isOwner || moduleKey !== adminState.activeModule : moduleKey !== adminState.activeModule);
+  });
+
+  if (OWNER_ONLY_MODULES.has(adminState.activeModule) && !isOwner) {
+    adminState.activeModule = "facilitator";
+  }
+
+  if (adminState.activeModule === "facilitator" && !adminState.activeView.startsWith("facilitator-")) {
+    adminState.activeView = "facilitator-overview";
+  }
+
+  if (adminState.activeModule === "lead-map" && !adminState.activeView.startsWith("lead-map-")) {
+    adminState.activeView = "lead-map-overview";
+  }
+}
+
+function publishAdminContext() {
+  const detail = {
+    session: adminState.session,
+    profile: adminState.profile,
+    supabase: adminState.supabase,
+    isAdmin: Boolean(adminState.profile && ADMIN_ALLOWED_ROLES.includes(adminState.profile.role)),
+    canUseLeadMap: adminState.profile?.role === "owner"
+  };
+
+  window.COREXFORMER_ADMIN_CONTEXT = detail;
+  document.dispatchEvent(new CustomEvent("corexformer:admin-context", { detail }));
 }

@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -61,6 +62,7 @@
 
         <div class="workspace-tab-bar admin-module-tabs" role="tablist" aria-label="Admin modules">
           <button id="adminModuleFacilitator" type="button" class="workspace-tab is-active" data-admin-module="facilitator" role="tab" aria-selected="true">To Be Facilitator</button>
+          <button id="adminModuleLeadMap" type="button" class="workspace-tab" data-admin-module="lead-map" data-owner-only="true" role="tab" aria-selected="false">Lead Map</button>
           <button type="button" class="workspace-tab is-disabled" data-admin-module="products" role="tab" aria-selected="false" disabled>Products <span class="tab-soon">Soon</span></button>
           <button type="button" class="workspace-tab is-disabled" data-admin-module="feedback" role="tab" aria-selected="false" disabled>Feedback <span class="tab-soon">Soon</span></button>
           <button type="button" class="workspace-tab is-disabled" data-admin-module="public-pages" role="tab" aria-selected="false" disabled>Public Pages <span class="tab-soon">Soon</span></button>
@@ -249,12 +251,239 @@
           </ul>
         </article>
       </section>
+
+      <section class="panel admin-module-shell hidden" data-admin-module-panel="lead-map">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Lead Map</p>
+            <h2>Discover institutions by area and turn them into refined outreach leads</h2>
+          </div>
+          <span class="status-pill">Owner only</span>
+        </div>
+
+        <div class="workspace-tab-bar admin-view-tabs" role="tablist" aria-label="Lead map admin views">
+          <button type="button" class="workspace-tab" data-admin-view="lead-map-overview" role="tab" aria-selected="false">Overview</button>
+          <button type="button" class="workspace-tab" data-admin-view="lead-map-scanner" role="tab" aria-selected="false">Map scanner</button>
+          <button type="button" class="workspace-tab" data-admin-view="lead-map-saved" role="tab" aria-selected="false">Saved leads</button>
+        </div>
+      </section>
+
+      <section class="studio-grid admin-view-panel hidden" data-admin-view-panel="lead-map-overview">
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Module relationships</p>
+              <h2>How this module fits into the CoreXformer system</h2>
+            </div>
+            <span class="status-pill">Private scouting</span>
+          </div>
+
+          <div class="pipeline-grid">
+            <div class="pipeline-card">
+              <span>Selected area</span>
+              <strong>Scan</strong>
+              <p>Pan and zoom to the geography you want to scout. The visible map area becomes the scan boundary.</p>
+            </div>
+            <div class="pipeline-card">
+              <span>Institution discovery</span>
+              <strong>Extract</strong>
+              <p>Pull schools, colleges, corporates, communities, and government anchors from map data into one refined result list.</p>
+            </div>
+            <div class="pipeline-card">
+              <span>Owner review</span>
+              <strong>Refine</strong>
+              <p>Shortlist, add notes, set follow-up dates, and decide which organizations are worth meaningful outreach.</p>
+            </div>
+            <div class="pipeline-card">
+              <span>Future operations</span>
+              <strong>Connect</strong>
+              <p>Later these leads can connect with products, sessions, follow-up history, and relationship management.</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">How to use it</p>
+              <h2>The simplest working flow for outreach discovery</h2>
+            </div>
+          </div>
+
+          <ul class="ops-list">
+            <li>
+              <strong>Start with geography</strong>
+              <span>Move the map to the city, district, or neighborhood you want to cover and use the current view as the scan area.</span>
+            </li>
+            <li>
+              <strong>Pick the institution types</strong>
+              <span>Choose whether you want only schools, only colleges, or a broader mix that includes offices, communities, and government anchors.</span>
+            </li>
+            <li>
+              <strong>Save only the useful leads</strong>
+              <span>Do not keep everything. Save the organizations that seem relevant for meaningful experiential learning outreach.</span>
+            </li>
+            <li>
+              <strong>Use the saved board as your private pipeline</strong>
+              <span>Capture status, priority, notes, next follow-up, and the best person to approach so the research becomes actionable.</span>
+            </li>
+          </ul>
+
+          <div class="notice-box">
+            <h3>Current storage</h3>
+            <p>
+              For this first version, saved leads and notes stay private in this browser on this device. That keeps the
+              module lightweight while we refine the real workflow before moving it into shared backend records.
+            </p>
+          </div>
+        </article>
+      </section>
+
+      <section class="admin-view-panel hidden" data-admin-view-panel="lead-map-scanner">
+        <article class="panel lead-map-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Map scanner</p>
+              <h2>Scan the visible area and turn the strongest institutions into real leads</h2>
+            </div>
+            <span class="status-pill">Owner workflow</span>
+          </div>
+
+          <div id="leadMapMessage" class="message-banner hidden"></div>
+
+          <div class="lead-map-workbench">
+            <aside class="lead-map-sidebar">
+              <div class="studio-fieldset">
+                <div class="studio-fieldset-head">
+                  <h3>Move to a place</h3>
+                  <p>Search for a town, district, or neighborhood, then fine-tune the visible area on the map.</p>
+                </div>
+
+                <label>
+                  <span>Search area</span>
+                  <input id="leadMapSearchInput" type="text" placeholder="Try Rangpur, Kolkata, or a district name">
+                </label>
+
+                <div class="inline-action-group">
+                  <button id="leadMapSearchButton" type="button" class="button button-ghost">Find on map</button>
+                  <button id="leadMapResetButton" type="button" class="button button-muted">Reset view</button>
+                </div>
+              </div>
+
+              <div class="studio-fieldset">
+                <div class="studio-fieldset-head">
+                  <h3>Choose institution types</h3>
+                  <p>These filters shape the search query before the visible area is scanned.</p>
+                </div>
+
+                <label class="studio-checkbox-row">
+                  <input type="checkbox" data-lead-category="schools" checked>
+                  <span>Schools</span>
+                </label>
+                <label class="studio-checkbox-row">
+                  <input type="checkbox" data-lead-category="colleges" checked>
+                  <span>Colleges and universities</span>
+                </label>
+                <label class="studio-checkbox-row">
+                  <input type="checkbox" data-lead-category="corporates" checked>
+                  <span>Corporate and office anchors</span>
+                </label>
+                <label class="studio-checkbox-row">
+                  <input type="checkbox" data-lead-category="communities" checked>
+                  <span>Community and NGO spaces</span>
+                </label>
+                <label class="studio-checkbox-row">
+                  <input type="checkbox" data-lead-category="government">
+                  <span>Government and civic anchors</span>
+                </label>
+              </div>
+
+              <div class="studio-fieldset">
+                <div class="studio-fieldset-head">
+                  <h3>Current scan area</h3>
+                  <p>The current visible map view is the selected area for discovery.</p>
+                </div>
+
+                <p id="leadMapAreaSummary" class="lead-map-area-summary">Loading map bounds...</p>
+
+                <div class="inline-action-group">
+                  <button id="leadMapScanButton" type="button" class="button">Scan visible area</button>
+                </div>
+              </div>
+
+              <div class="studio-fieldset">
+                <div class="studio-fieldset-head">
+                  <h3>Refine results</h3>
+                  <p>Filter the current scan results by name, address, category, or tag fragments.</p>
+                </div>
+
+                <label>
+                  <span>Quick filter</span>
+                  <input id="leadMapResultFilter" type="text" placeholder="Filter by name or place details">
+                </label>
+              </div>
+            </aside>
+
+            <div class="lead-map-main">
+              <div id="leadMapCanvas" class="lead-map-canvas" aria-label="Lead scouting map"></div>
+              <div id="leadMapStats" class="pipeline-grid lead-map-stats"></div>
+              <div id="leadMapResults" class="lead-results-list"></div>
+              <div id="leadMapEmptyState" class="empty-state">
+                <h3>No area scanned yet</h3>
+                <p>Move the map to the area you want to study, choose the categories you care about, and scan the visible area.</p>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="studio-grid admin-view-panel hidden" data-admin-view-panel="lead-map-saved">
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Saved outreach board</p>
+              <h2>Your private shortlist for meaningful connection</h2>
+            </div>
+            <span class="status-pill">Local notes</span>
+          </div>
+
+          <div id="leadSavedStats" class="pipeline-grid"></div>
+          <div class="inline-action-group">
+            <button id="leadMapCopyJsonButton" type="button" class="button button-ghost">Copy JSON</button>
+            <button id="leadMapExportCsvButton" type="button" class="button button-muted">Export CSV</button>
+          </div>
+          <div class="notice-box">
+            <h3>What this board is for</h3>
+            <p>
+              This is your private working surface for deciding whom to approach, what the context is, and how you want
+              to follow up. It is not a public directory.
+            </p>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Saved leads</p>
+              <h2>Review, update, and prepare next steps</h2>
+            </div>
+          </div>
+
+          <div id="leadSavedList" class="application-list"></div>
+          <div id="leadSavedEmptyState" class="empty-state hidden">
+            <h3>No leads saved yet</h3>
+            <p>Once you save organizations from the scanner, they will collect here with notes, priority, and follow-up planning.</p>
+          </div>
+        </article>
+      </section>
     </div>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="config.js"></script>
   <script src="admin.js"></script>
   <script src="applications.js"></script>
+  <script src="lead-map.js"></script>
 </body>
 </html>
