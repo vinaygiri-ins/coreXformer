@@ -400,11 +400,38 @@
 
               <div class="studio-fieldset">
                 <div class="studio-fieldset-head">
-                  <h3>Current scan area</h3>
-                  <p>The current visible map view is the selected area for discovery.</p>
+                  <h3>Choose scan boundary</h3>
+                  <p>Use the visible map view or switch to a radius-based scan from a selected point.</p>
+                </div>
+
+                <div class="workspace-tab-bar lead-scan-mode-tabs" role="tablist" aria-label="Lead scan mode">
+                  <button id="leadScanModeBounds" type="button" class="workspace-tab is-active" data-lead-scan-mode="bounds" aria-selected="true">Visible area</button>
+                  <button id="leadScanModeRadius" type="button" class="workspace-tab" data-lead-scan-mode="radius" aria-selected="false">Radius from point</button>
                 </div>
 
                 <p id="leadMapAreaSummary" class="lead-map-area-summary">Loading map bounds...</p>
+
+                <div id="leadRadiusControls" class="studio-fieldset hidden">
+                  <div class="studio-fieldset-head">
+                    <h3>Radius settings</h3>
+                    <p>Click on the map to mark your location, or use the current map center as the scan center.</p>
+                  </div>
+
+                  <label>
+                    <span>Center point</span>
+                    <input id="leadRadiusCenterInput" type="text" value="No point selected yet" readonly>
+                  </label>
+
+                  <label>
+                    <span>Radius in kilometers</span>
+                    <input id="leadRadiusKmInput" type="number" min="1" max="100" step="1" value="5">
+                  </label>
+
+                  <div class="inline-action-group">
+                    <button id="leadRadiusUseMapCenterButton" type="button" class="button button-ghost">Use current map center</button>
+                    <button id="leadRadiusClearButton" type="button" class="button button-muted">Clear point</button>
+                  </div>
+                </div>
 
                 <div class="inline-action-group">
                   <button id="leadMapScanButton" type="button" class="button">Scan visible area</button>

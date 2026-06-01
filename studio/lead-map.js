@@ -41,7 +41,7 @@ const LEAD_CORPORATE_OFFICE_VALUES = new Set([
 
 function buildLeadQueries(clauses) {
   return clauses.flatMap((clause) =>
-    LEAD_OSM_ENTITY_TYPES.map((entityType) => `${entityType}${clause}({{bbox}});`)
+    LEAD_OSM_ENTITY_TYPES.map((entityType) => `${entityType}${clause}{{target}};`)
   );
 }
 
@@ -112,6 +112,12 @@ const leadMapDom = {
   resetButton: document.getElementById("leadMapResetButton"),
   scanButton: document.getElementById("leadMapScanButton"),
   areaSummary: document.getElementById("leadMapAreaSummary"),
+  scanModeButtons: Array.from(document.querySelectorAll("[data-lead-scan-mode]")),
+  radiusControls: document.getElementById("leadRadiusControls"),
+  radiusCenterInput: document.getElementById("leadRadiusCenterInput"),
+  radiusKmInput: document.getElementById("leadRadiusKmInput"),
+  radiusUseMapCenterButton: document.getElementById("leadRadiusUseMapCenterButton"),
+  radiusClearButton: document.getElementById("leadRadiusClearButton"),
   resultFilter: document.getElementById("leadMapResultFilter"),
   categoryInputs: Array.from(document.querySelectorAll("[data-lead-category]")),
   stats: document.getElementById("leadMapStats"),
@@ -129,10 +135,16 @@ const leadMapState = {
   map: null,
   mapReady: false,
   markersLayer: null,
+  selectionLayer: null,
+  radiusMarker: null,
+  radiusCircle: null,
   scanResults: [],
   hasScanned: false,
   savedLeads: loadLeadMapSavedState(),
   activeCategories: new Set(["schools", "colleges", "corporates", "communities"]),
+  scanMode: "bounds",
+  radiusCenter: null,
+  radiusKm: 5,
   currentFilter: "",
   scanning: false
 };
@@ -187,6 +199,40 @@ function bindLeadMapEvents() {
 
   leadMapDom.scanButton?.addEventListener("click", () => {
     void scanLeadMapArea();
+  });
+
+  leadMapDom.scanModeButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const nextMode = button.dataset.leadScanMode;
+      if (!nextMode) {
+        return;
+      }
+
+      setLeadScanMode(nextMode);
+    });
+  });
+
+  leadMapDom.radiusKmInput?.addEventListener("input", (event) => {
+    const nextValue = clampLeadRadius(event.target.value);
+    leadMapState.radiusKm = nextValue;
+    event.target.value = String(nextValue);
+    renderRadiusSelection();
+    updateLeadMapAreaSummary();
+  });
+
+  leadMapDom.radiusUseMapCenterButton?.addEventListener("click", () => {
+    if (!leadMapState.map) {
+      return;
+    }
+
+    const center = leadMapState.map.getCenter();
+    setRadiusCenter(center.lat, center.lng);
+    setLeadMapMessage("Radius center updated to the current map center.", "success");
+  });
+
+  leadMapDom.radiusClearButton?.addEventListener("click", () => {
+    clearRadiusCenter();
+    setLeadMapMessage("The selected radius point has been cleared.", "success");
   });
 
   leadMapDom.resultFilter?.addEventListener("input", (event) => {
@@ -274,11 +320,21 @@ function initLeadMap() {
   }).addTo(leadMapState.map);
 
   leadMapState.markersLayer = window.L.layerGroup().addTo(leadMapState.map);
+  leadMapState.selectionLayer = window.L.layerGroup().addTo(leadMapState.map);
   leadMapState.map.on("moveend zoomend", () => {
     updateLeadMapAreaSummary();
   });
+  leadMapState.map.on("click", (event) => {
+    if (leadMapState.scanMode !== "radius") {
+      return;
+    }
+
+    setRadiusCenter(event.latlng.lat, event.latlng.lng);
+    setLeadMapMessage("Radius center selected from the map. You can now scan that circle.", "success");
+  });
 
   leadMapState.mapReady = true;
+  syncLeadScanModeUi();
   updateLeadMapAreaSummary();
 
   window.setTimeout(() => {
@@ -355,6 +411,12 @@ function resetLeadMapView() {
   setLeadMapMessage("The map view has been reset. Move to the next area you want to scan.", "success");
 }
 
+function setLeadScanMode(nextMode) {
+  leadMapState.scanMode = nextMode === "radius" ? "radius" : "bounds";
+  syncLeadScanModeUi();
+  updateLeadMapAreaSummary();
+}
+
 function syncLeadMapCategories() {
   leadMapState.activeCategories = new Set(
     leadMapDom.categoryInputs
@@ -381,8 +443,14 @@ async function scanLeadMapArea() {
     return;
   }
 
-  const bounds = leadMapState.map.getBounds();
-  const query = buildOverpassQuery(bounds, Array.from(leadMapState.activeCategories));
+  const queryTarget = getLeadQueryTarget();
+
+  if (!queryTarget) {
+    setLeadMapMessage("Choose a point on the map or use the current map center before running a radius scan.", "error");
+    return;
+  }
+
+  const query = buildOverpassQuery(queryTarget, Array.from(leadMapState.activeCategories));
 
   leadMapState.scanning = true;
   leadMapDom.scanButton.disabled = true;
@@ -437,13 +505,8 @@ async function scanLeadMapArea() {
   }
 }
 
-function buildOverpassQuery(bounds, categories) {
-  const bbox = [
-    bounds.getSouth().toFixed(6),
-    bounds.getWest().toFixed(6),
-    bounds.getNorth().toFixed(6),
-    bounds.getEast().toFixed(6)
-  ].join(",");
+function buildOverpassQuery(target, categories) {
+  const targetClause = buildLeadTargetClause(target);
 
   const parts = categories.flatMap((categoryKey) => {
     const config = LEAD_CATEGORY_CONFIG[categoryKey];
@@ -451,7 +514,7 @@ function buildOverpassQuery(bounds, categories) {
       return [];
     }
 
-    return config.query.map((queryPart) => queryPart.replace("{{bbox}}", bbox));
+    return config.query.map((queryPart) => queryPart.replace("{{target}}", targetClause));
   });
 
   return [
@@ -1048,8 +1111,129 @@ function updateLeadMapAreaSummary() {
     return;
   }
 
+  if (leadMapState.scanMode === "radius") {
+    if (!leadMapState.radiusCenter) {
+      leadMapDom.areaSummary.textContent = `Radius mode is active. Click a point on the map or use the current map center, then scan ${leadMapState.radiusKm} km around it.`;
+      return;
+    }
+
+    leadMapDom.areaSummary.textContent = `Radius scan: ${leadMapState.radiusKm} km around ${leadMapState.radiusCenter.lat.toFixed(4)}, ${leadMapState.radiusCenter.lng.toFixed(4)}.`;
+    return;
+  }
+
   const bounds = leadMapState.map.getBounds();
-  leadMapDom.areaSummary.textContent = `South ${bounds.getSouth().toFixed(4)}, West ${bounds.getWest().toFixed(4)} · North ${bounds.getNorth().toFixed(4)}, East ${bounds.getEast().toFixed(4)}`;
+  leadMapDom.areaSummary.textContent = `Visible area scan: South ${bounds.getSouth().toFixed(4)}, West ${bounds.getWest().toFixed(4)} · North ${bounds.getNorth().toFixed(4)}, East ${bounds.getEast().toFixed(4)}`;
+}
+
+function syncLeadScanModeUi() {
+  leadMapDom.scanModeButtons.forEach((button) => {
+    const isActive = button.dataset.leadScanMode === leadMapState.scanMode;
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-selected", isActive ? "true" : "false");
+  });
+
+  leadMapDom.radiusControls?.classList.toggle("hidden", leadMapState.scanMode !== "radius");
+
+  if (leadMapDom.scanButton) {
+    leadMapDom.scanButton.textContent = leadMapState.scanMode === "radius" ? "Scan selected radius" : "Scan visible area";
+  }
+
+  renderRadiusSelection();
+}
+
+function setRadiusCenter(lat, lng) {
+  leadMapState.radiusCenter = {
+    lat: Number(lat),
+    lng: Number(lng)
+  };
+  renderRadiusSelection();
+  updateLeadMapAreaSummary();
+}
+
+function clearRadiusCenter() {
+  leadMapState.radiusCenter = null;
+  renderRadiusSelection();
+  updateLeadMapAreaSummary();
+}
+
+function renderRadiusSelection() {
+  if (leadMapDom.radiusCenterInput) {
+    leadMapDom.radiusCenterInput.value = leadMapState.radiusCenter
+      ? `${leadMapState.radiusCenter.lat.toFixed(5)}, ${leadMapState.radiusCenter.lng.toFixed(5)}`
+      : "No point selected yet";
+  }
+
+  if (leadMapDom.radiusKmInput) {
+    leadMapDom.radiusKmInput.value = String(leadMapState.radiusKm);
+  }
+
+  if (!leadMapState.selectionLayer) {
+    return;
+  }
+
+  leadMapState.selectionLayer.clearLayers();
+  leadMapState.radiusMarker = null;
+  leadMapState.radiusCircle = null;
+
+  if (leadMapState.scanMode !== "radius" || !leadMapState.radiusCenter) {
+    return;
+  }
+
+  leadMapState.radiusMarker = window.L.marker([leadMapState.radiusCenter.lat, leadMapState.radiusCenter.lng]).addTo(leadMapState.selectionLayer);
+  leadMapState.radiusCircle = window.L.circle([leadMapState.radiusCenter.lat, leadMapState.radiusCenter.lng], {
+    radius: leadMapState.radiusKm * 1000,
+    color: "#ba7b3c",
+    weight: 2,
+    fillColor: "#ba7b3c",
+    fillOpacity: 0.12
+  }).addTo(leadMapState.selectionLayer);
+}
+
+function getLeadQueryTarget() {
+  if (!leadMapState.map) {
+    return null;
+  }
+
+  if (leadMapState.scanMode === "radius") {
+    if (!leadMapState.radiusCenter) {
+      return null;
+    }
+
+    return {
+      mode: "radius",
+      lat: leadMapState.radiusCenter.lat,
+      lng: leadMapState.radiusCenter.lng,
+      radiusMeters: leadMapState.radiusKm * 1000
+    };
+  }
+
+  return {
+    mode: "bounds",
+    bounds: leadMapState.map.getBounds()
+  };
+}
+
+function buildLeadTargetClause(target) {
+  if (target.mode === "radius") {
+    return `(around:${Math.round(target.radiusMeters)},${target.lat.toFixed(6)},${target.lng.toFixed(6)})`;
+  }
+
+  return `(${[
+    target.bounds.getSouth().toFixed(6),
+    target.bounds.getWest().toFixed(6),
+    target.bounds.getNorth().toFixed(6),
+    target.bounds.getEast().toFixed(6)
+  ].join(",")})`;
+}
+
+function clampLeadRadius(value) {
+  const parsed = Number(value);
+
+  if (Number.isNaN(parsed)) {
+    return 5;
+  }
+
+  return Math.min(100, Math.max(1, Math.round(parsed)));
 }
 
 function dedupeLeadResults(results) {
