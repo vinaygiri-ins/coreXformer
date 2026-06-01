@@ -6,8 +6,8 @@ window.COREXFORMER_STUDIO_CONFIG = {
   adminWorkspacePath: "/studio/admin.html",
   facilitatorWorkspacePath: "/studio/facilitator.html",
   leadMap: {
-    provider: "osm",
-    googleMapsApiKey: "",
+    provider: "google",
+    googleMapsApiKey: "AIzaSyD57n38xCVp87_FCtLnpZ8s-R8BWddWFUI",
     googleMapId: "",
     googleRegion: "IN",
     googleLanguage: "en"
