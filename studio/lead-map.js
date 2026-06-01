@@ -4,6 +4,62 @@ const LEAD_MAP_DEFAULT_VIEW = {
   center: [22.9734, 78.6569],
   zoom: 5
 };
+const LEAD_MAP_GOOGLE_SCRIPT_ID = "corexformer-google-lead-map-api";
+const LEAD_MAP_GOOGLE_FIELDS = [
+  "id",
+  "displayName",
+  "formattedAddress",
+  "location",
+  "googleMapsURI",
+  "primaryType",
+  "businessStatus"
+];
+const LEAD_MAP_GOOGLE_MAX_RADIUS_METERS = 50000;
+const LEAD_MAP_GOOGLE_NEARBY_LIMIT = 20;
+const LEAD_MAP_GOOGLE_TEXT_LIMIT = 8;
+const LEAD_MAP_GOOGLE_CATEGORY_SEARCH = {
+  schools: {
+    nearbyPrimaryTypes: ["school", "secondary_school", "primary_school", "preschool"],
+    textSearches: [
+      { textQuery: "school", includedType: "school" },
+      { textQuery: "senior secondary school", includedType: "secondary_school" }
+    ]
+  },
+  colleges: {
+    nearbyPrimaryTypes: ["university"],
+    textSearches: [
+      { textQuery: "college", includedType: "university" },
+      { textQuery: "university", includedType: "university" },
+      { textQuery: "engineering college", includedType: "university" }
+    ]
+  },
+  corporates: {
+    nearbyPrimaryTypes: ["corporate_office", "manufacturer", "business_center"],
+    textSearches: [
+      { textQuery: "IT company", includedType: "corporate_office" },
+      { textQuery: "software company", includedType: "corporate_office" },
+      { textQuery: "manufacturing company", includedType: "manufacturer" },
+      { textQuery: "engineering company", includedType: "corporate_office" },
+      { textQuery: "corporate office", includedType: "corporate_office" }
+    ]
+  },
+  communities: {
+    nearbyPrimaryTypes: ["community_center"],
+    textSearches: [
+      { textQuery: "community center", includedType: "community_center" },
+      { textQuery: "cultural center" },
+      { textQuery: "NGO" }
+    ]
+  },
+  government: {
+    nearbyPrimaryTypes: ["government_office", "local_government_office", "city_hall"],
+    textSearches: [
+      { textQuery: "government office", includedType: "government_office" },
+      { textQuery: "district office", includedType: "government_office" },
+      { textQuery: "municipal office", includedType: "local_government_office" }
+    ]
+  }
+};
 
 const LEAD_STATUS_OPTIONS = [
   { value: "new", label: "New" },
@@ -132,12 +188,19 @@ const leadMapDom = {
 
 const leadMapState = {
   context: null,
+  providerMode: "osm",
+  providerConfig: getLeadMapProviderConfig(),
   map: null,
   mapReady: false,
+  initializationPromise: null,
   markersLayer: null,
   selectionLayer: null,
   radiusMarker: null,
   radiusCircle: null,
+  googleMarkers: [],
+  googleInfoWindow: null,
+  googleGeocoder: null,
+  googlePlacesLibrary: null,
   scanResults: [],
   hasScanned: false,
   savedLeads: loadLeadMapSavedState(),
@@ -148,6 +211,26 @@ const leadMapState = {
   currentFilter: "",
   scanning: false
 };
+
+function getLeadMapProviderConfig() {
+  const config = window.COREXFORMER_STUDIO_CONFIG?.leadMap || {};
+
+  return {
+    provider: normalizeLeadMapProviderMode(config.provider),
+    googleMapsApiKey: normalizeLeadValue(config.googleMapsApiKey),
+    googleMapId: normalizeLeadValue(config.googleMapId),
+    googleRegion: normalizeLeadValue(config.googleRegion) || "IN",
+    googleLanguage: normalizeLeadValue(config.googleLanguage) || "en"
+  };
+}
+
+function normalizeLeadMapProviderMode(value) {
+  return String(value || "").trim().toLowerCase() === "google" ? "google" : "osm";
+}
+
+function isGoogleLeadMapProvider() {
+  return leadMapState.providerMode === "google";
+}
 
 document.addEventListener("DOMContentLoaded", () => {
   void initLeadMapModule();
@@ -176,7 +259,7 @@ function bindLeadMapEvents() {
     }
 
     if (!leadMapState.mapReady) {
-      initLeadMap();
+      void requestLeadMapInitialization();
     }
 
     scheduleLeadMapResize();
@@ -194,7 +277,7 @@ function bindLeadMapEvents() {
   });
 
   leadMapDom.resetButton?.addEventListener("click", () => {
-    resetLeadMapView();
+    void resetLeadMapView();
   });
 
   leadMapDom.scanButton?.addEventListener("click", () => {
@@ -281,6 +364,8 @@ function bindLeadMapEvents() {
 
 function applyAdminContext(context) {
   leadMapState.context = context;
+  leadMapState.providerConfig = getLeadMapProviderConfig();
+  leadMapState.providerMode = normalizeLeadMapProviderMode(leadMapState.providerConfig.provider);
 
   const canUseLeadMap = Boolean(
     context &&
@@ -293,13 +378,43 @@ function applyAdminContext(context) {
   }
 
   if (!leadMapState.mapReady) {
-    initLeadMap();
+    void requestLeadMapInitialization();
   }
 
   renderSavedLeadBoard();
 }
 
-function initLeadMap() {
+async function requestLeadMapInitialization() {
+  if (leadMapState.mapReady) {
+    return;
+  }
+
+  if (leadMapState.initializationPromise) {
+    return leadMapState.initializationPromise;
+  }
+
+  leadMapState.initializationPromise = (async () => {
+    if (leadMapState.providerMode === "google") {
+      await initGoogleLeadMap();
+      return;
+    }
+
+    initOsmLeadMap();
+  })()
+    .catch((error) => {
+      setLeadMapMessage(error.message || "The lead map could not be prepared.", "error");
+      throw error;
+    })
+    .finally(() => {
+      if (!leadMapState.mapReady) {
+        leadMapState.initializationPromise = null;
+      }
+    });
+
+  return leadMapState.initializationPromise;
+}
+
+function initOsmLeadMap() {
   if (!leadMapDom.mapCanvas || leadMapState.mapReady) {
     return;
   }
@@ -342,6 +457,120 @@ function initLeadMap() {
   }, 200);
 }
 
+async function initGoogleLeadMap() {
+  if (!leadMapDom.mapCanvas || leadMapState.mapReady) {
+    return;
+  }
+
+  const config = leadMapState.providerConfig;
+
+  if (!config.googleMapsApiKey) {
+    throw new Error("Google lead map is selected, but the API key is missing in studio/config.js.");
+  }
+
+  await loadGoogleMapsApi(config);
+
+  if (!window.google?.maps?.importLibrary) {
+    throw new Error("Google Maps could not finish loading for the lead map.");
+  }
+
+  const { Map } = await window.google.maps.importLibrary("maps");
+  await window.google.maps.importLibrary("places");
+
+  leadMapState.googlePlacesLibrary = window.google.maps.places || null;
+  leadMapState.googleInfoWindow = new window.google.maps.InfoWindow();
+  leadMapState.googleGeocoder = new window.google.maps.Geocoder();
+
+  const mapOptions = {
+    center: {
+      lat: LEAD_MAP_DEFAULT_VIEW.center[0],
+      lng: LEAD_MAP_DEFAULT_VIEW.center[1]
+    },
+    zoom: LEAD_MAP_DEFAULT_VIEW.zoom,
+    streetViewControl: false,
+    fullscreenControl: true,
+    mapTypeControl: false
+  };
+
+  if (config.googleMapId) {
+    mapOptions.mapId = config.googleMapId;
+  }
+
+  leadMapState.map = new Map(leadMapDom.mapCanvas, mapOptions);
+
+  leadMapState.map.addListener("idle", () => {
+    updateLeadMapAreaSummary();
+  });
+
+  leadMapState.map.addListener("click", (event) => {
+    if (leadMapState.scanMode !== "radius" || !event.latLng) {
+      return;
+    }
+
+    setRadiusCenter(event.latLng.lat(), event.latLng.lng());
+    setLeadMapMessage("Radius center selected from the map. You can now scan that circle.", "success");
+  });
+
+  leadMapState.mapReady = true;
+  syncLeadScanModeUi();
+  updateLeadMapAreaSummary();
+}
+
+async function loadGoogleMapsApi(config) {
+  if (window.google?.maps?.importLibrary) {
+    return;
+  }
+
+  const existing = document.getElementById(LEAD_MAP_GOOGLE_SCRIPT_ID);
+
+  if (existing) {
+    await waitForGoogleMapsLibrary();
+    return;
+  }
+
+  const script = document.createElement("script");
+  script.id = LEAD_MAP_GOOGLE_SCRIPT_ID;
+  script.async = true;
+  script.defer = true;
+  script.src = buildGoogleMapsScriptUrl(config);
+
+  const readyPromise = new Promise((resolve, reject) => {
+    script.addEventListener("load", resolve, { once: true });
+    script.addEventListener("error", () => reject(new Error("Google Maps could not be loaded for the lead map.")), { once: true });
+  });
+
+  document.head.append(script);
+  await readyPromise;
+  await waitForGoogleMapsLibrary();
+}
+
+async function waitForGoogleMapsLibrary() {
+  const startedAt = Date.now();
+
+  while (!(window.google?.maps?.importLibrary)) {
+    if (Date.now() - startedAt > 15000) {
+      throw new Error("Google Maps did not finish initializing for the lead map.");
+    }
+
+    await new Promise((resolve) => {
+      window.setTimeout(resolve, 80);
+    });
+  }
+}
+
+function buildGoogleMapsScriptUrl(config) {
+  const params = new URLSearchParams({
+    key: config.googleMapsApiKey,
+    v: "weekly",
+    loading: "async",
+    libraries: "places",
+    language: config.googleLanguage,
+    region: config.googleRegion
+  });
+
+  return `https://maps.googleapis.com/maps/api/js?${params.toString()}`;
+}
+
 async function searchLeadMapLocation() {
   const query = normalizeLeadValue(leadMapDom.searchInput?.value);
 
@@ -350,14 +579,36 @@ async function searchLeadMapLocation() {
     return;
   }
 
-  if (!leadMapState.mapReady) {
-    initLeadMap();
-  }
+  await requestLeadMapInitialization();
 
   leadMapDom.searchButton.disabled = true;
   setLeadMapMessage("Searching for the area on the map...", "info");
 
   try {
+    if (isGoogleLeadMapProvider()) {
+      const geocoder = leadMapState.googleGeocoder || new window.google.maps.Geocoder();
+      leadMapState.googleGeocoder = geocoder;
+      const response = await geocoder.geocode({ address: query });
+      const place = Array.isArray(response?.results) ? response.results[0] : null;
+
+      if (!place) {
+        throw new Error("No matching place was found. Try a broader town or district name.");
+      }
+
+      const viewport = place.geometry?.viewport;
+      const location = place.geometry?.location;
+
+      if (viewport) {
+        leadMapState.map.fitBounds(viewport, 24);
+      } else if (location) {
+        leadMapState.map.setCenter(location);
+        leadMapState.map.setZoom(13);
+      }
+
+      setLeadMapMessage(`Map moved to ${place.formatted_address || query}. Adjust the view if needed and scan the selected area.`, "success");
+      return;
+    }
+
     const controller = new AbortController();
     const timeoutId = window.setTimeout(() => controller.abort(), 15000);
     const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(query)}`;
@@ -401,13 +652,19 @@ async function searchLeadMapLocation() {
   }
 }
 
-function resetLeadMapView() {
-  if (!leadMapState.mapReady) {
-    initLeadMap();
-    return;
+async function resetLeadMapView() {
+  await requestLeadMapInitialization();
+
+  if (isGoogleLeadMapProvider()) {
+    leadMapState.map.setCenter({
+      lat: LEAD_MAP_DEFAULT_VIEW.center[0],
+      lng: LEAD_MAP_DEFAULT_VIEW.center[1]
+    });
+    leadMapState.map.setZoom(LEAD_MAP_DEFAULT_VIEW.zoom);
+  } else {
+    leadMapState.map.setView(LEAD_MAP_DEFAULT_VIEW.center, LEAD_MAP_DEFAULT_VIEW.zoom);
   }
 
-  leadMapState.map.setView(LEAD_MAP_DEFAULT_VIEW.center, LEAD_MAP_DEFAULT_VIEW.zoom);
   setLeadMapMessage("The map view has been reset. Move to the next area you want to scan.", "success");
 }
 
@@ -427,9 +684,7 @@ function syncLeadMapCategories() {
 }
 
 async function scanLeadMapArea() {
-  if (!leadMapState.mapReady) {
-    initLeadMap();
-  }
+  await requestLeadMapInitialization();
 
   syncLeadMapCategories();
 
@@ -450,38 +705,19 @@ async function scanLeadMapArea() {
     return;
   }
 
-  const query = buildOverpassQuery(queryTarget, Array.from(leadMapState.activeCategories));
-
   leadMapState.scanning = true;
   leadMapDom.scanButton.disabled = true;
-  setLeadMapMessage("Scanning the visible area for institutions...", "info");
+  setLeadMapMessage(
+    leadMapState.scanMode === "radius"
+      ? "Scanning the selected radius for institutions..."
+      : "Scanning the selected area for institutions...",
+    "info"
+  );
 
   try {
-    const controller = new AbortController();
-    const timeoutId = window.setTimeout(() => controller.abort(), 25000);
-    const response = await fetch("https://overpass-api.de/api/interpreter", {
-      method: "POST",
-      signal: controller.signal,
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "text/plain;charset=UTF-8"
-      },
-      body: query
-    });
-    window.clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      throw new Error("The area scan could not be completed right now.");
-    }
-
-    const payload = await response.json();
-    const rawElements = Array.isArray(payload?.elements) ? payload.elements : [];
-    const normalized = dedupeLeadResults(
-      rawElements
-        .map((element) => normalizeLeadElement(element))
-        .filter(Boolean)
-        .filter((item) => leadMapState.activeCategories.has(item.category))
-    );
+    const normalized = isGoogleLeadMapProvider()
+      ? await scanGoogleLeadMapArea(queryTarget)
+      : await scanOsmLeadMapArea(queryTarget);
 
     leadMapState.hasScanned = true;
     leadMapState.scanResults = normalized.sort((left, right) => {
@@ -505,6 +741,36 @@ async function scanLeadMapArea() {
   }
 }
 
+async function scanOsmLeadMapArea(queryTarget) {
+  const query = buildOverpassQuery(queryTarget, Array.from(leadMapState.activeCategories));
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), 25000);
+  const response = await fetch("https://overpass-api.de/api/interpreter", {
+    method: "POST",
+    signal: controller.signal,
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "text/plain;charset=UTF-8"
+    },
+    body: query
+  });
+  window.clearTimeout(timeoutId);
+
+  if (!response.ok) {
+    throw new Error("The area scan could not be completed right now.");
+  }
+
+  const payload = await response.json();
+  const rawElements = Array.isArray(payload?.elements) ? payload.elements : [];
+
+  return dedupeLeadResults(
+    rawElements
+      .map((element) => normalizeLeadElement(element))
+      .filter(Boolean)
+      .filter((item) => leadMapState.activeCategories.has(item.category))
+  );
+}
+
 function buildOverpassQuery(target, categories) {
   const targetClause = buildLeadTargetClause(target);
 
@@ -524,6 +790,181 @@ function buildOverpassQuery(target, categories) {
     ");",
     "out center tags;"
   ].join("\n");
+}
+
+async function scanGoogleLeadMapArea(queryTarget) {
+  if (!window.google?.maps?.places?.Place) {
+    throw new Error("Google Places is not available yet for the lead map.");
+  }
+
+  const Place = window.google.maps.places.Place;
+  const SearchNearbyRankPreference = window.google.maps.places.SearchNearbyRankPreference;
+  const aggregated = [];
+  const categories = Array.from(leadMapState.activeCategories);
+
+  for (const categoryKey of categories) {
+    const searchConfig = LEAD_MAP_GOOGLE_CATEGORY_SEARCH[categoryKey];
+
+    if (!searchConfig) {
+      continue;
+    }
+
+    for (const primaryType of searchConfig.nearbyPrimaryTypes || []) {
+      try {
+        const nearbyRequest = buildGoogleNearbyRequest(queryTarget, primaryType);
+        nearbyRequest.maxResultCount = LEAD_MAP_GOOGLE_NEARBY_LIMIT;
+        nearbyRequest.fields = LEAD_MAP_GOOGLE_FIELDS;
+        nearbyRequest.rankPreference = SearchNearbyRankPreference?.POPULARITY;
+        const response = await Place.searchNearby(nearbyRequest);
+        const places = Array.isArray(response?.places) ? response.places : [];
+
+        places.forEach((place) => {
+          const normalized = normalizeGoogleLeadPlace(place, categoryKey);
+          if (normalized) {
+            aggregated.push(normalized);
+          }
+        });
+      } catch (error) {
+        console.warn(`CoreXformer Google nearby search failed for ${categoryKey}:${primaryType}`, error);
+      }
+    }
+
+    for (const textSearch of searchConfig.textSearches || []) {
+      try {
+        const response = await Place.searchByText(buildGoogleTextSearchRequest(textSearch, queryTarget));
+        const places = Array.isArray(response?.places) ? response.places : [];
+
+        places.forEach((place) => {
+          const normalized = normalizeGoogleLeadPlace(place, categoryKey);
+          if (normalized) {
+            aggregated.push(normalized);
+          }
+        });
+      } catch (error) {
+        console.warn(`CoreXformer Google text search failed for ${categoryKey}:${textSearch.textQuery}`, error);
+      }
+    }
+  }
+
+  return dedupeLeadResults(aggregated);
+}
+
+function buildGoogleTextSearchRequest(textSearch, queryTarget) {
+  const request = {
+    textQuery: buildGoogleTextQuery(textSearch.textQuery, queryTarget),
+    fields: LEAD_MAP_GOOGLE_FIELDS,
+    maxResultCount: LEAD_MAP_GOOGLE_TEXT_LIMIT,
+    locationBias: buildGoogleTextLocationBias(queryTarget),
+    rankPreference: window.google.maps.places.SearchByTextRankPreference?.RELEVANCE,
+    language: leadMapState.providerConfig.googleLanguage,
+    region: leadMapState.providerConfig.googleRegion.toLowerCase()
+  };
+
+  if (textSearch.includedType) {
+    request.includedType = textSearch.includedType;
+    request.useStrictTypeFiltering = true;
+  }
+
+  return request;
+}
+
+function buildGoogleNearbyRequest(queryTarget, primaryType) {
+  const request = {
+    includedPrimaryTypes: [primaryType],
+    language: leadMapState.providerConfig.googleLanguage,
+    region: leadMapState.providerConfig.googleRegion.toLowerCase()
+  };
+
+  if (queryTarget.mode === "radius") {
+    request.locationRestriction = {
+      center: {
+        lat: queryTarget.lat,
+        lng: queryTarget.lng
+      },
+      radius: Math.min(Math.round(queryTarget.radiusMeters), LEAD_MAP_GOOGLE_MAX_RADIUS_METERS)
+    };
+    return request;
+  }
+
+  request.locationRestriction = {
+    center: {
+      lat: queryTarget.center.lat,
+      lng: queryTarget.center.lng
+    },
+    radius: Math.min(Math.round(queryTarget.radiusMeters), LEAD_MAP_GOOGLE_MAX_RADIUS_METERS)
+  };
+
+  return request;
+}
+
+function buildGoogleTextLocationBias(queryTarget) {
+  return {
+    lat: queryTarget.center.lat,
+    lng: queryTarget.center.lng
+  };
+}
+
+function buildGoogleTextQuery(baseQuery, queryTarget) {
+  const base = normalizeLeadValue(baseQuery);
+  const hint = buildGoogleAreaHint(queryTarget);
+  return hint ? `${base} near ${hint}` : base;
+}
+
+function buildGoogleAreaHint(queryTarget) {
+  const center = queryTarget.center;
+
+  if (!center) {
+    return "";
+  }
+
+  return `${center.lat.toFixed(4)}, ${center.lng.toFixed(4)}`;
+}
+
+function normalizeGoogleLeadPlace(place, categoryKey) {
+  const lat = getGoogleLatValue(place?.location, "lat");
+  const lon = getGoogleLatValue(place?.location, "lng");
+  const name = normalizeLeadValue(place?.displayName);
+
+  if (!name || Number.isNaN(lat) || Number.isNaN(lon)) {
+    return null;
+  }
+
+  const categoryLabel = LEAD_CATEGORY_CONFIG[categoryKey]?.label || "Institution";
+  const placeId = normalizeLeadValue(place?.id);
+
+  return {
+    sourceKey: placeId ? `google-${placeId}` : `google-${categoryKey}-${name.toLowerCase()}-${lat.toFixed(4)}-${lon.toFixed(4)}`,
+    sourceProvider: "google",
+    placeId,
+    name,
+    category: categoryKey,
+    categoryLabel,
+    lat,
+    lon,
+    address: normalizeLeadValue(place?.formattedAddress),
+    website: normalizeLeadUrl(place?.websiteURI),
+    phone: normalizeLeadValue(place?.internationalPhoneNumber || place?.nationalPhoneNumber),
+    email: "",
+    placeLabel: normalizeLeadValue(place?.formattedAddress),
+    tagSummary: [normalizeLeadValue(place?.primaryType), normalizeLeadValue(place?.businessStatus)].filter(Boolean).join(" · "),
+    googleMapsUrl: normalizeLeadValue(place?.googleMapsURI) || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${lat},${lon}`)}`,
+    osmUrl: "",
+    discoveredAt: new Date().toISOString()
+  };
+}
+
+function getGoogleLatValue(location, axis) {
+  if (!location) {
+    return Number.NaN;
+  }
+
+  const value = location?.[axis];
+
+  if (typeof value === "function") {
+    return Number(value.call(location));
+  }
+
+  return Number(value);
 }
 
 function normalizeLeadElement(element) {
@@ -762,6 +1203,10 @@ function renderLeadMapResults() {
         item.website ? `<li><strong>Website</strong><span><a href="${escapeAttribute(item.website)}" target="_blank" rel="noreferrer">${escapeHtml(item.website)}</a></span></li>` : "",
         item.tagSummary ? `<li><strong>Tags</strong><span>${escapeHtml(item.tagSummary)}</span></li>` : ""
       ].filter(Boolean).join("");
+      const mapLinks = [
+        item.googleMapsUrl ? `<a class="workspace-link" href="${escapeAttribute(item.googleMapsUrl)}" target="_blank" rel="noreferrer">Open in Google Maps</a>` : "",
+        item.osmUrl ? `<a class="workspace-link" href="${escapeAttribute(item.osmUrl)}" target="_blank" rel="noreferrer">Open in OSM</a>` : ""
+      ].filter(Boolean).join("");
 
       return `
         <article class="lead-result-card">
@@ -778,8 +1223,7 @@ function renderLeadMapResults() {
 
           <div class="inline-action-group">
             <button type="button" class="button" data-lead-save="${escapeAttribute(item.sourceKey)}">${isSaved ? "Update saved lead" : "Save to lead board"}</button>
-            <a class="workspace-link" href="${escapeAttribute(item.googleMapsUrl)}" target="_blank" rel="noreferrer">Open in Google Maps</a>
-            <a class="workspace-link" href="${escapeAttribute(item.osmUrl)}" target="_blank" rel="noreferrer">Open in OSM</a>
+            ${mapLinks}
           </div>
         </article>
       `;
@@ -788,6 +1232,40 @@ function renderLeadMapResults() {
 }
 
 function renderLeadMapMarkers() {
+  if (isGoogleLeadMapProvider()) {
+    clearGoogleLeadMarkers();
+
+    if (!window.google?.maps) {
+      return;
+    }
+
+    leadMapState.scanResults.forEach((item) => {
+      const marker = new window.google.maps.Marker({
+        map: leadMapState.map,
+        position: {
+          lat: item.lat,
+          lng: item.lon
+        },
+        title: item.name
+      });
+
+      marker.addListener("click", () => {
+        leadMapState.googleInfoWindow?.setContent(`
+          <strong>${escapeHtml(item.name)}</strong><br>
+          ${escapeHtml(item.categoryLabel)}<br>
+          ${escapeHtml(item.address || item.placeLabel || "No address available")}
+        `);
+        leadMapState.googleInfoWindow?.open({
+          map: leadMapState.map,
+          anchor: marker
+        });
+      });
+
+      leadMapState.googleMarkers.push(marker);
+    });
+    return;
+  }
+
   if (!leadMapState.markersLayer) {
     return;
   }
@@ -813,6 +1291,13 @@ function renderLeadMapMarkers() {
   });
 }
 
+function clearGoogleLeadMarkers() {
+  leadMapState.googleMarkers.forEach((marker) => {
+    marker?.setMap?.(null);
+  });
+  leadMapState.googleMarkers = [];
+}
+
 function saveLeadFromScan(sourceKey) {
   const result = leadMapState.scanResults.find((item) => item.sourceKey === sourceKey);
 
@@ -823,6 +1308,8 @@ function saveLeadFromScan(sourceKey) {
   const existing = findSavedLead(sourceKey);
   const nextLead = {
     sourceKey: result.sourceKey,
+    sourceProvider: result.sourceProvider || "osm",
+    placeId: result.placeId || "",
     name: result.name,
     category: result.category,
     categoryLabel: result.categoryLabel,
@@ -953,8 +1440,8 @@ function renderSavedLeadList() {
           <div class="application-field-block">
             <strong>Map links</strong>
             <div class="inline-action-group">
-              <a class="workspace-link" href="${escapeAttribute(lead.googleMapsUrl)}" target="_blank" rel="noreferrer">Open in Google Maps</a>
-              <a class="workspace-link" href="${escapeAttribute(lead.osmUrl)}" target="_blank" rel="noreferrer">Open in OSM</a>
+              ${lead.googleMapsUrl ? `<a class="workspace-link" href="${escapeAttribute(lead.googleMapsUrl)}" target="_blank" rel="noreferrer">Open in Google Maps</a>` : ""}
+              ${lead.osmUrl ? `<a class="workspace-link" href="${escapeAttribute(lead.osmUrl)}" target="_blank" rel="noreferrer">Open in OSM</a>` : ""}
             </div>
           </div>
         </div>
@@ -1121,8 +1608,14 @@ function updateLeadMapAreaSummary() {
     return;
   }
 
-  const bounds = leadMapState.map.getBounds();
-  leadMapDom.areaSummary.textContent = `Visible area scan: South ${bounds.getSouth().toFixed(4)}, West ${bounds.getWest().toFixed(4)} · North ${bounds.getNorth().toFixed(4)}, East ${bounds.getEast().toFixed(4)}`;
+  const bounds = getCurrentMapBounds();
+
+  if (!bounds) {
+    leadMapDom.areaSummary.textContent = "Visible area scan is ready once the map settles on the selected region.";
+    return;
+  }
+
+  leadMapDom.areaSummary.textContent = `Visible area scan: South ${bounds.south.toFixed(4)}, West ${bounds.west.toFixed(4)} · North ${bounds.north.toFixed(4)}, East ${bounds.east.toFixed(4)}`;
 }
 
 function syncLeadScanModeUi() {
@@ -1167,15 +1660,35 @@ function renderRadiusSelection() {
     leadMapDom.radiusKmInput.value = String(leadMapState.radiusKm);
   }
 
-  if (!leadMapState.selectionLayer) {
+  clearRadiusSelectionVisuals();
+
+  if (leadMapState.scanMode !== "radius" || !leadMapState.radiusCenter) {
     return;
   }
 
-  leadMapState.selectionLayer.clearLayers();
-  leadMapState.radiusMarker = null;
-  leadMapState.radiusCircle = null;
+  if (isGoogleLeadMapProvider()) {
+    if (!window.google?.maps) {
+      return;
+    }
 
-  if (leadMapState.scanMode !== "radius" || !leadMapState.radiusCenter) {
+    leadMapState.radiusMarker = new window.google.maps.Marker({
+      map: leadMapState.map,
+      position: leadMapState.radiusCenter
+    });
+    leadMapState.radiusCircle = new window.google.maps.Circle({
+      map: leadMapState.map,
+      center: leadMapState.radiusCenter,
+      radius: leadMapState.radiusKm * 1000,
+      strokeColor: "#ba7b3c",
+      strokeOpacity: 0.9,
+      strokeWeight: 2,
+      fillColor: "#ba7b3c",
+      fillOpacity: 0.12
+    });
+    return;
+  }
+
+  if (!leadMapState.selectionLayer) {
     return;
   }
 
@@ -1203,13 +1716,31 @@ function getLeadQueryTarget() {
       mode: "radius",
       lat: leadMapState.radiusCenter.lat,
       lng: leadMapState.radiusCenter.lng,
-      radiusMeters: leadMapState.radiusKm * 1000
+      radiusMeters: leadMapState.radiusKm * 1000,
+      center: {
+        lat: leadMapState.radiusCenter.lat,
+        lng: leadMapState.radiusCenter.lng
+      }
     };
   }
 
+  const bounds = getCurrentMapBounds();
+
+  if (!bounds) {
+    return null;
+  }
+
+  const center = getCurrentMapCenterFromBounds(bounds);
+  const radiusMeters = Math.min(
+    LEAD_MAP_GOOGLE_MAX_RADIUS_METERS,
+    Math.max(1000, Math.round(calculateBoundsRadiusMeters(bounds)))
+  );
+
   return {
     mode: "bounds",
-    bounds: leadMapState.map.getBounds()
+    bounds,
+    center,
+    radiusMeters
   };
 }
 
@@ -1219,10 +1750,10 @@ function buildLeadTargetClause(target) {
   }
 
   return `(${[
-    target.bounds.getSouth().toFixed(6),
-    target.bounds.getWest().toFixed(6),
-    target.bounds.getNorth().toFixed(6),
-    target.bounds.getEast().toFixed(6)
+    target.bounds.south.toFixed(6),
+    target.bounds.west.toFixed(6),
+    target.bounds.north.toFixed(6),
+    target.bounds.east.toFixed(6)
   ].join(",")})`;
 }
 
@@ -1236,14 +1767,96 @@ function clampLeadRadius(value) {
   return Math.min(100, Math.max(1, Math.round(parsed)));
 }
 
+function clearRadiusSelectionVisuals() {
+  if (isGoogleLeadMapProvider()) {
+    if (leadMapState.radiusMarker?.setMap) {
+      leadMapState.radiusMarker.setMap(null);
+    }
+
+    if (leadMapState.radiusCircle?.setMap) {
+      leadMapState.radiusCircle.setMap(null);
+    }
+  } else if (leadMapState.selectionLayer) {
+    leadMapState.selectionLayer.clearLayers();
+  }
+
+  leadMapState.radiusMarker = null;
+  leadMapState.radiusCircle = null;
+}
+
+function getCurrentMapBounds() {
+  if (!leadMapState.map) {
+    return null;
+  }
+
+  const bounds = leadMapState.map.getBounds?.();
+
+  if (!bounds) {
+    return null;
+  }
+
+  if (isGoogleLeadMapProvider()) {
+    const southWest = bounds.getSouthWest?.();
+    const northEast = bounds.getNorthEast?.();
+
+    if (!southWest || !northEast) {
+      return null;
+    }
+
+    return {
+      south: Number(southWest.lat()),
+      west: Number(southWest.lng()),
+      north: Number(northEast.lat()),
+      east: Number(northEast.lng())
+    };
+  }
+
+  return {
+    south: Number(bounds.getSouth()),
+    west: Number(bounds.getWest()),
+    north: Number(bounds.getNorth()),
+    east: Number(bounds.getEast())
+  };
+}
+
+function getCurrentMapCenterFromBounds(bounds) {
+  return {
+    lat: (bounds.south + bounds.north) / 2,
+    lng: (bounds.west + bounds.east) / 2
+  };
+}
+
+function calculateBoundsRadiusMeters(bounds) {
+  const northWest = { lat: bounds.north, lng: bounds.west };
+  const southEast = { lat: bounds.south, lng: bounds.east };
+  return haversineDistanceMeters(northWest, southEast) / 2;
+}
+
+function haversineDistanceMeters(left, right) {
+  const toRadians = (value) => value * (Math.PI / 180);
+  const earthRadiusMeters = 6371000;
+  const deltaLat = toRadians(right.lat - left.lat);
+  const deltaLng = toRadians(right.lng - left.lng);
+  const lat1 = toRadians(left.lat);
+  const lat2 = toRadians(right.lat);
+  const a = (
+    Math.sin(deltaLat / 2) ** 2 +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLng / 2) ** 2
+  );
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return earthRadiusMeters * c;
+}
+
 function dedupeLeadResults(results) {
   const seen = new Set();
   const deduped = [];
 
   results.forEach((item) => {
-    const fingerprint = item
-      ? `${item.category}:${item.name.toLowerCase()}:${item.lat.toFixed(4)}:${item.lon.toFixed(4)}`
-      : "";
+    const fingerprint = item?.placeId
+      ? `google:${item.placeId}`
+      : item
+        ? `${item.category}:${item.name.toLowerCase()}:${item.lat.toFixed(4)}:${item.lon.toFixed(4)}`
+        : "";
 
     if (!item || seen.has(fingerprint)) {
       return;
@@ -1329,7 +1942,16 @@ function formatLeadContactSummary(lead) {
 
 function scheduleLeadMapResize() {
   window.setTimeout(() => {
-    leadMapState.map?.invalidateSize();
+    if (!leadMapState.map) {
+      return;
+    }
+
+    if (isGoogleLeadMapProvider()) {
+      window.google?.maps?.event?.trigger?.(leadMapState.map, "resize");
+      return;
+    }
+
+    leadMapState.map.invalidateSize?.();
   }, 120);
 }
 
