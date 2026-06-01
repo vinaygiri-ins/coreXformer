@@ -20,67 +20,67 @@ const LEAD_PRIORITY_OPTIONS = [
   { value: "low", label: "Low" }
 ];
 
+const LEAD_OSM_ENTITY_TYPES = ["node", "way", "relation"];
+const LEAD_COLLEGE_NAME_PATTERN = /\b(college|university|campus|iit|iim|institute of technology|engineering college|business school|law school|polytechnic)\b/i;
+const LEAD_SCHOOL_NAME_PATTERN = /\b(school|academy|public school|high school|secondary school|senior secondary|kindergarten|play school)\b/i;
+
+function buildLeadQueries(clauses) {
+  return clauses.flatMap((clause) =>
+    LEAD_OSM_ENTITY_TYPES.map((entityType) => `${entityType}${clause}({{bbox}});`)
+  );
+}
+
+function createLeadCategory(label, color, clauses) {
+  return {
+    label,
+    color,
+    clauses,
+    query: buildLeadQueries(clauses)
+  };
+}
+
 const LEAD_CATEGORY_CONFIG = {
-  schools: {
-    label: "Schools",
-    color: "#2f6b50",
-    query: [
-      'node["amenity"="school"]["name"]({{bbox}});',
-      'way["amenity"="school"]["name"]({{bbox}});',
-      'relation["amenity"="school"]["name"]({{bbox}});'
-    ]
-  },
-  colleges: {
-    label: "Colleges",
-    color: "#7a4b2f",
-    query: [
-      'node["amenity"~"college|university"]["name"]({{bbox}});',
-      'way["amenity"~"college|university"]["name"]({{bbox}});',
-      'relation["amenity"~"college|university"]["name"]({{bbox}});'
-    ]
-  },
-  corporates: {
-    label: "Corporates",
-    color: "#355c9a",
-    query: [
-      'node["office"]["name"]({{bbox}});',
-      'way["office"]["name"]({{bbox}});',
-      'relation["office"]["name"]({{bbox}});',
-      'node["building"="office"]["name"]({{bbox}});',
-      'way["building"="office"]["name"]({{bbox}});',
-      'relation["building"="office"]["name"]({{bbox}});'
-    ]
-  },
-  communities: {
-    label: "Communities",
-    color: "#8b6a1b",
-    query: [
-      'node["amenity"="community_centre"]["name"]({{bbox}});',
-      'way["amenity"="community_centre"]["name"]({{bbox}});',
-      'relation["amenity"="community_centre"]["name"]({{bbox}});',
-      'node["office"="ngo"]["name"]({{bbox}});',
-      'way["office"="ngo"]["name"]({{bbox}});',
-      'relation["office"="ngo"]["name"]({{bbox}});',
-      'node["social_facility"]["name"]({{bbox}});',
-      'way["social_facility"]["name"]({{bbox}});',
-      'relation["social_facility"]["name"]({{bbox}});'
-    ]
-  },
-  government: {
-    label: "Government",
-    color: "#6f4fa3",
-    query: [
-      'node["office"="government"]["name"]({{bbox}});',
-      'way["office"="government"]["name"]({{bbox}});',
-      'relation["office"="government"]["name"]({{bbox}});',
-      'node["government"]["name"]({{bbox}});',
-      'way["government"]["name"]({{bbox}});',
-      'relation["government"]["name"]({{bbox}});',
-      'node["amenity"="townhall"]["name"]({{bbox}});',
-      'way["amenity"="townhall"]["name"]({{bbox}});',
-      'relation["amenity"="townhall"]["name"]({{bbox}});'
-    ]
-  }
+  schools: createLeadCategory("Schools", "#2f6b50", [
+    '["amenity"="school"]["name"]',
+    '["building"="school"]["name"]',
+    '["amenity"="kindergarten"]["name"]',
+    '["building"="kindergarten"]["name"]',
+    '["office"="educational_institution"]["name"]',
+    '["landuse"="education"]["name"]'
+  ]),
+  colleges: createLeadCategory("Colleges", "#7a4b2f", [
+    '["amenity"~"college|university"]["name"]',
+    '["building"~"college|university"]["name"]',
+    '["landuse"="education"]["name"]',
+    '["office"="educational_institution"]["name"]',
+    '["amenity"="research_institute"]["name"]'
+  ]),
+  corporates: createLeadCategory("Corporates & Commercial", "#355c9a", [
+    '["office"]["name"]',
+    '["office"]["operator"]',
+    '["building"="office"]["name"]',
+    '["building"="commercial"]["name"]',
+    '["landuse"~"commercial|industrial|retail"]["name"]',
+    '["shop"]["name"]',
+    '["shop"]["brand"]',
+    '["craft"]["name"]',
+    '["industrial"]["name"]',
+    '["company"]["name"]'
+  ]),
+  communities: createLeadCategory("Communities", "#8b6a1b", [
+    '["amenity"="community_centre"]["name"]',
+    '["amenity"="community_center"]["name"]',
+    '["office"="ngo"]["name"]',
+    '["social_facility"]["name"]',
+    '["amenity"="social_facility"]["name"]',
+    '["club"]["name"]'
+  ]),
+  government: createLeadCategory("Government", "#6f4fa3", [
+    '["office"="government"]["name"]',
+    '["government"]["name"]',
+    '["amenity"~"townhall|courthouse|police|fire_station|post_office"]["name"]',
+    '["public_building"]["name"]'
+  ])
 };
 
 const leadMapDom = {
@@ -447,8 +447,8 @@ function buildOverpassQuery(bounds, categories) {
 
 function normalizeLeadElement(element) {
   const tags = element?.tags || {};
-  const category = inferLeadCategory(tags);
-  const name = normalizeLeadValue(tags.name);
+  const name = getLeadDisplayName(tags);
+  const category = inferLeadCategory(tags, name);
   const lat = Number(element?.lat ?? element?.center?.lat);
   const lon = Number(element?.lon ?? element?.center?.lon);
 
@@ -480,28 +480,76 @@ function normalizeLeadElement(element) {
   };
 }
 
-function inferLeadCategory(tags) {
-  if (tags.amenity === "school") {
-    return "schools";
-  }
-
-  if (tags.amenity === "college" || tags.amenity === "university") {
+function inferLeadCategory(tags, displayName = "") {
+  if (
+    tags.amenity === "college" ||
+    tags.amenity === "university" ||
+    tags.building === "college" ||
+    tags.building === "university" ||
+    tags.amenity === "research_institute" ||
+    LEAD_COLLEGE_NAME_PATTERN.test(displayName)
+  ) {
     return "colleges";
   }
 
-  if (tags.office === "government" || tags.government || tags.amenity === "townhall") {
+  if (
+    tags.office === "government" ||
+    tags.government ||
+    ["townhall", "courthouse", "police", "fire_station", "post_office"].includes(tags.amenity)
+  ) {
     return "government";
   }
 
-  if (tags.amenity === "community_centre" || tags.office === "ngo" || tags.social_facility) {
+  if (
+    tags.amenity === "community_centre" ||
+    tags.amenity === "community_center" ||
+    tags.amenity === "social_facility" ||
+    tags.office === "ngo" ||
+    tags.social_facility ||
+    tags.club
+  ) {
     return "communities";
   }
 
-  if (tags.office || tags.building === "office") {
+  if (
+    tags.amenity === "school" ||
+    tags.amenity === "kindergarten" ||
+    tags.building === "school" ||
+    tags.building === "kindergarten" ||
+    tags.landuse === "education" ||
+    tags.office === "educational_institution" ||
+    LEAD_SCHOOL_NAME_PATTERN.test(displayName)
+  ) {
+    return "schools";
+  }
+
+  if (
+    tags.office ||
+    tags.building === "office" ||
+    tags.building === "commercial" ||
+    tags.landuse === "commercial" ||
+    tags.landuse === "industrial" ||
+    tags.landuse === "retail" ||
+    tags.shop ||
+    tags.craft ||
+    tags.industrial ||
+    tags.company
+  ) {
     return "corporates";
   }
 
   return null;
+}
+
+function getLeadDisplayName(tags) {
+  return normalizeLeadValue(
+    tags.name ||
+    tags.brand ||
+    tags.operator ||
+    tags["official_name"] ||
+    tags["short_name"] ||
+    tags["contact:name"]
+  );
 }
 
 function buildLeadAddress(tags) {
