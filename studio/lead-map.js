@@ -23,6 +23,21 @@ const LEAD_PRIORITY_OPTIONS = [
 const LEAD_OSM_ENTITY_TYPES = ["node", "way", "relation"];
 const LEAD_COLLEGE_NAME_PATTERN = /\b(college|university|campus|iit|iim|institute of technology|engineering college|business school|law school|polytechnic)\b/i;
 const LEAD_SCHOOL_NAME_PATTERN = /\b(school|academy|public school|high school|secondary school|senior secondary|kindergarten|play school)\b/i;
+const LEAD_CORPORATE_NAME_PATTERN = /\b(ltd|limited|pvt|private limited|inc|corp|corporation|group|industries|industry|industrial|manufacturing|factory|plant|technology|technologies|software|systems|solutions|engineering|logistics|motors|steel|cement|pharma|energy|power|telecom|digital|automation|exports|enterprise|enterprises)\b/i;
+const LEAD_CORPORATE_EXCLUDE_NAME_PATTERN = /\b(shop|store|mart|mall|boutique|bakery|salon|spa|restaurant|cafe|hotel|pharmacy|chemist|jewellers?|jewelry|fashions?|supermarket|mobile shop|electronics store)\b/i;
+const LEAD_CORPORATE_OFFICE_VALUES = new Set([
+  "company",
+  "it",
+  "consulting",
+  "telecommunication",
+  "financial",
+  "insurance",
+  "research",
+  "logistics",
+  "administrative",
+  "corporate",
+  "industrial"
+]);
 
 function buildLeadQueries(clauses) {
   return clauses.flatMap((clause) =>
@@ -55,17 +70,20 @@ const LEAD_CATEGORY_CONFIG = {
     '["office"="educational_institution"]["name"]',
     '["amenity"="research_institute"]["name"]'
   ]),
-  corporates: createLeadCategory("Corporates & Commercial", "#355c9a", [
+  corporates: createLeadCategory("Companies & Employers", "#355c9a", [
+    '["office"~"company|it|consulting|telecommunication|financial|insurance|research|logistics|administrative|corporate|industrial"]["name"]',
+    '["office"~"company|it|consulting|telecommunication|financial|insurance|research|logistics|administrative|corporate|industrial"]["operator"]',
     '["office"]["name"]',
     '["office"]["operator"]',
     '["building"="office"]["name"]',
-    '["building"="commercial"]["name"]',
-    '["landuse"~"commercial|industrial|retail"]["name"]',
-    '["shop"]["name"]',
-    '["shop"]["brand"]',
-    '["craft"]["name"]',
+    '["building"="industrial"]["name"]',
+    '["landuse"="industrial"]["name"]',
+    '["landuse"="industrial"]["operator"]',
     '["industrial"]["name"]',
-    '["company"]["name"]'
+    '["industrial"]["operator"]',
+    '["man_made"="works"]["name"]',
+    '["company"]["name"]',
+    '["company"]["operator"]'
   ]),
   communities: createLeadCategory("Communities", "#8b6a1b", [
     '["amenity"="community_centre"]["name"]',
@@ -523,22 +541,48 @@ function inferLeadCategory(tags, displayName = "") {
     return "schools";
   }
 
-  if (
-    tags.office ||
-    tags.building === "office" ||
-    tags.building === "commercial" ||
-    tags.landuse === "commercial" ||
-    tags.landuse === "industrial" ||
-    tags.landuse === "retail" ||
-    tags.shop ||
-    tags.craft ||
-    tags.industrial ||
-    tags.company
-  ) {
+  if (isEmployerTypeCorporate(tags, displayName)) {
     return "corporates";
   }
 
   return null;
+}
+
+function isEmployerTypeCorporate(tags, displayName = "") {
+  const officeValue = normalizeLeadValue(tags.office).toLowerCase();
+  const isExcludedName = LEAD_CORPORATE_EXCLUDE_NAME_PATTERN.test(displayName);
+
+  if (isExcludedName) {
+    return false;
+  }
+
+  if (officeValue && LEAD_CORPORATE_OFFICE_VALUES.has(officeValue)) {
+    return true;
+  }
+
+  if (
+    officeValue &&
+    !["government", "ngo", "educational_institution"].includes(officeValue) &&
+    LEAD_CORPORATE_NAME_PATTERN.test(displayName)
+  ) {
+    return true;
+  }
+
+  if (
+    tags.building === "industrial" ||
+    tags.landuse === "industrial" ||
+    tags.industrial ||
+    tags.company ||
+    tags.man_made === "works"
+  ) {
+    return LEAD_CORPORATE_NAME_PATTERN.test(displayName) || Boolean(tags.industrial || tags.company || tags.man_made === "works");
+  }
+
+  if (tags.building === "office") {
+    return LEAD_CORPORATE_NAME_PATTERN.test(displayName);
+  }
+
+  return false;
 }
 
 function getLeadDisplayName(tags) {
