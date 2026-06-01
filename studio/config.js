@@ -4,5 +4,12 @@ window.COREXFORMER_STUDIO_CONFIG = {
   siteName: "CoreXformer Studio",
   studioAccessPath: "/studio/",
   adminWorkspacePath: "/studio/admin.html",
-  facilitatorWorkspacePath: "/studio/facilitator.html"
+  facilitatorWorkspacePath: "/studio/facilitator.html",
+  leadMap: {
+    provider: "osm",
+    googleMapsApiKey: "",
+    googleMapId: "",
+    googleRegion: "IN",
+    googleLanguage: "en"
+  }
 };
