@@ -586,17 +586,30 @@ async function searchLeadMapLocation() {
 
   try {
     if (isGoogleLeadMapProvider()) {
-      const geocoder = leadMapState.googleGeocoder || new window.google.maps.Geocoder();
-      leadMapState.googleGeocoder = geocoder;
-      const response = await geocoder.geocode({ address: query });
-      const place = Array.isArray(response?.results) ? response.results[0] : null;
+      const Place = window.google?.maps?.places?.Place;
+
+      if (!Place?.searchByText) {
+        throw new Error("Google Places search is not ready yet for moving the map.");
+      }
+
+      const currentCenter = getCurrentMapCenterFromBounds();
+      const response = await Place.searchByText({
+        textQuery: query,
+        fields: ["displayName", "formattedAddress", "location", "viewport"],
+        maxResultCount: 1,
+        locationBias: currentCenter ? { lat: currentCenter.lat, lng: currentCenter.lng } : undefined,
+        rankPreference: window.google.maps.places.SearchByTextRankPreference?.RELEVANCE,
+        language: leadMapState.providerConfig.googleLanguage,
+        region: leadMapState.providerConfig.googleRegion.toLowerCase()
+      });
+      const place = Array.isArray(response?.places) ? response.places[0] : null;
 
       if (!place) {
         throw new Error("No matching place was found. Try a broader town or district name.");
       }
 
-      const viewport = place.geometry?.viewport;
-      const location = place.geometry?.location;
+      const viewport = place.viewport || null;
+      const location = place.location || null;
 
       if (viewport) {
         leadMapState.map.fitBounds(viewport, 24);
@@ -605,7 +618,8 @@ async function searchLeadMapLocation() {
         leadMapState.map.setZoom(13);
       }
 
-      setLeadMapMessage(`Map moved to ${place.formatted_address || query}. Adjust the view if needed and scan the selected area.`, "success");
+      const placeName = normalizeLeadValue(place.displayName) || normalizeLeadValue(place.formattedAddress) || query;
+      setLeadMapMessage(`Map moved to ${placeName}. Adjust the view if needed and scan the selected area.`, "success");
       return;
     }
 
