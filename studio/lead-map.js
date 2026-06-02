@@ -178,6 +178,7 @@ const leadMapDom = {
   message: document.getElementById("leadMapMessage"),
   mapCanvas: document.getElementById("leadMapCanvas"),
   searchInput: document.getElementById("leadMapSearchInput"),
+  searchSuggestions: document.getElementById("leadMapSearchSuggestions"),
   searchButton: document.getElementById("leadMapSearchButton"),
   resetButton: document.getElementById("leadMapResetButton"),
   scanButton: document.getElementById("leadMapScanButton"),
@@ -223,6 +224,12 @@ const leadMapState = {
   radiusCenter: null,
   radiusKm: 5,
   resolvedAreaHint: "",
+  autocompleteSuggestions: [],
+  autocompleteSessionToken: null,
+  selectedPrediction: null,
+  highlightedSuggestionIndex: -1,
+  autocompleteDebounceId: 0,
+  autocompleteRequestSerial: 0,
   currentFilter: "",
   scanning: false
 };
@@ -268,27 +275,62 @@ function bindLeadMapEvents() {
   document.addEventListener("click", (event) => {
     const moduleButton = event.target.closest('[data-admin-module="lead-map"]');
     const scannerButton = event.target.closest('[data-admin-view="lead-map-scanner"]');
+    const searchSuggestionButton = event.target.closest("[data-lead-suggestion-index]");
+    const clickedInsideSearch = event.target.closest(".lead-map-search-box");
 
-    if (!moduleButton && !scannerButton) {
+    if (searchSuggestionButton) {
+      event.preventDefault();
+      void selectLeadMapAutocompleteSuggestion(Number(searchSuggestionButton.dataset.leadSuggestionIndex));
       return;
     }
 
-    if (!leadMapState.mapReady) {
-      void requestLeadMapInitialization();
+    if (!clickedInsideSearch) {
+      clearLeadMapAutocompleteSuggestions();
     }
 
-    scheduleLeadMapResize();
+    if (moduleButton || scannerButton) {
+      if (!leadMapState.mapReady) {
+        void requestLeadMapInitialization();
+      }
+
+      scheduleLeadMapResize();
+    }
   });
 
   leadMapDom.searchButton?.addEventListener("click", () => {
     void searchLeadMapLocation();
   });
 
+  leadMapDom.searchInput?.addEventListener("input", () => {
+    handleLeadMapSearchInputChange();
+  });
+
   leadMapDom.searchInput?.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      moveLeadMapSuggestionHighlight(1);
+      return;
+    }
+
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      moveLeadMapSuggestionHighlight(-1);
+      return;
+    }
+
     if (event.key === "Enter") {
       event.preventDefault();
       void searchLeadMapLocation();
+      return;
     }
+
+    if (event.key === "Escape") {
+      clearLeadMapAutocompleteSuggestions();
+    }
+  });
+
+  leadMapDom.searchInput?.addEventListener("focus", () => {
+    renderLeadMapAutocompleteSuggestions();
   });
 
   leadMapDom.resetButton?.addEventListener("click", () => {
@@ -559,6 +601,239 @@ async function loadGoogleMapsApi(config) {
   await waitForGoogleMapsLibrary();
 }
 
+function handleLeadMapSearchInputChange() {
+  leadMapState.selectedPrediction = null;
+  leadMapState.resolvedAreaHint = "";
+
+  if (!isGoogleLeadMapProvider()) {
+    return;
+  }
+
+  const query = normalizeLeadValue(leadMapDom.searchInput?.value);
+
+  if (leadMapState.autocompleteDebounceId) {
+    window.clearTimeout(leadMapState.autocompleteDebounceId);
+  }
+
+  if (query.length < 2) {
+    clearLeadMapAutocompleteSuggestions();
+    return;
+  }
+
+  leadMapState.autocompleteDebounceId = window.setTimeout(() => {
+    void fetchLeadMapAutocompleteSuggestions(query);
+  }, 180);
+}
+
+async function fetchLeadMapAutocompleteSuggestions(query) {
+  if (!isGoogleLeadMapProvider()) {
+    return;
+  }
+
+  const normalizedQuery = normalizeLeadValue(query);
+
+  if (normalizedQuery.length < 2) {
+    clearLeadMapAutocompleteSuggestions();
+    return;
+  }
+
+  await requestLeadMapInitialization();
+
+  const AutocompleteSuggestion = window.google?.maps?.places?.AutocompleteSuggestion;
+  const AutocompleteSessionToken = window.google?.maps?.places?.AutocompleteSessionToken;
+
+  if (!AutocompleteSuggestion?.fetchAutocompleteSuggestions || !AutocompleteSessionToken) {
+    return;
+  }
+
+  if (!leadMapState.autocompleteSessionToken) {
+    leadMapState.autocompleteSessionToken = new AutocompleteSessionToken();
+  }
+
+  const requestSerial = ++leadMapState.autocompleteRequestSerial;
+
+  try {
+    const response = await AutocompleteSuggestion.fetchAutocompleteSuggestions({
+      input: normalizedQuery,
+      sessionToken: leadMapState.autocompleteSessionToken,
+      language: leadMapState.providerConfig.googleLanguage,
+      includedRegionCodes: [leadMapState.providerConfig.googleRegion.toLowerCase()]
+    });
+
+    if (requestSerial !== leadMapState.autocompleteRequestSerial) {
+      return;
+    }
+
+    const suggestions = Array.isArray(response?.suggestions)
+      ? response.suggestions
+          .map((suggestion) => normalizeLeadMapSuggestion(suggestion))
+          .filter(Boolean)
+          .slice(0, 6)
+      : [];
+
+    leadMapState.autocompleteSuggestions = suggestions;
+    leadMapState.highlightedSuggestionIndex = suggestions.length > 0 ? 0 : -1;
+    renderLeadMapAutocompleteSuggestions();
+  } catch (error) {
+    console.warn("CoreXformer lead map autocomplete failed.", error);
+  }
+}
+
+function normalizeLeadMapSuggestion(suggestion) {
+  const prediction = suggestion?.placePrediction || null;
+
+  if (!prediction) {
+    return null;
+  }
+
+  const fullText = extractPredictionText(prediction?.text);
+  const primaryText = extractPredictionText(prediction?.mainText) || fullText;
+  const secondaryText = extractPredictionText(prediction?.secondaryText);
+  const label = normalizeLeadValue(fullText || joinLeadParts(primaryText, secondaryText));
+
+  if (!label) {
+    return null;
+  }
+
+  return {
+    prediction,
+    label,
+    primaryText: normalizeLeadValue(primaryText) || label,
+    secondaryText: normalizeLeadValue(secondaryText)
+  };
+}
+
+function extractPredictionText(value) {
+  if (!value) {
+    return "";
+  }
+
+  if (typeof value === "string") {
+    return normalizeLeadValue(value);
+  }
+
+  if (typeof value?.text === "string") {
+    return normalizeLeadValue(value.text);
+  }
+
+  if (typeof value?.toString === "function") {
+    const rendered = value.toString();
+    return normalizeLeadValue(rendered === "[object Object]" ? "" : rendered);
+  }
+
+  return "";
+}
+
+function renderLeadMapAutocompleteSuggestions() {
+  if (!leadMapDom.searchSuggestions) {
+    return;
+  }
+
+  const suggestions = leadMapState.autocompleteSuggestions;
+  const shouldShow = suggestions.length > 0 && document.activeElement === leadMapDom.searchInput;
+
+  leadMapDom.searchSuggestions.classList.toggle("hidden", !shouldShow);
+
+  if (!shouldShow) {
+    leadMapDom.searchSuggestions.innerHTML = "";
+    return;
+  }
+
+  leadMapDom.searchSuggestions.innerHTML = suggestions
+    .map((suggestion, index) => {
+      const isActive = index === leadMapState.highlightedSuggestionIndex;
+      const secondary = suggestion.secondaryText
+        ? `<span class="lead-map-suggestion-secondary">${escapeHtml(suggestion.secondaryText)}</span>`
+        : "";
+
+      return `
+        <button
+          type="button"
+          class="lead-map-suggestion${isActive ? " is-active" : ""}"
+          data-lead-suggestion-index="${escapeAttribute(String(index))}"
+          role="option"
+          aria-selected="${isActive ? "true" : "false"}"
+        >
+          <span class="lead-map-suggestion-primary">${escapeHtml(suggestion.primaryText)}</span>
+          ${secondary}
+        </button>
+      `;
+    })
+    .join("");
+}
+
+function clearLeadMapAutocompleteSuggestions() {
+  leadMapState.autocompleteSuggestions = [];
+  leadMapState.highlightedSuggestionIndex = -1;
+
+  if (leadMapDom.searchSuggestions) {
+    leadMapDom.searchSuggestions.innerHTML = "";
+    leadMapDom.searchSuggestions.classList.add("hidden");
+  }
+}
+
+function moveLeadMapSuggestionHighlight(direction) {
+  const suggestions = leadMapState.autocompleteSuggestions;
+
+  if (suggestions.length === 0) {
+    return;
+  }
+
+  const maxIndex = suggestions.length - 1;
+  const current = leadMapState.highlightedSuggestionIndex < 0 ? 0 : leadMapState.highlightedSuggestionIndex;
+  const next = direction > 0
+    ? (current >= maxIndex ? 0 : current + 1)
+    : (current <= 0 ? maxIndex : current - 1);
+
+  leadMapState.highlightedSuggestionIndex = next;
+  renderLeadMapAutocompleteSuggestions();
+}
+
+async function selectLeadMapAutocompleteSuggestion(index) {
+  const suggestion = leadMapState.autocompleteSuggestions[index];
+
+  if (!suggestion?.prediction) {
+    return;
+  }
+
+  await requestLeadMapInitialization();
+  await applyLeadMapPrediction(suggestion.prediction, suggestion.label);
+}
+
+async function applyLeadMapPrediction(prediction, fallbackLabel = "") {
+  const place = typeof prediction?.toPlace === "function" ? prediction.toPlace() : null;
+
+  if (!place?.fetchFields) {
+    throw new Error("The selected suggestion could not be opened on the map.");
+  }
+
+  await place.fetchFields({
+    fields: ["displayName", "formattedAddress", "location", "viewport"]
+  });
+
+  const viewport = place.viewport || null;
+  const location = place.location || null;
+
+  if (viewport) {
+    leadMapState.map.fitBounds(viewport, 24);
+  } else if (location) {
+    leadMapState.map.setCenter(location);
+    leadMapState.map.setZoom(13);
+  }
+
+  const placeName = normalizeLeadValue(place.displayName) || normalizeLeadValue(place.formattedAddress) || fallbackLabel;
+  leadMapState.selectedPrediction = prediction;
+  leadMapState.resolvedAreaHint = placeName;
+
+  if (leadMapDom.searchInput && placeName) {
+    leadMapDom.searchInput.value = placeName;
+  }
+
+  clearLeadMapAutocompleteSuggestions();
+  leadMapState.autocompleteSessionToken = null;
+  setLeadMapMessage(`Map moved to ${placeName}. Adjust the view if needed and scan the selected area.`, "success");
+}
+
 async function waitForGoogleMapsLibrary() {
   const startedAt = Date.now();
 
@@ -601,13 +876,23 @@ async function searchLeadMapLocation() {
 
   try {
     if (isGoogleLeadMapProvider()) {
+      const highlightedSuggestion = leadMapState.autocompleteSuggestions[
+        leadMapState.highlightedSuggestionIndex >= 0 ? leadMapState.highlightedSuggestionIndex : 0
+      ];
+
+      if (highlightedSuggestion?.prediction) {
+        await applyLeadMapPrediction(highlightedSuggestion.prediction, highlightedSuggestion.label);
+        return;
+      }
+
       const Place = window.google?.maps?.places?.Place;
 
       if (!Place?.searchByText) {
         throw new Error("Google Places search is not ready yet for moving the map.");
       }
 
-      const currentCenter = getCurrentMapCenterFromBounds();
+      const currentBounds = getCurrentMapBounds();
+      const currentCenter = currentBounds ? getCurrentMapCenterFromBounds(currentBounds) : null;
       const response = await Place.searchByText({
         textQuery: query,
         fields: ["displayName", "formattedAddress", "location", "viewport"],
@@ -635,6 +920,8 @@ async function searchLeadMapLocation() {
 
       const placeName = normalizeLeadValue(place.displayName) || normalizeLeadValue(place.formattedAddress) || query;
       leadMapState.resolvedAreaHint = placeName;
+      leadMapState.autocompleteSessionToken = null;
+      clearLeadMapAutocompleteSuggestions();
       setLeadMapMessage(`Map moved to ${placeName}. Adjust the view if needed and scan the selected area.`, "success");
       return;
     }
@@ -675,6 +962,7 @@ async function searchLeadMapLocation() {
     }
 
     leadMapState.resolvedAreaHint = normalizeLeadValue(place.display_name) || query;
+    clearLeadMapAutocompleteSuggestions();
     setLeadMapMessage(`Map moved to ${place.display_name}. Adjust the view if needed and scan the visible area.`, "success");
   } catch (error) {
     setLeadMapMessage(error.message || "The map search could not be completed.", "error");
@@ -696,7 +984,10 @@ async function resetLeadMapView() {
     leadMapState.map.setView(LEAD_MAP_DEFAULT_VIEW.center, LEAD_MAP_DEFAULT_VIEW.zoom);
   }
 
+  leadMapState.selectedPrediction = null;
+  leadMapState.autocompleteSessionToken = null;
   leadMapState.resolvedAreaHint = "";
+  clearLeadMapAutocompleteSuggestions();
   setLeadMapMessage("The map view has been reset. Move to the next area you want to scan.", "success");
 }
 

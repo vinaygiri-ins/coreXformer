@@ -972,6 +972,54 @@ button:disabled {
   gap: 16px;
 }
 
+.lead-map-search-box {
+  position: relative;
+}
+
+.lead-map-search-suggestions {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  z-index: 12;
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 18px;
+  border: 1px solid rgba(217, 206, 185, 0.92);
+  background: rgba(255, 251, 244, 0.98);
+  box-shadow: 0 18px 34px rgba(35, 31, 24, 0.12);
+}
+
+.lead-map-suggestion {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  background: white;
+  text-align: left;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.lead-map-suggestion:hover,
+.lead-map-suggestion.is-active {
+  border-color: rgba(47, 107, 80, 0.22);
+  background: rgba(47, 107, 80, 0.08);
+}
+
+.lead-map-suggestion-primary {
+  font-weight: 700;
+}
+
+.lead-map-suggestion-secondary {
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
 .lead-map-canvas {
   min-height: 460px;
   border-radius: 22px;
