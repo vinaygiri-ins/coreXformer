@@ -16,37 +16,51 @@ const LEAD_MAP_GOOGLE_FIELDS = [
 ];
 const LEAD_MAP_GOOGLE_MAX_RADIUS_METERS = 50000;
 const LEAD_MAP_GOOGLE_NEARBY_LIMIT = 20;
-const LEAD_MAP_GOOGLE_TEXT_LIMIT = 8;
+const LEAD_MAP_GOOGLE_TEXT_LIMIT = 12;
+const LEAD_GOOGLE_CORPORATE_PRIMARY_TYPES = new Set([
+  "corporate_office",
+  "manufacturer",
+  "business_center"
+]);
+const LEAD_GOOGLE_CORPORATE_ALLOWED_NAME_PATTERN = /\b(ltd|limited|pvt|private limited|inc|corp|corporation|group|industries|industry|industrial|manufacturing|factory|plant|technology|technologies|software|systems|solutions|engineering|logistics|motors|steel|cement|pharma|energy|power|telecom|digital|automation|exports|enterprise|enterprises|business park|tech park|technology park|industrial estate|industrial area|it park|sez)\b/i;
 const LEAD_MAP_GOOGLE_CATEGORY_SEARCH = {
   schools: {
     nearbyPrimaryTypes: ["school", "secondary_school", "primary_school", "preschool"],
     textSearches: [
-      { textQuery: "school", includedType: "school" },
-      { textQuery: "senior secondary school", includedType: "secondary_school" }
+      { textQuery: "school", includedType: "school", strict: true },
+      { textQuery: "senior secondary school", includedType: "secondary_school", strict: true }
     ]
   },
   colleges: {
     nearbyPrimaryTypes: ["university"],
     textSearches: [
-      { textQuery: "college", includedType: "university" },
-      { textQuery: "university", includedType: "university" },
-      { textQuery: "engineering college", includedType: "university" }
+      { textQuery: "college", includedType: "university", strict: false },
+      { textQuery: "university", includedType: "university", strict: true },
+      { textQuery: "engineering college", includedType: "university", strict: false }
     ]
   },
   corporates: {
     nearbyPrimaryTypes: ["corporate_office", "manufacturer", "business_center"],
     textSearches: [
-      { textQuery: "IT company", includedType: "corporate_office" },
-      { textQuery: "software company", includedType: "corporate_office" },
-      { textQuery: "manufacturing company", includedType: "manufacturer" },
-      { textQuery: "engineering company", includedType: "corporate_office" },
-      { textQuery: "corporate office", includedType: "corporate_office" }
+      { textQuery: "IT company", includedType: "corporate_office", strict: false },
+      { textQuery: "software company", includedType: "corporate_office", strict: false },
+      { textQuery: "technology company", includedType: "corporate_office", strict: false },
+      { textQuery: "engineering company", includedType: "corporate_office", strict: false },
+      { textQuery: "corporate office", includedType: "corporate_office", strict: false },
+      { textQuery: "business park", includedType: "business_center", strict: false },
+      { textQuery: "technology park", strict: false },
+      { textQuery: "IT park", strict: false },
+      { textQuery: "industrial area", strict: false },
+      { textQuery: "industrial estate", strict: false },
+      { textQuery: "manufacturing company", includedType: "manufacturer", strict: false },
+      { textQuery: "factory", includedType: "manufacturer", strict: false },
+      { textQuery: "plant", includedType: "manufacturer", strict: false }
     ]
   },
   communities: {
     nearbyPrimaryTypes: ["community_center"],
     textSearches: [
-      { textQuery: "community center", includedType: "community_center" },
+      { textQuery: "community center", includedType: "community_center", strict: true },
       { textQuery: "cultural center" },
       { textQuery: "NGO" }
     ]
@@ -54,9 +68,9 @@ const LEAD_MAP_GOOGLE_CATEGORY_SEARCH = {
   government: {
     nearbyPrimaryTypes: ["government_office", "local_government_office", "city_hall"],
     textSearches: [
-      { textQuery: "government office", includedType: "government_office" },
-      { textQuery: "district office", includedType: "government_office" },
-      { textQuery: "municipal office", includedType: "local_government_office" }
+      { textQuery: "government office", includedType: "government_office", strict: false },
+      { textQuery: "district office", includedType: "government_office", strict: false },
+      { textQuery: "municipal office", includedType: "local_government_office", strict: false }
     ]
   }
 };
@@ -208,6 +222,7 @@ const leadMapState = {
   scanMode: "bounds",
   radiusCenter: null,
   radiusKm: 5,
+  resolvedAreaHint: "",
   currentFilter: "",
   scanning: false
 };
@@ -619,6 +634,7 @@ async function searchLeadMapLocation() {
       }
 
       const placeName = normalizeLeadValue(place.displayName) || normalizeLeadValue(place.formattedAddress) || query;
+      leadMapState.resolvedAreaHint = placeName;
       setLeadMapMessage(`Map moved to ${placeName}. Adjust the view if needed and scan the selected area.`, "success");
       return;
     }
@@ -658,6 +674,7 @@ async function searchLeadMapLocation() {
       leadMapState.map.setView([Number(place.lat), Number(place.lon)], 13);
     }
 
+    leadMapState.resolvedAreaHint = normalizeLeadValue(place.display_name) || query;
     setLeadMapMessage(`Map moved to ${place.display_name}. Adjust the view if needed and scan the visible area.`, "success");
   } catch (error) {
     setLeadMapMessage(error.message || "The map search could not be completed.", "error");
@@ -679,6 +696,7 @@ async function resetLeadMapView() {
     leadMapState.map.setView(LEAD_MAP_DEFAULT_VIEW.center, LEAD_MAP_DEFAULT_VIEW.zoom);
   }
 
+  leadMapState.resolvedAreaHint = "";
   setLeadMapMessage("The map view has been reset. Move to the next area you want to scan.", "success");
 }
 
@@ -876,7 +894,7 @@ function buildGoogleTextSearchRequest(textSearch, queryTarget) {
 
   if (textSearch.includedType) {
     request.includedType = textSearch.includedType;
-    request.useStrictTypeFiltering = true;
+    request.useStrictTypeFiltering = textSearch.strict !== false;
   }
 
   return request;
@@ -921,10 +939,20 @@ function buildGoogleTextLocationBias(queryTarget) {
 function buildGoogleTextQuery(baseQuery, queryTarget) {
   const base = normalizeLeadValue(baseQuery);
   const hint = buildGoogleAreaHint(queryTarget);
-  return hint ? `${base} near ${hint}` : base;
+  return hint ? `${base} in ${hint}` : base;
 }
 
 function buildGoogleAreaHint(queryTarget) {
+  if (leadMapState.resolvedAreaHint) {
+    return leadMapState.resolvedAreaHint;
+  }
+
+  const inputHint = normalizeLeadValue(leadMapDom.searchInput?.value);
+
+  if (inputHint) {
+    return inputHint;
+  }
+
   const center = queryTarget.center;
 
   if (!center) {
@@ -940,6 +968,10 @@ function normalizeGoogleLeadPlace(place, categoryKey) {
   const name = normalizeLeadValue(place?.displayName);
 
   if (!name || Number.isNaN(lat) || Number.isNaN(lon)) {
+    return null;
+  }
+
+  if (categoryKey === "corporates" && !isAllowedGoogleCorporatePlace(place, name)) {
     return null;
   }
 
@@ -979,6 +1011,27 @@ function getGoogleLatValue(location, axis) {
   }
 
   return Number(value);
+}
+
+function isAllowedGoogleCorporatePlace(place, displayName = "") {
+  const normalizedName = normalizeLeadValue(displayName);
+  const primaryType = normalizeLeadValue(place?.primaryType).toLowerCase();
+  const businessStatus = normalizeLeadValue(place?.businessStatus).toLowerCase();
+  const isExcludedName = LEAD_CORPORATE_EXCLUDE_NAME_PATTERN.test(normalizedName);
+
+  if (!normalizedName || isExcludedName) {
+    return false;
+  }
+
+  if (businessStatus === "closed_permanently") {
+    return false;
+  }
+
+  if (LEAD_GOOGLE_CORPORATE_PRIMARY_TYPES.has(primaryType)) {
+    return true;
+  }
+
+  return LEAD_CORPORATE_NAME_PATTERN.test(normalizedName) || LEAD_GOOGLE_CORPORATE_ALLOWED_NAME_PATTERN.test(normalizedName);
 }
 
 function normalizeLeadElement(element) {
