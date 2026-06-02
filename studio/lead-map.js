@@ -651,13 +651,17 @@ async function fetchLeadMapAutocompleteSuggestions(query) {
   }
 
   const requestSerial = ++leadMapState.autocompleteRequestSerial;
+  const locationRestriction = getCurrentMapBounds() || undefined;
+  const origin = locationRestriction ? getCurrentMapCenterFromBounds(locationRestriction) : undefined;
 
   try {
     const response = await AutocompleteSuggestion.fetchAutocompleteSuggestions({
       input: normalizedQuery,
       sessionToken: leadMapState.autocompleteSessionToken,
+      locationRestriction,
+      origin,
       language: leadMapState.providerConfig.googleLanguage,
-      includedRegionCodes: [leadMapState.providerConfig.googleRegion.toLowerCase()]
+      region: leadMapState.providerConfig.googleRegion.toLowerCase()
     });
 
     if (requestSerial !== leadMapState.autocompleteRequestSerial) {
@@ -687,8 +691,9 @@ function normalizeLeadMapSuggestion(suggestion) {
   }
 
   const fullText = extractPredictionText(prediction?.text);
-  const primaryText = extractPredictionText(prediction?.mainText) || fullText;
-  const secondaryText = extractPredictionText(prediction?.secondaryText);
+  const structuredFormat = prediction?.structuredFormat || null;
+  const primaryText = extractPredictionText(structuredFormat?.mainText) || fullText;
+  const secondaryText = extractPredictionText(structuredFormat?.secondaryText);
   const label = normalizeLeadValue(fullText || joinLeadParts(primaryText, secondaryText));
 
   if (!label) {
