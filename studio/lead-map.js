@@ -620,6 +620,10 @@ function handleLeadMapSearchInputChange() {
     return;
   }
 
+  if (leadMapDom.message?.classList.contains("is-error")) {
+    setLeadMapMessage("Choose a suggestion or press Find on map to move the map.", "info");
+  }
+
   leadMapState.autocompleteDebounceId = window.setTimeout(() => {
     void fetchLeadMapAutocompleteSuggestions(query);
   }, 180);
