@@ -10,6 +10,19 @@ window.COREXFORMER_STUDIO_CONFIG = {
     googleMapsApiKey: "AIzaSyD57n38xCVp87_FCtLnpZ8s-R8BWddWFUI",
     googleMapId: "",
     googleRegion: "IN",
-    googleLanguage: "en"
+    googleLanguage: "en",
+    usageGuard: {
+      enabled: true,
+      timezone: "Asia/Kolkata",
+      warningThresholdPercent: 60,
+      criticalThresholdPercent: 80,
+      hardStopThresholdPercent: 100,
+      monthlyCaps: {
+        mapLoads: 1000,
+        autocompleteRequests: 5000,
+        placeDetailsRequests: 1000,
+        placeSearchRequests: 2000
+      }
+    }
   }
 };

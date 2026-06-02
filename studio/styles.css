@@ -976,6 +976,94 @@ button:disabled {
   position: relative;
 }
 
+.lead-map-usage-panel {
+  gap: 14px;
+  background:
+    linear-gradient(180deg, rgba(47, 107, 80, 0.08), rgba(47, 107, 80, 0.03)),
+    rgba(244, 240, 232, 0.8);
+}
+
+.lead-map-usage-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.lead-map-usage-cards {
+  display: grid;
+  gap: 12px;
+}
+
+.lead-map-usage-card {
+  display: grid;
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(217, 206, 185, 0.95);
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.lead-map-usage-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.lead-map-usage-card-head strong {
+  font-size: 0.95rem;
+}
+
+.lead-map-usage-card-head span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.lead-map-usage-progress {
+  overflow: hidden;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(31, 43, 36, 0.1);
+}
+
+.lead-map-usage-progress-bar {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+}
+
+.lead-map-usage-card small,
+.lead-map-usage-footnote {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.status-pill.status-watch {
+  background: rgba(186, 123, 60, 0.14);
+  color: #9a5b21;
+}
+
+.status-pill.status-critical {
+  background: rgba(160, 99, 33, 0.18);
+  color: #8a4329;
+}
+
+.status-pill.status-paused {
+  background: rgba(138, 67, 41, 0.18);
+  color: #7a4123;
+}
+
+.lead-map-usage-progress-bar.status-watch {
+  background: #c97b2e;
+}
+
+.lead-map-usage-progress-bar.status-critical,
+.lead-map-usage-progress-bar.status-paused {
+  background: #a0462b;
+}
+
 .lead-map-search-suggestions {
   position: absolute;
   top: calc(100% + 8px);
@@ -1190,6 +1278,11 @@ button:disabled {
 
   .lead-map-workbench {
     grid-template-columns: 1fr;
+  }
+
+  .lead-map-usage-head,
+  .lead-map-usage-card-head {
+    flex-direction: column;
   }
 
   .application-field-grid,

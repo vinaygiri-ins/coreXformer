@@ -1,5 +1,6 @@
 const LEAD_MAP_ALLOWED_ROLES = ["owner"];
 const LEAD_MAP_STORAGE_KEY = "corexformer-lead-map-v1";
+const LEAD_MAP_USAGE_STORAGE_KEY = "corexformer-lead-map-usage-v1";
 const LEAD_MAP_DEFAULT_VIEW = {
   center: [22.9734, 78.6569],
   zoom: 5
@@ -22,6 +23,30 @@ const LEAD_GOOGLE_CORPORATE_PRIMARY_TYPES = new Set([
   "manufacturer",
   "business_center"
 ]);
+const LEAD_MAP_USAGE_DEFAULT_CAPS = {
+  mapLoads: 1000,
+  autocompleteRequests: 5000,
+  placeDetailsRequests: 1000,
+  placeSearchRequests: 2000
+};
+const LEAD_MAP_USAGE_METRICS = {
+  mapLoads: {
+    label: "Map loads",
+    hint: "Google map openings in this browser"
+  },
+  autocompleteRequests: {
+    label: "Autocomplete",
+    hint: "Type-ahead suggestion requests"
+  },
+  placeDetailsRequests: {
+    label: "Place details",
+    hint: "Chosen suggestion detail lookups"
+  },
+  placeSearchRequests: {
+    label: "Place searches",
+    hint: "Find-on-map and scan requests"
+  }
+};
 const LEAD_GOOGLE_CORPORATE_ALLOWED_NAME_PATTERN = /\b(ltd|limited|pvt|private limited|inc|corp|corporation|group|industries|industry|industrial|manufacturing|factory|plant|technology|technologies|software|systems|solutions|engineering|logistics|motors|steel|cement|pharma|energy|power|telecom|digital|automation|exports|enterprise|enterprises|business park|tech park|technology park|industrial estate|industrial area|it park|sez)\b/i;
 const LEAD_MAP_GOOGLE_CATEGORY_SEARCH = {
   schools: {
@@ -176,6 +201,11 @@ const leadMapDom = {
   scannerPanel: document.querySelector('[data-admin-view-panel="lead-map-scanner"]'),
   savedPanel: document.querySelector('[data-admin-view-panel="lead-map-saved"]'),
   message: document.getElementById("leadMapMessage"),
+  usagePanel: document.getElementById("leadMapUsagePanel"),
+  usageStatus: document.getElementById("leadMapUsageStatus"),
+  usageSummary: document.getElementById("leadMapUsageSummary"),
+  usageCards: document.getElementById("leadMapUsageCards"),
+  usageFootnote: document.getElementById("leadMapUsageFootnote"),
   mapCanvas: document.getElementById("leadMapCanvas"),
   searchInput: document.getElementById("leadMapSearchInput"),
   searchSuggestions: document.getElementById("leadMapSearchSuggestions"),
@@ -219,6 +249,7 @@ const leadMapState = {
   scanResults: [],
   hasScanned: false,
   savedLeads: loadLeadMapSavedState(),
+  usage: loadLeadMapUsageState(),
   activeCategories: new Set(["schools", "colleges", "corporates", "communities"]),
   scanMode: "bounds",
   radiusCenter: null,
@@ -242,8 +273,133 @@ function getLeadMapProviderConfig() {
     googleMapsApiKey: normalizeLeadValue(config.googleMapsApiKey),
     googleMapId: normalizeLeadValue(config.googleMapId),
     googleRegion: normalizeLeadValue(config.googleRegion) || "IN",
-    googleLanguage: normalizeLeadValue(config.googleLanguage) || "en"
+    googleLanguage: normalizeLeadValue(config.googleLanguage) || "en",
+    usageGuard: getLeadMapUsageGuardConfig(config.usageGuard)
   };
+}
+
+function getLeadMapUsageGuardConfig(config = {}) {
+  const warningThresholdPercent = clampLeadPercent(config.warningThresholdPercent, 60);
+  const criticalThresholdPercent = Math.max(
+    warningThresholdPercent,
+    clampLeadPercent(config.criticalThresholdPercent, 80)
+  );
+  const hardStopThresholdPercent = Math.max(
+    criticalThresholdPercent,
+    clampLeadPercent(config.hardStopThresholdPercent, 100)
+  );
+
+  return {
+    enabled: config.enabled !== false,
+    timezone: normalizeLeadValue(config.timezone) || "Asia/Kolkata",
+    warningThresholdPercent,
+    criticalThresholdPercent,
+    hardStopThresholdPercent,
+    monthlyCaps: {
+      mapLoads: normalizeLeadUsageCap(config.monthlyCaps?.mapLoads, LEAD_MAP_USAGE_DEFAULT_CAPS.mapLoads),
+      autocompleteRequests: normalizeLeadUsageCap(
+        config.monthlyCaps?.autocompleteRequests,
+        LEAD_MAP_USAGE_DEFAULT_CAPS.autocompleteRequests
+      ),
+      placeDetailsRequests: normalizeLeadUsageCap(
+        config.monthlyCaps?.placeDetailsRequests,
+        LEAD_MAP_USAGE_DEFAULT_CAPS.placeDetailsRequests
+      ),
+      placeSearchRequests: normalizeLeadUsageCap(
+        config.monthlyCaps?.placeSearchRequests,
+        LEAD_MAP_USAGE_DEFAULT_CAPS.placeSearchRequests
+      )
+    }
+  };
+}
+
+function clampLeadPercent(value, fallback) {
+  const parsed = Number.parseInt(value, 10);
+
+  if (!Number.isFinite(parsed)) {
+    return fallback;
+  }
+
+  return Math.min(100, Math.max(1, parsed));
+}
+
+function normalizeLeadUsageCap(value, fallback) {
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function getLeadMapUsageMonthKey(timezone = "Asia/Kolkata") {
+  try {
+    const formatter = new Intl.DateTimeFormat("en-CA", {
+      timeZone: timezone,
+      year: "numeric",
+      month: "2-digit"
+    });
+    const parts = formatter.formatToParts(new Date());
+    const year = parts.find((part) => part.type === "year")?.value;
+    const month = parts.find((part) => part.type === "month")?.value;
+
+    if (year && month) {
+      return `${year}-${month}`;
+    }
+  } catch (error) {
+    console.warn("CoreXformer lead map could not format the usage month key in the preferred timezone.", error);
+  }
+
+  const fallbackDate = new Date();
+  return `${fallbackDate.getFullYear()}-${String(fallbackDate.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function createEmptyLeadMapUsageCounts() {
+  return Object.keys(LEAD_MAP_USAGE_METRICS).reduce((counts, key) => {
+    counts[key] = 0;
+    return counts;
+  }, {});
+}
+
+function createLeadMapUsageState(config = getLeadMapUsageGuardConfig()) {
+  return {
+    monthKey: getLeadMapUsageMonthKey(config.timezone),
+    counts: createEmptyLeadMapUsageCounts(),
+    updatedAt: ""
+  };
+}
+
+function loadLeadMapUsageState() {
+  const config = getLeadMapUsageGuardConfig(window.COREXFORMER_STUDIO_CONFIG?.leadMap?.usageGuard || {});
+  const emptyState = createLeadMapUsageState(config);
+
+  try {
+    const raw = window.localStorage.getItem(LEAD_MAP_USAGE_STORAGE_KEY);
+
+    if (!raw) {
+      return emptyState;
+    }
+
+    const parsed = JSON.parse(raw);
+    const monthKey = getLeadMapUsageMonthKey(config.timezone);
+
+    if (normalizeLeadValue(parsed?.monthKey) !== monthKey) {
+      return emptyState;
+    }
+
+    return {
+      monthKey,
+      counts: Object.keys(LEAD_MAP_USAGE_METRICS).reduce((counts, key) => {
+        counts[key] = normalizeLeadUsageCount(parsed?.counts?.[key]);
+        return counts;
+      }, {}),
+      updatedAt: normalizeLeadValue(parsed?.updatedAt)
+    };
+  } catch (error) {
+    console.warn("CoreXformer lead map usage counters could not be restored.", error);
+    return emptyState;
+  }
+}
+
+function normalizeLeadUsageCount(value) {
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
 }
 
 function normalizeLeadMapProviderMode(value) {
@@ -419,10 +575,238 @@ function bindLeadMapEvents() {
   });
 }
 
+function ensureLeadMapUsageStateCurrent() {
+  const usageConfig = leadMapState.providerConfig.usageGuard;
+  const monthKey = getLeadMapUsageMonthKey(usageConfig.timezone);
+
+  if (leadMapState.usage.monthKey === monthKey) {
+    return;
+  }
+
+  leadMapState.usage = createLeadMapUsageState(usageConfig);
+  persistLeadMapUsageState();
+}
+
+function persistLeadMapUsageState() {
+  try {
+    window.localStorage.setItem(LEAD_MAP_USAGE_STORAGE_KEY, JSON.stringify(leadMapState.usage));
+  } catch (error) {
+    console.warn("CoreXformer lead map usage counters could not be saved.", error);
+  }
+}
+
+function getLeadMapUsageCount(metricKey) {
+  ensureLeadMapUsageStateCurrent();
+  return normalizeLeadUsageCount(leadMapState.usage.counts?.[metricKey]);
+}
+
+function getLeadMapUsageLimit(metricKey) {
+  return leadMapState.providerConfig.usageGuard.monthlyCaps[metricKey] || 0;
+}
+
+function getLeadMapUsagePercent(metricKey) {
+  const limit = getLeadMapUsageLimit(metricKey);
+
+  if (!limit) {
+    return 0;
+  }
+
+  return Math.min(100, Math.round((getLeadMapUsageCount(metricKey) / limit) * 100));
+}
+
+function getLeadMapUsageStatusLevel(percent) {
+  const usageConfig = leadMapState.providerConfig.usageGuard;
+
+  if (percent >= usageConfig.hardStopThresholdPercent) {
+    return "paused";
+  }
+
+  if (percent >= usageConfig.criticalThresholdPercent) {
+    return "critical";
+  }
+
+  if (percent >= usageConfig.warningThresholdPercent) {
+    return "watch";
+  }
+
+  return "safe";
+}
+
+function getLeadMapOverallUsageStatus() {
+  const highestPercent = Object.keys(LEAD_MAP_USAGE_METRICS).reduce((currentMax, metricKey) => (
+    Math.max(currentMax, getLeadMapUsagePercent(metricKey))
+  ), 0);
+
+  return {
+    percent: highestPercent,
+    level: getLeadMapUsageStatusLevel(highestPercent)
+  };
+}
+
+function getLeadMapUsageStatusCopy(level) {
+  switch (level) {
+    case "watch":
+      return {
+        label: "Watch",
+        summary: "Usage has crossed the early warning line. Keep scans focused.",
+        footnote: "You are still within your private monthly cap, but this is the point to slow down."
+      };
+    case "critical":
+      return {
+        label: "Near limit",
+        summary: "Usage is nearing your monthly cap. One or two wider scans could block the tool.",
+        footnote: "Keep the area tight and only scan the categories you really need."
+      };
+    case "paused":
+      return {
+        label: "Paused",
+        summary: "At least one request type has hit the monthly hard stop. The affected Google action is now blocked on this device until the next month or until you raise the cap in studio/config.js.",
+        footnote: "This local guard is intentionally conservative. The cards below show which request type has actually paused."
+      };
+    default:
+      return {
+        label: "Safe",
+        summary: "Usage is comfortably inside your private monthly cap.",
+        footnote: "This local guard tracks Google map loads, suggestions, details, and place searches in this browser."
+      };
+  }
+}
+
+function estimateLeadMapGoogleScanRequests() {
+  return Array.from(leadMapState.activeCategories).reduce((total, categoryKey) => {
+    const categoryConfig = LEAD_MAP_GOOGLE_CATEGORY_SEARCH[categoryKey];
+
+    if (!categoryConfig) {
+      return total;
+    }
+
+    return total
+      + (categoryConfig.nearbyPrimaryTypes?.length || 0)
+      + (categoryConfig.textSearches?.length || 0);
+  }, 0);
+}
+
+function renderLeadMapUsageGuard() {
+  if (!leadMapDom.usagePanel || !leadMapDom.usageStatus || !leadMapDom.usageSummary || !leadMapDom.usageCards || !leadMapDom.usageFootnote) {
+    return;
+  }
+
+  const usageConfig = leadMapState.providerConfig.usageGuard;
+  const showGuard = isGoogleLeadMapProvider() && usageConfig.enabled;
+  leadMapDom.usagePanel.classList.toggle("hidden", !showGuard);
+
+  if (!showGuard) {
+    return;
+  }
+
+  ensureLeadMapUsageStateCurrent();
+
+  const overall = getLeadMapOverallUsageStatus();
+  const copy = getLeadMapUsageStatusCopy(overall.level);
+  leadMapDom.usageStatus.textContent = copy.label;
+  leadMapDom.usageStatus.classList.remove("status-safe", "status-watch", "status-critical", "status-paused");
+  leadMapDom.usageStatus.classList.add(`status-${overall.level}`);
+  leadMapDom.usageSummary.textContent = copy.summary;
+
+  leadMapDom.usageCards.innerHTML = Object.entries(LEAD_MAP_USAGE_METRICS)
+    .map(([metricKey, config]) => {
+      const used = getLeadMapUsageCount(metricKey);
+      const limit = getLeadMapUsageLimit(metricKey);
+      const percent = getLeadMapUsagePercent(metricKey);
+      const level = getLeadMapUsageStatusLevel(percent);
+
+      return `
+        <div class="lead-map-usage-card">
+          <div class="lead-map-usage-card-head">
+            <strong>${escapeHtml(config.label)}</strong>
+            <span>${escapeHtml(`${used} / ${limit}`)}</span>
+          </div>
+          <div class="lead-map-usage-progress" aria-hidden="true">
+            <div class="lead-map-usage-progress-bar status-${escapeAttribute(level)}" style="width: ${Math.max(percent, used > 0 ? 2 : 0)}%;"></div>
+          </div>
+          <small>${escapeHtml(config.hint)}</small>
+        </div>
+      `;
+    })
+    .join("");
+
+  const estimatedScanRequests = estimateLeadMapGoogleScanRequests();
+  const remainingSearches = Math.max(0, getLeadMapUsageLimit("placeSearchRequests") - getLeadMapUsageCount("placeSearchRequests"));
+  const scanCostMessage = remainingSearches < estimatedScanRequests
+    ? `Current category mix needs about ${estimatedScanRequests} Google place-search calls per scan, so new scans are paused until next month or until you reduce the scan scope.`
+    : `Current category mix uses about ${estimatedScanRequests} Google place-search calls per scan. Remaining search-call headroom this month: ${remainingSearches}.`;
+  leadMapDom.usageFootnote.textContent = `${copy.footnote} ${scanCostMessage}`;
+  syncLeadMapUsageButtons();
+}
+
+function syncLeadMapUsageButtons() {
+  if (!leadMapDom.scanButton) {
+    return;
+  }
+
+  const usageConfig = leadMapState.providerConfig.usageGuard;
+
+  if (!isGoogleLeadMapProvider() || !usageConfig.enabled) {
+    leadMapDom.scanButton.disabled = Boolean(leadMapState.scanning);
+    leadMapDom.scanButton.title = "";
+    return;
+  }
+
+  const plannedSearches = estimateLeadMapGoogleScanRequests();
+  const remainingSearches = Math.max(0, getLeadMapUsageLimit("placeSearchRequests") - getLeadMapUsageCount("placeSearchRequests"));
+  const blockedBySearchCap = plannedSearches > remainingSearches;
+  leadMapDom.scanButton.disabled = Boolean(leadMapState.scanning || blockedBySearchCap);
+  leadMapDom.scanButton.title = blockedBySearchCap
+    ? "Monthly search-call guard reached for the current scan size. Reduce categories or wait for the next month."
+    : "";
+}
+
+function reserveLeadMapUsage(metricKey, amount, reason) {
+  const usageConfig = leadMapState.providerConfig.usageGuard;
+
+  if (!isGoogleLeadMapProvider() || !usageConfig.enabled) {
+    return { allowed: true };
+  }
+
+  ensureLeadMapUsageStateCurrent();
+
+  const nextCount = getLeadMapUsageCount(metricKey) + amount;
+  const limit = getLeadMapUsageLimit(metricKey);
+
+  if (nextCount > limit) {
+    renderLeadMapUsageGuard();
+    return {
+      allowed: false,
+      message: buildLeadMapUsageLimitMessage(metricKey, amount, reason)
+    };
+  }
+
+  leadMapState.usage.counts[metricKey] = nextCount;
+  leadMapState.usage.updatedAt = new Date().toISOString();
+  persistLeadMapUsageState();
+  renderLeadMapUsageGuard();
+  return { allowed: true };
+}
+
+function buildLeadMapUsageLimitMessage(metricKey, amount, reason) {
+  const metricLabel = LEAD_MAP_USAGE_METRICS[metricKey]?.label.toLowerCase() || "Google usage";
+  const used = getLeadMapUsageCount(metricKey);
+  const limit = getLeadMapUsageLimit(metricKey);
+  const remaining = Math.max(0, limit - used);
+
+  if (reason === "scan") {
+    return `This scan would use about ${amount} Google place-search calls, but only ${remaining} remain in your monthly guard. Wait for the next month or raise the private cap in studio/config.js.`;
+  }
+
+  return `The monthly guard has blocked this ${metricLabel} action. ${remaining} of ${limit} remain in the current cap for this browser.`;
+}
+
 function applyAdminContext(context) {
   leadMapState.context = context;
   leadMapState.providerConfig = getLeadMapProviderConfig();
   leadMapState.providerMode = normalizeLeadMapProviderMode(leadMapState.providerConfig.provider);
+  ensureLeadMapUsageStateCurrent();
+  renderLeadMapUsageGuard();
 
   const canUseLeadMap = Boolean(
     context &&
@@ -438,6 +822,7 @@ function applyAdminContext(context) {
     void requestLeadMapInitialization();
   }
 
+  renderLeadMapUsageGuard();
   renderSavedLeadBoard();
 }
 
@@ -520,6 +905,11 @@ async function initGoogleLeadMap() {
   }
 
   const config = leadMapState.providerConfig;
+  const loadReservation = reserveLeadMapUsage("mapLoads", 1, "map-load");
+
+  if (!loadReservation.allowed) {
+    throw new Error(loadReservation.message);
+  }
 
   if (!config.googleMapsApiKey) {
     throw new Error("Google lead map is selected, but the API key is missing in studio/config.js.");
@@ -657,6 +1047,13 @@ async function fetchLeadMapAutocompleteSuggestions(query) {
   const requestSerial = ++leadMapState.autocompleteRequestSerial;
   const locationRestriction = getCurrentMapBounds() || undefined;
   const origin = locationRestriction ? getCurrentMapCenterFromBounds(locationRestriction) : undefined;
+  const usageReservation = reserveLeadMapUsage("autocompleteRequests", 1, "autocomplete");
+
+  if (!usageReservation.allowed) {
+    clearLeadMapAutocompleteSuggestions();
+    setLeadMapMessage(usageReservation.message, "error");
+    return;
+  }
 
   try {
     const response = await AutocompleteSuggestion.fetchAutocompleteSuggestions({
@@ -816,6 +1213,12 @@ async function applyLeadMapPrediction(prediction, fallbackLabel = "") {
     throw new Error("The selected suggestion could not be opened on the map.");
   }
 
+  const usageReservation = reserveLeadMapUsage("placeDetailsRequests", 1, "place-details");
+
+  if (!usageReservation.allowed) {
+    throw new Error(usageReservation.message);
+  }
+
   await place.fetchFields({
     fields: ["displayName", "formattedAddress", "location", "viewport"]
   });
@@ -898,6 +1301,12 @@ async function searchLeadMapLocation() {
 
       if (!Place?.searchByText) {
         throw new Error("Google Places search is not ready yet for moving the map.");
+      }
+
+      const usageReservation = reserveLeadMapUsage("placeSearchRequests", 1, "find-on-map");
+
+      if (!usageReservation.allowed) {
+        throw new Error(usageReservation.message);
       }
 
       const currentBounds = getCurrentMapBounds();
@@ -1004,6 +1413,7 @@ function setLeadScanMode(nextMode) {
   leadMapState.scanMode = nextMode === "radius" ? "radius" : "bounds";
   syncLeadScanModeUi();
   updateLeadMapAreaSummary();
+  renderLeadMapUsageGuard();
 }
 
 function syncLeadMapCategories() {
@@ -1013,6 +1423,7 @@ function syncLeadMapCategories() {
       .map((input) => input.dataset.leadCategory)
       .filter(Boolean)
   );
+  renderLeadMapUsageGuard();
 }
 
 async function scanLeadMapArea() {
@@ -1069,7 +1480,7 @@ async function scanLeadMapArea() {
     setLeadMapMessage(error.message || "The area scan could not be completed.", "error");
   } finally {
     leadMapState.scanning = false;
-    leadMapDom.scanButton.disabled = false;
+    renderLeadMapUsageGuard();
   }
 }
 
@@ -1127,6 +1538,13 @@ function buildOverpassQuery(target, categories) {
 async function scanGoogleLeadMapArea(queryTarget) {
   if (!window.google?.maps?.places?.Place) {
     throw new Error("Google Places is not available yet for the lead map.");
+  }
+
+  const plannedSearchRequests = estimateLeadMapGoogleScanRequests();
+  const searchReservation = reserveLeadMapUsage("placeSearchRequests", plannedSearchRequests, "scan");
+
+  if (!searchReservation.allowed) {
+    throw new Error(searchReservation.message);
   }
 
   const Place = window.google.maps.places.Place;
