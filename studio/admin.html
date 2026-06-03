@@ -488,51 +488,59 @@
       </section>
 
       <section class="studio-grid lead-map-saved-layout admin-view-panel hidden" data-admin-view-panel="lead-map-saved">
-        <article class="panel">
+        <article class="panel lead-saved-workspace">
           <div class="panel-head">
             <div>
               <p class="eyebrow">Saved outreach board</p>
               <h2>Your private shortlist for meaningful connection</h2>
             </div>
-            <span class="status-pill">Local notes</span>
-          </div>
-
-          <div id="leadSavedStats" class="pipeline-grid"></div>
-          <div class="inline-action-group">
-            <button id="leadMapCopyJsonButton" type="button" class="button button-ghost">Copy JSON</button>
-            <button id="leadMapExportCsvButton" type="button" class="button button-muted">Export CSV</button>
-          </div>
-          <div class="notice-box">
-            <h3>What this board is for</h3>
-            <p>
-              This is your private working surface for deciding whom to approach, what the context is, and how you want
-              to follow up. It is not a public directory.
-            </p>
-          </div>
-
-          <div class="notice-box">
-            <h3>Private reference map</h3>
-            <p>
-              Saved leads keep their own coordinates, so this board can still show them on a private reference map even if
-              you later stop using Google for the scanning workflow.
-            </p>
-          </div>
-
-          <div id="leadSavedMapCanvas" class="lead-map-canvas lead-saved-map-canvas" aria-label="Saved lead reference map"></div>
-        </article>
-
-        <article class="panel">
-          <div class="panel-head">
-            <div>
-              <p class="eyebrow">Saved leads</p>
-              <h2>Review by category, then by place, and prepare next steps</h2>
+            <div class="lead-saved-head-actions">
+              <span class="status-pill">Local notes</span>
+              <div class="inline-action-group">
+                <button id="leadMapCopyJsonButton" type="button" class="button button-ghost">Copy JSON</button>
+                <button id="leadMapExportCsvButton" type="button" class="button button-muted">Export CSV</button>
+              </div>
             </div>
           </div>
 
-          <div id="leadSavedCategoryTabs" class="workspace-tab-bar lead-saved-tabs hidden" role="tablist" aria-label="Saved lead categories"></div>
-          <div id="leadSavedPlaceTabs" class="workspace-tab-bar lead-saved-tabs hidden" role="tablist" aria-label="Saved lead places"></div>
-          <p id="leadSavedScope" class="lead-saved-scope hidden"></p>
-          <div id="leadSavedList" class="application-list"></div>
+          <p class="lead-saved-intro">
+            Use this page as a focused lead navigator: choose a category, then a place, then move one saved lead at a time while the map stays in sync.
+          </p>
+
+          <div id="leadSavedStats" class="lead-saved-stats"></div>
+
+          <div class="lead-saved-tab-stack">
+            <div class="lead-saved-tab-group">
+              <p class="eyebrow">Saved lead categories</p>
+              <div id="leadSavedCategoryTabs" class="workspace-tab-bar lead-saved-tabs hidden" role="tablist" aria-label="Saved lead categories"></div>
+            </div>
+            <div class="lead-saved-tab-group">
+              <p class="eyebrow">Places</p>
+              <div id="leadSavedPlaceTabs" class="workspace-tab-bar lead-saved-tabs hidden" role="tablist" aria-label="Saved lead places"></div>
+            </div>
+          </div>
+
+          <div id="leadSavedMapCanvas" class="lead-map-canvas lead-saved-map-canvas" aria-label="Saved lead reference map"></div>
+
+          <div class="lead-saved-results-shell">
+            <div class="lead-saved-results-head">
+              <p id="leadSavedScope" class="lead-saved-scope hidden"></p>
+              <div class="lead-saved-result-nav">
+                <button id="leadSavedPrevButton" type="button" class="button button-muted lead-saved-result-button" aria-label="Show previous saved lead">
+                  &lt;
+                </button>
+                <span id="leadSavedResultIndex" class="status-pill lead-saved-result-index">0 / 0</span>
+                <button id="leadSavedNextButton" type="button" class="button button-muted lead-saved-result-button" aria-label="Show next saved lead">
+                  &gt;
+                </button>
+              </div>
+            </div>
+
+            <div id="leadSavedCardFrame" class="lead-saved-card-frame">
+              <div id="leadSavedList" class="lead-saved-card-stage"></div>
+            </div>
+          </div>
+
           <div id="leadSavedEmptyState" class="empty-state hidden">
             <h3>No leads saved yet</h3>
             <p>Once you save organizations from the scanner, they will collect here with notes, priority, and follow-up planning.</p>

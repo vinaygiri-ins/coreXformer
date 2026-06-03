@@ -235,6 +235,10 @@ const leadMapDom = {
   savedCategoryTabs: document.getElementById("leadSavedCategoryTabs"),
   savedPlaceTabs: document.getElementById("leadSavedPlaceTabs"),
   savedScope: document.getElementById("leadSavedScope"),
+  savedResultIndex: document.getElementById("leadSavedResultIndex"),
+  savedPrevButton: document.getElementById("leadSavedPrevButton"),
+  savedNextButton: document.getElementById("leadSavedNextButton"),
+  savedCardFrame: document.getElementById("leadSavedCardFrame"),
   savedList: document.getElementById("leadSavedList"),
   savedEmptyState: document.getElementById("leadSavedEmptyState"),
   copyJsonButton: document.getElementById("leadMapCopyJsonButton"),
@@ -283,7 +287,9 @@ const leadMapState = {
   autocompleteRequestSerial: 0,
   currentFilter: "",
   scanning: false,
-  locatingUserPosition: false
+  locatingUserPosition: false,
+  savedLeadSwipeStartX: 0,
+  savedLeadSwipeStartY: 0
 };
 
 function getLeadMapProviderConfig() {
@@ -643,6 +649,38 @@ function bindLeadMapEvents() {
       setActiveSavedPlace(placeButton.dataset.savedPlaceTab);
     }
   });
+
+  leadMapDom.savedPrevButton?.addEventListener("click", () => {
+    moveSavedLeadSelection(-1);
+  });
+
+  leadMapDom.savedNextButton?.addEventListener("click", () => {
+    moveSavedLeadSelection(1);
+  });
+
+  leadMapDom.savedCardFrame?.addEventListener("touchstart", (event) => {
+    if (event.touches.length !== 1 || event.target.closest("input, select, textarea, button, a")) {
+      return;
+    }
+
+    leadMapState.savedLeadSwipeStartX = event.touches[0].clientX;
+    leadMapState.savedLeadSwipeStartY = event.touches[0].clientY;
+  }, { passive: true });
+
+  leadMapDom.savedCardFrame?.addEventListener("touchend", (event) => {
+    if (event.changedTouches.length !== 1 || event.target.closest("input, select, textarea, button, a")) {
+      return;
+    }
+
+    const deltaX = event.changedTouches[0].clientX - leadMapState.savedLeadSwipeStartX;
+    const deltaY = event.changedTouches[0].clientY - leadMapState.savedLeadSwipeStartY;
+
+    if (Math.abs(deltaX) < 42 || Math.abs(deltaX) <= Math.abs(deltaY)) {
+      return;
+    }
+
+    moveSavedLeadSelection(deltaX < 0 ? 1 : -1);
+  }, { passive: true });
 
   leadMapDom.copyJsonButton?.addEventListener("click", async () => {
     await copySavedLeadsJson();
@@ -2474,10 +2512,12 @@ function renderSavedLeadBoard() {
 
   const hierarchy = buildSavedLeadHierarchy([...leadMapState.savedLeads].sort(compareSavedLeads));
   syncSavedLeadHierarchySelection(hierarchy);
+  const activeLeads = getActiveSavedLeadSubset(hierarchy);
+  syncActiveSavedLeadSelection(activeLeads);
   renderSavedLeadTabs(hierarchy);
   renderSavedLeadScope(hierarchy);
   renderSavedLeadReferenceMap(
-    getActiveSavedLeadSubset(hierarchy),
+    activeLeads,
     getActiveSavedLeadScopeKey()
   );
   renderSavedLeadList(hierarchy);
@@ -2524,7 +2564,7 @@ function renderSavedLeadReferenceMap(leads = [], scopeKey = "") {
     marker.corexformerBaseColor = color;
     marker.on("click", () => {
       setActiveSavedLeadSourceKey(lead.sourceKey);
-      updateSavedLeadActiveCard();
+      renderSavedLeadList();
       updateSavedLeadReferenceMapMarkerStyles();
     });
     marker.addTo(leadMapState.savedReferenceMarkersLayer);
@@ -2575,24 +2615,26 @@ function renderSavedLeadStats() {
 
   if (leadMapState.savedLeads.length === 0) {
     leadMapDom.savedStats.innerHTML = "";
+    leadMapDom.savedStats.classList.add("hidden");
     return;
   }
 
+  leadMapDom.savedStats.classList.remove("hidden");
+
   const counts = countByStatus(leadMapState.savedLeads);
   const statCards = [
-    { label: "Saved leads", value: String(leadMapState.savedLeads.length), hint: "Private board total" },
-    { label: "New", value: String(counts.new || 0), hint: "Not yet worked" },
-    { label: "Contacted", value: String(counts.contacted || 0), hint: "Outreach started" },
-    { label: "Warm", value: String(counts.warm || 0), hint: "Promising relationships" }
+    { label: "Saved", value: String(leadMapState.savedLeads.length) },
+    { label: "New", value: String(counts.new || 0) },
+    { label: "Contacted", value: String(counts.contacted || 0) },
+    { label: "Warm", value: String(counts.warm || 0) }
   ];
 
   leadMapDom.savedStats.innerHTML = statCards
     .map(
       (item) => `
-        <div class="pipeline-card lead-stat-card">
+        <div class="lead-saved-stat-chip">
           <span>${escapeHtml(item.label)}</span>
           <strong>${escapeHtml(item.value)}</strong>
-          <p>${escapeHtml(item.hint)}</p>
         </div>
       `
     )
@@ -2606,6 +2648,7 @@ function renderSavedLeadList(hierarchy = buildSavedLeadHierarchy([...leadMapStat
 
   if (leadMapState.savedLeads.length === 0) {
     leadMapDom.savedList.innerHTML = "";
+    renderSavedLeadNavigator([]);
     leadMapDom.savedEmptyState.classList.remove("hidden");
     return;
   }
@@ -2621,23 +2664,22 @@ function renderSavedLeadList(hierarchy = buildSavedLeadHierarchy([...leadMapStat
         <p>Choose a category and then a place to view the saved leads.</p>
       </div>
     `;
+    renderSavedLeadNavigator([]);
+    return;
+  }
+
+  const activeLead = ensureActiveSavedLeadSource(activePlace.leads);
+
+  if (!activeLead) {
+    leadMapDom.savedList.innerHTML = "";
+    renderSavedLeadNavigator([]);
     return;
   }
 
   leadMapDom.savedList.innerHTML = `
-    <section class="saved-lead-group">
-      <div class="saved-lead-group-head">
-        <div>
-          <p class="lead-result-category">${escapeHtml(activeCategory.label)}</p>
-          <h3>${escapeHtml(activePlace.place)}</h3>
-        </div>
-        <span class="status-pill lead-category-pill" style="--lead-pill:${escapeAttribute(activeCategory.color || "#2f6b50")}">${escapeHtml(String(activePlace.leads.length))}</span>
-      </div>
-      <div class="saved-lead-place-list">
-        ${activePlace.leads.map((lead) => buildSavedLeadCardMarkup(lead)).join("")}
-      </div>
-    </section>
+    ${buildSavedLeadCardMarkup(activeLead)}
   `;
+  renderSavedLeadNavigator(activePlace.leads, activeLead);
   updateSavedLeadActiveCard();
 }
 
@@ -2815,7 +2857,7 @@ function renderSavedLeadScope(hierarchy) {
   }
 
   leadMapDom.savedScope.classList.remove("hidden");
-  leadMapDom.savedScope.textContent = `Showing ${activePlace.leads.length} saved lead${activePlace.leads.length === 1 ? "" : "s"} in ${activePlace.place} under ${activeCategory.label}. Swipe left or right to move through the cards, or tap a card to focus it on the map.`;
+  leadMapDom.savedScope.textContent = `${activeCategory.label} · ${activePlace.place} · ${activePlace.leads.length} saved lead${activePlace.leads.length === 1 ? "" : "s"}. Use the arrows or swipe to move one lead at a time.`;
 }
 
 function getActiveSavedLeadSubset(hierarchy) {
@@ -2833,11 +2875,7 @@ function getActiveSavedLeadScopeKey() {
 }
 
 function syncActiveSavedLeadSelection(activeLeads) {
-  const hasActiveLead = activeLeads.some((lead) => lead.sourceKey === leadMapState.activeSavedLeadSourceKey);
-
-  if (!hasActiveLead) {
-    leadMapState.activeSavedLeadSourceKey = "";
-  }
+  ensureActiveSavedLeadSource(activeLeads);
 }
 
 function setActiveSavedLeadSourceKey(sourceKey) {
@@ -2859,7 +2897,7 @@ function focusSavedLeadOnReferenceMap(sourceKey) {
   }
 
   setActiveSavedLeadSourceKey(normalizedSourceKey);
-  updateSavedLeadActiveCard();
+  renderSavedLeadList();
   updateSavedLeadReferenceMapMarkerStyles();
 
   const nextZoom = Math.max(leadMapState.savedReferenceMap.getZoom() || 0, 15);
@@ -2894,6 +2932,54 @@ function updateSavedLeadReferenceMapMarkerStyles() {
       fillOpacity: isActive ? 0.34 : 0.18
     });
   });
+}
+
+function ensureActiveSavedLeadSource(activeLeads = []) {
+  if (!Array.isArray(activeLeads) || activeLeads.length === 0) {
+    leadMapState.activeSavedLeadSourceKey = "";
+    return null;
+  }
+
+  const activeLead = activeLeads.find((lead) => lead.sourceKey === leadMapState.activeSavedLeadSourceKey) || activeLeads[0];
+  leadMapState.activeSavedLeadSourceKey = activeLead.sourceKey;
+  return activeLead;
+}
+
+function renderSavedLeadNavigator(activeLeads = [], activeLead = ensureActiveSavedLeadSource(activeLeads)) {
+  if (!leadMapDom.savedPrevButton || !leadMapDom.savedNextButton || !leadMapDom.savedResultIndex) {
+    return;
+  }
+
+  if (!activeLead || activeLeads.length === 0) {
+    leadMapDom.savedResultIndex.textContent = "0 / 0";
+    leadMapDom.savedPrevButton.disabled = true;
+    leadMapDom.savedNextButton.disabled = true;
+    return;
+  }
+
+  const activeIndex = Math.max(0, activeLeads.findIndex((lead) => lead.sourceKey === activeLead.sourceKey));
+  leadMapDom.savedResultIndex.textContent = `${activeIndex + 1} / ${activeLeads.length}`;
+  leadMapDom.savedPrevButton.disabled = activeIndex === 0;
+  leadMapDom.savedNextButton.disabled = activeIndex >= activeLeads.length - 1;
+}
+
+function moveSavedLeadSelection(direction) {
+  const hierarchy = buildSavedLeadHierarchy([...leadMapState.savedLeads].sort(compareSavedLeads));
+  const activeLeads = getActiveSavedLeadSubset(hierarchy);
+
+  if (activeLeads.length <= 1) {
+    return;
+  }
+
+  const activeLead = ensureActiveSavedLeadSource(activeLeads);
+  const currentIndex = Math.max(0, activeLeads.findIndex((lead) => lead.sourceKey === activeLead?.sourceKey));
+  const nextIndex = Math.min(activeLeads.length - 1, Math.max(0, currentIndex + direction));
+
+  if (nextIndex === currentIndex) {
+    return;
+  }
+
+  focusSavedLeadOnReferenceMap(activeLeads[nextIndex].sourceKey);
 }
 
 function setActiveSavedCategory(categoryKey) {
