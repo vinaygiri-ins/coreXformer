@@ -2566,6 +2566,8 @@ function renderSavedLeadList() {
         return "";
       }
 
+      const placeGroups = groupSavedLeadsByPlace(categoryLeads);
+
       return `
         <section class="saved-lead-group">
           <div class="saved-lead-group-head">
@@ -2576,7 +2578,7 @@ function renderSavedLeadList() {
             <span class="status-pill lead-category-pill" style="--lead-pill:${escapeAttribute(config.color || "#2f6b50")}">${escapeHtml(String(categoryLeads.length))}</span>
           </div>
           <div class="saved-lead-group-list">
-            ${categoryLeads.map((lead) => buildSavedLeadCardMarkup(lead)).join("")}
+            ${placeGroups.map((group) => buildSavedLeadPlaceGroupMarkup(group, config.color)).join("")}
           </div>
         </section>
       `;
@@ -2585,6 +2587,23 @@ function renderSavedLeadList() {
     .join("");
 
   leadMapDom.savedList.innerHTML = groupedMarkup;
+}
+
+function buildSavedLeadPlaceGroupMarkup(group, color) {
+  return `
+    <section class="saved-lead-place-group">
+      <div class="saved-lead-place-head">
+        <div>
+          <p class="lead-result-category">Place cluster</p>
+          <h4>${escapeHtml(group.place)}</h4>
+        </div>
+        <span class="status-pill lead-category-pill" style="--lead-pill:${escapeAttribute(color || "#2f6b50")}">${escapeHtml(String(group.leads.length))}</span>
+      </div>
+      <div class="saved-lead-place-list">
+        ${group.leads.map((lead) => buildSavedLeadCardMarkup(lead)).join("")}
+      </div>
+    </section>
+  `;
 }
 
 function buildSavedLeadCardMarkup(lead) {
@@ -2653,6 +2672,94 @@ function buildSavedLeadCardMarkup(lead) {
       </div>
     </article>
   `;
+}
+
+function groupSavedLeadsByPlace(leads) {
+  const placeMap = new Map();
+
+  leads.forEach((lead) => {
+    const place = resolveLeadPlaceGroup(lead);
+
+    if (!placeMap.has(place)) {
+      placeMap.set(place, []);
+    }
+
+    placeMap.get(place).push(lead);
+  });
+
+  return Array.from(placeMap.entries())
+    .map(([place, groupedLeads]) => ({
+      place,
+      leads: groupedLeads.sort(compareSavedLeads)
+    }))
+    .sort((left, right) => left.place.localeCompare(right.place));
+}
+
+function resolveLeadPlaceGroup(lead) {
+  const placeLabel = normalizeLeadValue(lead.placeLabel);
+
+  if (placeLabel) {
+    const derivedFromPlaceLabel = extractLeadPlaceFromAddress(placeLabel);
+    if (derivedFromPlaceLabel) {
+      return derivedFromPlaceLabel;
+    }
+  }
+
+  const address = normalizeLeadValue(lead.address);
+
+  if (address) {
+    const derivedFromAddress = extractLeadPlaceFromAddress(address);
+    if (derivedFromAddress) {
+      return derivedFromAddress;
+    }
+  }
+
+  return "Place not yet identified";
+}
+
+function extractLeadPlaceFromAddress(value) {
+  const normalized = normalizeLeadValue(value);
+
+  if (!normalized) {
+    return "";
+  }
+
+  const rawParts = normalized
+    .split(",")
+    .map((part) => normalizeLeadValue(part))
+    .filter(Boolean);
+
+  if (rawParts.length === 0) {
+    return normalized;
+  }
+
+  const nonCountryParts = rawParts.filter((part) => !/^india$/i.test(part));
+
+  if (nonCountryParts.length >= 2) {
+    const candidate = normalizeLeadPlacePart(nonCountryParts[nonCountryParts.length - 2]);
+    if (candidate) {
+      return candidate;
+    }
+  }
+
+  for (let index = nonCountryParts.length - 1; index >= 0; index -= 1) {
+    const candidate = normalizeLeadPlacePart(nonCountryParts[index]);
+    if (candidate) {
+      return candidate;
+    }
+  }
+
+  return normalized;
+}
+
+function normalizeLeadPlacePart(value) {
+  const withoutPostal = normalizeLeadValue(value).replace(/\b\d{5,6}\b/g, "").replace(/\s{2,}/g, " ").trim();
+
+  if (!withoutPostal || /^india$/i.test(withoutPostal)) {
+    return "";
+  }
+
+  return withoutPostal;
 }
 
 function saveLeadEdits(sourceKey) {
