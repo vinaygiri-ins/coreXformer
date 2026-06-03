@@ -469,6 +469,14 @@
             <div class="lead-map-main">
               <div id="leadMapCanvas" class="lead-map-canvas" aria-label="Lead scouting map"></div>
               <div id="leadMapStats" class="pipeline-grid lead-map-stats"></div>
+              <div id="leadMapBulkActions" class="lead-map-bulk-actions hidden">
+                <p id="leadMapBulkSummary" class="lead-map-bulk-summary">No scan results selected yet.</p>
+                <div class="inline-action-group">
+                  <button id="leadMapSelectAllButton" type="button" class="button button-ghost">Select all visible</button>
+                  <button id="leadMapClearSelectionButton" type="button" class="button button-muted">Clear selection</button>
+                  <button id="leadMapSaveSelectedButton" type="button" class="button">Save selected</button>
+                </div>
+              </div>
               <div id="leadMapResults" class="lead-results-list"></div>
               <div id="leadMapEmptyState" class="empty-state">
                 <h3>No area scanned yet</h3>

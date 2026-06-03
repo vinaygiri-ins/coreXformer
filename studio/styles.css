@@ -1125,6 +1125,21 @@ button:disabled {
   margin: 0;
 }
 
+.lead-map-bulk-actions {
+  display: grid;
+  gap: 12px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(217, 206, 185, 0.9);
+  background: rgba(244, 240, 232, 0.72);
+}
+
+.lead-map-bulk-summary {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
 .lead-map-area-summary,
 .lead-result-meta,
 .lead-result-details span {
@@ -1141,12 +1156,38 @@ button:disabled {
   background: #fff;
 }
 
+.lead-result-card.is-selected {
+  border-color: rgba(47, 107, 80, 0.42);
+  box-shadow: 0 18px 32px rgba(47, 107, 80, 0.08);
+}
+
 .lead-result-head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 14px;
   margin-bottom: 14px;
+}
+
+.lead-result-controls {
+  display: grid;
+  justify-items: end;
+  gap: 10px;
+}
+
+.lead-result-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.lead-result-select input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
 }
 
 .lead-result-head h3 {

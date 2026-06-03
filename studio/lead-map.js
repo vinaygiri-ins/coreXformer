@@ -223,6 +223,11 @@ const leadMapDom = {
   resultFilter: document.getElementById("leadMapResultFilter"),
   categoryInputs: Array.from(document.querySelectorAll("[data-lead-category]")),
   stats: document.getElementById("leadMapStats"),
+  bulkActions: document.getElementById("leadMapBulkActions"),
+  bulkSummary: document.getElementById("leadMapBulkSummary"),
+  selectAllButton: document.getElementById("leadMapSelectAllButton"),
+  clearSelectionButton: document.getElementById("leadMapClearSelectionButton"),
+  saveSelectedButton: document.getElementById("leadMapSaveSelectedButton"),
   results: document.getElementById("leadMapResults"),
   emptyState: document.getElementById("leadMapEmptyState"),
   savedStats: document.getElementById("leadSavedStats"),
@@ -253,6 +258,7 @@ const leadMapState = {
   googleGeocoder: null,
   googlePlacesLibrary: null,
   scanResults: [],
+  selectedScanResultKeys: new Set(),
   hasScanned: false,
   savedLeads: loadLeadMapSavedState(),
   usage: loadLeadMapUsageState(),
@@ -553,10 +559,32 @@ function bindLeadMapEvents() {
     renderLeadMapResults();
   });
 
+  leadMapDom.selectAllButton?.addEventListener("click", () => {
+    selectAllVisibleScanResults();
+  });
+
+  leadMapDom.clearSelectionButton?.addEventListener("click", () => {
+    clearSelectedScanResults();
+  });
+
+  leadMapDom.saveSelectedButton?.addEventListener("click", () => {
+    saveSelectedScanResults();
+  });
+
   leadMapDom.categoryInputs.forEach((input) => {
     input.addEventListener("change", () => {
       syncLeadMapCategories();
     });
+  });
+
+  leadMapDom.results?.addEventListener("change", (event) => {
+    const checkbox = event.target.closest("[data-lead-select]");
+
+    if (!checkbox) {
+      return;
+    }
+
+    toggleScanResultSelection(checkbox.dataset.leadSelect, checkbox.checked);
   });
 
   leadMapDom.results?.addEventListener("click", (event) => {
@@ -1597,6 +1625,7 @@ async function scanLeadMapArea() {
       : await scanOsmLeadMapArea(queryTarget);
 
     leadMapState.hasScanned = true;
+    leadMapState.selectedScanResultKeys.clear();
     leadMapState.scanResults = normalized.sort((left, right) => {
       const categoryCompare = left.categoryLabel.localeCompare(right.categoryLabel);
       if (categoryCompare !== 0) {
@@ -2086,7 +2115,9 @@ function renderLeadMapResults() {
     return;
   }
 
+  syncSelectedScanResultsWithCurrentScan();
   const filtered = filterLeadResults(leadMapState.scanResults, leadMapState.currentFilter);
+  renderLeadMapBulkActions(filtered);
   leadMapDom.emptyState.classList.toggle("hidden", filtered.length > 0 || leadMapState.scanResults.length > 0);
 
   if (leadMapState.scanResults.length === 0) {
@@ -2100,6 +2131,7 @@ function renderLeadMapResults() {
       <p>${escapeHtml(emptyCopy)}</p>
     `;
     leadMapDom.results.innerHTML = "";
+    renderLeadMapBulkActions(filtered);
     return;
   }
 
@@ -2116,6 +2148,7 @@ function renderLeadMapResults() {
   leadMapDom.results.innerHTML = filtered
     .map((item) => {
       const isSaved = Boolean(findSavedLead(item.sourceKey));
+      const isSelected = leadMapState.selectedScanResultKeys.has(item.sourceKey);
       const contactRows = [
         item.address ? `<li><strong>Address</strong><span>${escapeHtml(item.address)}</span></li>` : "",
         item.phone ? `<li><strong>Phone</strong><span>${escapeHtml(item.phone)}</span></li>` : "",
@@ -2128,14 +2161,24 @@ function renderLeadMapResults() {
       ].filter(Boolean).join("");
 
       return `
-        <article class="lead-result-card">
+        <article class="lead-result-card${isSelected ? " is-selected" : ""}">
           <div class="lead-result-head">
             <div>
               <p class="lead-result-category">${escapeHtml(item.categoryLabel)}</p>
               <h3>${escapeHtml(item.name)}</h3>
               <p class="lead-result-meta">${escapeHtml(item.placeLabel || item.address || "Location details available on the map")}</p>
             </div>
-            <span class="status-pill lead-category-pill" style="--lead-pill:${escapeAttribute(LEAD_CATEGORY_CONFIG[item.category]?.color || "#2f6b50")}">${escapeHtml(isSaved ? "Saved lead" : "Scanned")}</span>
+            <div class="lead-result-controls">
+              <label class="lead-result-select">
+                <input
+                  type="checkbox"
+                  data-lead-select="${escapeAttribute(item.sourceKey)}"
+                  ${isSelected ? "checked" : ""}
+                >
+                <span>Select</span>
+              </label>
+              <span class="status-pill lead-category-pill" style="--lead-pill:${escapeAttribute(LEAD_CATEGORY_CONFIG[item.category]?.color || "#2f6b50")}">${escapeHtml(isSaved ? "Saved lead" : "Scanned")}</span>
+            </div>
           </div>
 
           <ul class="detail-list lead-result-details">${contactRows || '<li class="detail-row"><strong>Details</strong><span>Basic public details were limited for this place.</span></li>'}</ul>
@@ -2224,7 +2267,19 @@ function saveLeadFromScan(sourceKey) {
     return;
   }
 
-  const existing = findSavedLead(sourceKey);
+  const saveResult = upsertSavedLeadFromScanResult(result);
+  renderSavedLeadBoard();
+  renderLeadMapResults();
+  setLeadMapMessage(
+    saveResult.created
+      ? `${result.name} is now on your private lead board.`
+      : `${result.name} has been updated on your private lead board.`,
+    "success"
+  );
+}
+
+function upsertSavedLeadFromScanResult(result) {
+  const existing = findSavedLead(result.sourceKey);
   const nextLead = {
     sourceKey: result.sourceKey,
     sourceProvider: result.sourceProvider || "osm",
@@ -2252,15 +2307,133 @@ function saveLeadFromScan(sourceKey) {
   };
 
   if (existing) {
-    leadMapState.savedLeads = leadMapState.savedLeads.map((lead) => (lead.sourceKey === sourceKey ? nextLead : lead));
+    leadMapState.savedLeads = leadMapState.savedLeads.map((lead) => (lead.sourceKey === result.sourceKey ? nextLead : lead));
   } else {
     leadMapState.savedLeads = [nextLead, ...leadMapState.savedLeads];
   }
 
   persistSavedLeads();
+  return {
+    created: !existing
+  };
+}
+
+function getVisibleScanResults() {
+  return filterLeadResults(leadMapState.scanResults, leadMapState.currentFilter);
+}
+
+function clearSelectedScanResults() {
+  if (leadMapState.selectedScanResultKeys.size === 0) {
+    return;
+  }
+
+  leadMapState.selectedScanResultKeys.clear();
+  renderLeadMapResults();
+}
+
+function toggleScanResultSelection(sourceKey, shouldSelect) {
+  if (!sourceKey) {
+    return;
+  }
+
+  if (shouldSelect) {
+    leadMapState.selectedScanResultKeys.add(sourceKey);
+  } else {
+    leadMapState.selectedScanResultKeys.delete(sourceKey);
+  }
+
+  renderLeadMapResults();
+}
+
+function selectAllVisibleScanResults() {
+  const visible = getVisibleScanResults();
+
+  if (visible.length === 0) {
+    return;
+  }
+
+  visible.forEach((item) => {
+    leadMapState.selectedScanResultKeys.add(item.sourceKey);
+  });
+  renderLeadMapResults();
+}
+
+function saveSelectedScanResults() {
+  const selectedResults = leadMapState.scanResults.filter((item) => leadMapState.selectedScanResultKeys.has(item.sourceKey));
+
+  if (selectedResults.length === 0) {
+    setLeadMapMessage("Select at least one scanned place before saving to the lead board.", "error");
+    return;
+  }
+
+  let createdCount = 0;
+  let updatedCount = 0;
+
+  selectedResults.forEach((result) => {
+    const saveResult = upsertSavedLeadFromScanResult(result);
+    if (saveResult.created) {
+      createdCount += 1;
+    } else {
+      updatedCount += 1;
+    }
+  });
+
+  leadMapState.selectedScanResultKeys.clear();
   renderSavedLeadBoard();
   renderLeadMapResults();
-  setLeadMapMessage(`${result.name} is now on your private lead board.`, "success");
+
+  const summaryParts = [];
+  if (createdCount > 0) {
+    summaryParts.push(`${createdCount} added`);
+  }
+  if (updatedCount > 0) {
+    summaryParts.push(`${updatedCount} updated`);
+  }
+
+  setLeadMapMessage(`Saved ${selectedResults.length} lead${selectedResults.length === 1 ? "" : "s"} to the private board${summaryParts.length > 0 ? ` (${summaryParts.join(", ")})` : ""}.`, "success");
+}
+
+function syncSelectedScanResultsWithCurrentScan() {
+  const validKeys = new Set(leadMapState.scanResults.map((item) => item.sourceKey));
+  leadMapState.selectedScanResultKeys.forEach((sourceKey) => {
+    if (!validKeys.has(sourceKey)) {
+      leadMapState.selectedScanResultKeys.delete(sourceKey);
+    }
+  });
+}
+
+function renderLeadMapBulkActions(filteredResults = getVisibleScanResults()) {
+  if (!leadMapDom.bulkActions || !leadMapDom.bulkSummary || !leadMapDom.selectAllButton || !leadMapDom.clearSelectionButton || !leadMapDom.saveSelectedButton) {
+    return;
+  }
+
+  const hasResults = leadMapState.scanResults.length > 0;
+  const visibleCount = filteredResults.length;
+  const selectedVisibleCount = filteredResults.filter((item) => leadMapState.selectedScanResultKeys.has(item.sourceKey)).length;
+  const selectedTotalCount = leadMapState.scanResults.filter((item) => leadMapState.selectedScanResultKeys.has(item.sourceKey)).length;
+
+  leadMapDom.bulkActions.classList.toggle("hidden", !hasResults);
+
+  if (!hasResults) {
+    return;
+  }
+
+  if (visibleCount === 0) {
+    leadMapDom.bulkSummary.textContent = `No visible results match the current filter. ${selectedTotalCount} selected from the full scan.`;
+  } else if (selectedTotalCount === 0) {
+    leadMapDom.bulkSummary.textContent = `${visibleCount} visible scanned place${visibleCount === 1 ? "" : "s"}. Select the ones you want to save to the lead board.`;
+  } else {
+    leadMapDom.bulkSummary.textContent = `${selectedTotalCount} selected lead${selectedTotalCount === 1 ? "" : "s"} from ${leadMapState.scanResults.length} scanned place${leadMapState.scanResults.length === 1 ? "" : "s"}${visibleCount !== leadMapState.scanResults.length ? ` · ${selectedVisibleCount} visible in this filter` : ""}.`;
+  }
+
+  const allVisibleSelected = visibleCount > 0 && selectedVisibleCount === visibleCount;
+  leadMapDom.selectAllButton.textContent = allVisibleSelected ? "Visible already selected" : "Select all visible";
+  leadMapDom.selectAllButton.disabled = visibleCount === 0 || allVisibleSelected;
+  leadMapDom.clearSelectionButton.disabled = selectedTotalCount === 0;
+  leadMapDom.saveSelectedButton.disabled = selectedTotalCount === 0;
+  leadMapDom.saveSelectedButton.textContent = selectedTotalCount > 0
+    ? `Save selected (${selectedTotalCount})`
+    : "Save selected";
 }
 
 function renderSavedLeadBoard() {
