@@ -2815,7 +2815,7 @@ function renderSavedLeadScope(hierarchy) {
   }
 
   leadMapDom.savedScope.classList.remove("hidden");
-  leadMapDom.savedScope.textContent = `Showing ${activePlace.leads.length} saved lead${activePlace.leads.length === 1 ? "" : "s"} in ${activePlace.place} under ${activeCategory.label}.`;
+  leadMapDom.savedScope.textContent = `Showing ${activePlace.leads.length} saved lead${activePlace.leads.length === 1 ? "" : "s"} in ${activePlace.place} under ${activeCategory.label}. Swipe left or right to move through the cards, or tap a card to focus it on the map.`;
 }
 
 function getActiveSavedLeadSubset(hierarchy) {
