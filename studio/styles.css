@@ -1308,6 +1308,33 @@ button:disabled {
   gap: 10px;
 }
 
+.lead-saved-tab-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.lead-saved-tab-head .eyebrow {
+  margin: 0;
+}
+
+.lead-saved-tab-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lead-saved-tab-nav-button {
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 1rem;
+  line-height: 1;
+}
+
 .lead-saved-map-canvas {
   width: 100%;
   min-height: clamp(340px, 52vh, 560px);
@@ -1495,8 +1522,14 @@ button:disabled {
   }
 
   .lead-saved-head-actions,
-  .lead-saved-results-head {
+  .lead-saved-results-head,
+  .lead-saved-tab-head {
     align-items: stretch;
+  }
+
+  .lead-saved-tab-nav {
+    width: 100%;
+    justify-content: flex-end;
   }
 
   .lead-saved-result-nav {

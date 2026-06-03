@@ -234,6 +234,8 @@ const leadMapDom = {
   savedMapCanvas: document.getElementById("leadSavedMapCanvas"),
   savedCategoryTabs: document.getElementById("leadSavedCategoryTabs"),
   savedPlaceTabs: document.getElementById("leadSavedPlaceTabs"),
+  savedPlaceTabsPrev: document.getElementById("leadSavedPlaceTabsPrev"),
+  savedPlaceTabsNext: document.getElementById("leadSavedPlaceTabsNext"),
   savedScope: document.getElementById("leadSavedScope"),
   savedResultIndex: document.getElementById("leadSavedResultIndex"),
   savedPrevButton: document.getElementById("leadSavedPrevButton"),
@@ -648,6 +650,24 @@ function bindLeadMapEvents() {
     if (placeButton) {
       setActiveSavedPlace(placeButton.dataset.savedPlaceTab);
     }
+  });
+
+  leadMapDom.savedPlaceTabsPrev?.addEventListener("click", () => {
+    scrollSavedPlaceTabs(-1);
+  });
+
+  leadMapDom.savedPlaceTabsNext?.addEventListener("click", () => {
+    scrollSavedPlaceTabs(1);
+  });
+
+  leadMapDom.savedPlaceTabs?.addEventListener("scroll", () => {
+    updateSavedPlaceTabNavState();
+  }, { passive: true });
+
+  window.addEventListener("resize", () => {
+    window.requestAnimationFrame(() => {
+      updateSavedPlaceTabNavState();
+    });
   });
 
   leadMapDom.savedPrevButton?.addEventListener("click", () => {
@@ -2804,6 +2824,7 @@ function renderSavedLeadTabs(hierarchy) {
   if (!hasHierarchy) {
     leadMapDom.savedCategoryTabs.innerHTML = "";
     leadMapDom.savedPlaceTabs.innerHTML = "";
+    updateSavedPlaceTabNavState();
     return;
   }
 
@@ -2834,6 +2855,16 @@ function renderSavedLeadTabs(hierarchy) {
       </button>
     `)
     .join("");
+
+  window.requestAnimationFrame(() => {
+    const activePlaceButton = leadMapDom.savedPlaceTabs?.querySelector('[data-saved-place-tab][aria-selected="true"]');
+    activePlaceButton?.scrollIntoView({
+      behavior: "smooth",
+      inline: "center",
+      block: "nearest"
+    });
+    updateSavedPlaceTabNavState();
+  });
 }
 
 function renderSavedLeadScope(hierarchy) {
@@ -2980,6 +3011,33 @@ function moveSavedLeadSelection(direction) {
   }
 
   focusSavedLeadOnReferenceMap(activeLeads[nextIndex].sourceKey);
+}
+
+function scrollSavedPlaceTabs(direction) {
+  if (!leadMapDom.savedPlaceTabs) {
+    return;
+  }
+
+  const scrollAmount = Math.max(200, Math.round(leadMapDom.savedPlaceTabs.clientWidth * 0.72));
+  leadMapDom.savedPlaceTabs.scrollBy({
+    left: direction * scrollAmount,
+    behavior: "smooth"
+  });
+}
+
+function updateSavedPlaceTabNavState() {
+  if (!leadMapDom.savedPlaceTabs || !leadMapDom.savedPlaceTabsPrev || !leadMapDom.savedPlaceTabsNext) {
+    return;
+  }
+
+  const tabsHidden = leadMapDom.savedPlaceTabs.classList.contains("hidden");
+  const hasOverflow = leadMapDom.savedPlaceTabs.scrollWidth > leadMapDom.savedPlaceTabs.clientWidth + 8;
+
+  leadMapDom.savedPlaceTabsPrev.disabled = tabsHidden || !hasOverflow || leadMapDom.savedPlaceTabs.scrollLeft <= 4;
+  leadMapDom.savedPlaceTabsNext.disabled =
+    tabsHidden ||
+    !hasOverflow ||
+    leadMapDom.savedPlaceTabs.scrollLeft + leadMapDom.savedPlaceTabs.clientWidth >= leadMapDom.savedPlaceTabs.scrollWidth - 4;
 }
 
 function setActiveSavedCategory(categoryKey) {
