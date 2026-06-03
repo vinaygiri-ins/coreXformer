@@ -66,6 +66,7 @@ a {
 .login-card,
 .panel {
   padding: 28px;
+  min-width: 0;
 }
 
 .eyebrow {
@@ -1237,8 +1238,10 @@ button:disabled {
 
 .saved-lead-card {
   gap: 18px;
+  flex: 0 0 clamp(280px, 31vw, 360px);
   cursor: pointer;
-  min-width: min(420px, calc(100vw - 96px));
+  min-width: clamp(280px, 31vw, 360px);
+  max-width: min(360px, 100%);
   scroll-snap-align: start;
   scroll-snap-stop: always;
 }
@@ -1249,16 +1252,24 @@ button:disabled {
 }
 
 .lead-map-saved-layout {
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1.03fr) minmax(0, 0.97fr);
+  align-items: start;
 }
 
 .lead-saved-map-canvas {
-  min-height: 320px;
-  aspect-ratio: 16 / 8.4;
+  width: 100%;
+  min-height: clamp(260px, 40vh, 380px);
+  height: clamp(260px, 40vh, 380px);
 }
 
 .lead-saved-tabs {
   margin: 0 0 16px;
+  max-width: 100%;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding: 0 2px 8px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(47, 107, 80, 0.34) rgba(31, 43, 36, 0.08);
 }
 
 .lead-saved-scope {
@@ -1270,13 +1281,17 @@ button:disabled {
 .saved-lead-group-list {
   display: grid;
   gap: 16px;
+  min-width: 0;
 }
 
 .saved-lead-place-list {
   display: flex;
   gap: 16px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   overflow-x: auto;
-  padding: 6px 4px 14px;
+  padding: 6px 2px 14px;
   scroll-snap-type: x mandatory;
   scrollbar-width: thin;
   scrollbar-color: rgba(47, 107, 80, 0.34) rgba(31, 43, 36, 0.08);
@@ -1285,17 +1300,27 @@ button:disabled {
 .saved-lead-group {
   display: grid;
   gap: 18px;
+  min-width: 0;
 }
 
+.lead-map-saved-layout > .panel,
+.saved-lead-group-head,
+.application-list {
+  min-width: 0;
+}
+
+.lead-saved-tabs::-webkit-scrollbar,
 .saved-lead-place-list::-webkit-scrollbar {
   height: 10px;
 }
 
+.lead-saved-tabs::-webkit-scrollbar-track,
 .saved-lead-place-list::-webkit-scrollbar-track {
   border-radius: 999px;
   background: rgba(31, 43, 36, 0.08);
 }
 
+.lead-saved-tabs::-webkit-scrollbar-thumb,
 .saved-lead-place-list::-webkit-scrollbar-thumb {
   border-radius: 999px;
   background: rgba(47, 107, 80, 0.34);
@@ -1407,6 +1432,16 @@ button:disabled {
   .application-field-grid,
   .application-review-grid {
     grid-template-columns: 1fr;
+  }
+
+  .saved-lead-card {
+    flex-basis: min(320px, calc(100vw - 92px));
+    min-width: min(320px, calc(100vw - 92px));
+  }
+
+  .lead-saved-map-canvas {
+    min-height: 260px;
+    height: 260px;
   }
 
   h1 {
