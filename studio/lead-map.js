@@ -228,6 +228,11 @@ const leadMapDom = {
   selectAllButton: document.getElementById("leadMapSelectAllButton"),
   clearSelectionButton: document.getElementById("leadMapClearSelectionButton"),
   saveSelectedButton: document.getElementById("leadMapSaveSelectedButton"),
+  resultScope: document.getElementById("leadMapResultScope"),
+  resultIndex: document.getElementById("leadMapResultIndex"),
+  prevButton: document.getElementById("leadMapPrevButton"),
+  nextButton: document.getElementById("leadMapNextButton"),
+  cardFrame: document.getElementById("leadMapCardFrame"),
   results: document.getElementById("leadMapResults"),
   emptyState: document.getElementById("leadMapEmptyState"),
   savedStats: document.getElementById("leadSavedStats"),
@@ -256,6 +261,7 @@ const leadMapState = {
   initializationPromise: null,
   markersLayer: null,
   selectionLayer: null,
+  scanMarkerLookup: new Map(),
   savedReferenceMap: null,
   savedReferenceMarkersLayer: null,
   savedReferenceMarkerLookup: new Map(),
@@ -272,6 +278,7 @@ const leadMapState = {
   selectedScanResultKeys: new Set(),
   hasScanned: false,
   savedLeads: loadLeadMapSavedState(),
+  activeScanResultSourceKey: "",
   activeSavedCategory: "",
   activeSavedPlace: "",
   activeSavedLeadSourceKey: "",
@@ -290,6 +297,8 @@ const leadMapState = {
   currentFilter: "",
   scanning: false,
   locatingUserPosition: false,
+  scanResultSwipeStartX: 0,
+  scanResultSwipeStartY: 0,
   savedLeadSwipeStartX: 0,
   savedLeadSwipeStartY: 0
 };
@@ -612,6 +621,50 @@ function bindLeadMapEvents() {
 
     saveLeadFromScan(saveButton.dataset.leadSave);
   });
+
+  leadMapDom.results?.addEventListener("click", (event) => {
+    if (event.target.closest("button, a, input, select, textarea, label")) {
+      return;
+    }
+
+    const card = event.target.closest("[data-lead-result-card]");
+
+    if (card) {
+      focusScanResultOnMap(card.dataset.leadResultCard);
+    }
+  });
+
+  leadMapDom.prevButton?.addEventListener("click", () => {
+    moveLeadMapSelection(-1);
+  });
+
+  leadMapDom.nextButton?.addEventListener("click", () => {
+    moveLeadMapSelection(1);
+  });
+
+  leadMapDom.cardFrame?.addEventListener("touchstart", (event) => {
+    if (event.touches.length !== 1 || event.target.closest("input, select, textarea, button, a")) {
+      return;
+    }
+
+    leadMapState.scanResultSwipeStartX = event.touches[0].clientX;
+    leadMapState.scanResultSwipeStartY = event.touches[0].clientY;
+  }, { passive: true });
+
+  leadMapDom.cardFrame?.addEventListener("touchend", (event) => {
+    if (event.changedTouches.length !== 1 || event.target.closest("input, select, textarea, button, a")) {
+      return;
+    }
+
+    const deltaX = event.changedTouches[0].clientX - leadMapState.scanResultSwipeStartX;
+    const deltaY = event.changedTouches[0].clientY - leadMapState.scanResultSwipeStartY;
+
+    if (Math.abs(deltaX) < 42 || Math.abs(deltaX) <= Math.abs(deltaY)) {
+      return;
+    }
+
+    moveLeadMapSelection(deltaX < 0 ? 1 : -1);
+  }, { passive: true });
 
   leadMapDom.savedList?.addEventListener("click", (event) => {
     const saveButton = event.target.closest("[data-saved-lead-save]");
@@ -2173,28 +2226,29 @@ function renderLeadMapStats() {
 
   if (leadMapState.scanResults.length === 0) {
     leadMapDom.stats.innerHTML = "";
+    leadMapDom.stats.classList.add("hidden");
     return;
   }
 
+  leadMapDom.stats.classList.remove("hidden");
+
   const counts = countByCategory(leadMapState.scanResults);
   const fragments = [
-    { label: "Named results", value: String(leadMapState.scanResults.length), hint: "Current visible area" },
+    { label: "Named results", value: String(leadMapState.scanResults.length) },
     ...Object.entries(LEAD_CATEGORY_CONFIG)
       .filter(([key]) => counts[key] > 0)
       .map(([key, config]) => ({
         label: config.label,
-        value: String(counts[key]),
-        hint: "Detected in this scan"
+        value: String(counts[key])
       }))
   ];
 
   leadMapDom.stats.innerHTML = fragments
     .map(
       (item) => `
-        <div class="pipeline-card lead-stat-card">
+        <div class="lead-map-stat-chip">
           <span>${escapeHtml(item.label)}</span>
           <strong>${escapeHtml(item.value)}</strong>
-          <p>${escapeHtml(item.hint)}</p>
         </div>
       `
     )
@@ -2209,7 +2263,6 @@ function renderLeadMapResults() {
   syncSelectedScanResultsWithCurrentScan();
   const filtered = filterLeadResults(leadMapState.scanResults, leadMapState.currentFilter);
   renderLeadMapBulkActions(filtered);
-  leadMapDom.emptyState.classList.toggle("hidden", filtered.length > 0 || leadMapState.scanResults.length > 0);
 
   if (leadMapState.scanResults.length === 0) {
     const emptyTitle = leadMapState.hasScanned ? "No named places found in this area" : "No area scanned yet";
@@ -2222,71 +2275,45 @@ function renderLeadMapResults() {
       <p>${escapeHtml(emptyCopy)}</p>
     `;
     leadMapDom.results.innerHTML = "";
+    renderLeadMapResultNavigator([]);
+    renderLeadMapResultScope([]);
+    leadMapDom.emptyState.classList.remove("hidden");
     renderLeadMapBulkActions(filtered);
     return;
   }
 
   if (filtered.length === 0) {
-    leadMapDom.results.innerHTML = `
-      <div class="empty-state">
-        <h3>No results match this filter</h3>
-        <p>Try a broader filter phrase or clear it to see all scanned institutions again.</p>
-      </div>
+    leadMapDom.emptyState.classList.remove("hidden");
+    leadMapDom.emptyState.innerHTML = `
+      <h3>No results match this filter</h3>
+      <p>Try a broader filter phrase or clear it to see all scanned institutions again.</p>
     `;
+    leadMapDom.results.innerHTML = "";
+    renderLeadMapResultNavigator([]);
+    renderLeadMapResultScope([]);
     return;
   }
 
-  leadMapDom.results.innerHTML = filtered
-    .map((item) => {
-      const isSaved = Boolean(findSavedLead(item.sourceKey));
-      const isSelected = leadMapState.selectedScanResultKeys.has(item.sourceKey);
-      const contactRows = [
-        item.address ? `<li><strong>Address</strong><span>${escapeHtml(item.address)}</span></li>` : "",
-        item.phone ? `<li><strong>Phone</strong><span>${escapeHtml(item.phone)}</span></li>` : "",
-        item.website ? `<li><strong>Website</strong><span><a href="${escapeAttribute(item.website)}" target="_blank" rel="noreferrer">${escapeHtml(item.website)}</a></span></li>` : "",
-        item.tagSummary ? `<li><strong>Tags</strong><span>${escapeHtml(item.tagSummary)}</span></li>` : ""
-      ].filter(Boolean).join("");
-      const mapLinks = [
-        item.googleMapsUrl ? `<a class="workspace-link" href="${escapeAttribute(item.googleMapsUrl)}" target="_blank" rel="noreferrer">Open in Google Maps</a>` : "",
-        item.osmUrl ? `<a class="workspace-link" href="${escapeAttribute(item.osmUrl)}" target="_blank" rel="noreferrer">Open in OSM</a>` : ""
-      ].filter(Boolean).join("");
+  leadMapDom.emptyState.classList.add("hidden");
+  const activeResult = ensureActiveScanResultSource(filtered);
 
-      return `
-        <article class="lead-result-card${isSelected ? " is-selected" : ""}">
-          <div class="lead-result-head">
-            <div>
-              <p class="lead-result-category">${escapeHtml(item.categoryLabel)}</p>
-              <h3>${escapeHtml(item.name)}</h3>
-              <p class="lead-result-meta">${escapeHtml(item.placeLabel || item.address || "Location details available on the map")}</p>
-            </div>
-            <div class="lead-result-controls">
-              <label class="lead-result-select">
-                <input
-                  type="checkbox"
-                  data-lead-select="${escapeAttribute(item.sourceKey)}"
-                  ${isSelected ? "checked" : ""}
-                >
-                <span>Select</span>
-              </label>
-              <span class="status-pill lead-category-pill" style="--lead-pill:${escapeAttribute(LEAD_CATEGORY_CONFIG[item.category]?.color || "#2f6b50")}">${escapeHtml(isSaved ? "Saved lead" : "Scanned")}</span>
-            </div>
-          </div>
+  if (!activeResult) {
+    leadMapDom.results.innerHTML = "";
+    renderLeadMapResultNavigator([]);
+    renderLeadMapResultScope([]);
+    return;
+  }
 
-          <ul class="detail-list lead-result-details">${contactRows || '<li class="detail-row"><strong>Details</strong><span>Basic public details were limited for this place.</span></li>'}</ul>
-
-          <div class="inline-action-group">
-            <button type="button" class="button" data-lead-save="${escapeAttribute(item.sourceKey)}">${isSaved ? "Update saved lead" : "Save to lead board"}</button>
-            ${mapLinks}
-          </div>
-        </article>
-      `;
-    })
-    .join("");
+  leadMapDom.results.innerHTML = buildLeadResultCardMarkup(activeResult);
+  renderLeadMapResultNavigator(filtered, activeResult);
+  renderLeadMapResultScope(filtered, activeResult);
+  updateLeadMapMarkerStyles();
 }
 
 function renderLeadMapMarkers() {
   if (isGoogleLeadMapProvider()) {
     clearGoogleLeadMarkers();
+    leadMapState.scanMarkerLookup = new Map();
 
     if (!window.google?.maps) {
       return;
@@ -2312,10 +2339,15 @@ function renderLeadMapMarkers() {
           map: leadMapState.map,
           anchor: marker
         });
+        setActiveScanResultSourceKey(item.sourceKey);
+        renderLeadMapResults();
       });
 
+      marker.corexformerSourceKey = item.sourceKey;
       leadMapState.googleMarkers.push(marker);
+      leadMapState.scanMarkerLookup.set(item.sourceKey, marker);
     });
+    updateLeadMapMarkerStyles();
     return;
   }
 
@@ -2324,6 +2356,7 @@ function renderLeadMapMarkers() {
   }
 
   leadMapState.markersLayer.clearLayers();
+  leadMapState.scanMarkerLookup = new Map();
 
   leadMapState.scanResults.forEach((item) => {
     const marker = window.L.circleMarker([item.lat, item.lon], {
@@ -2340,8 +2373,17 @@ function renderLeadMapMarkers() {
       ${escapeHtml(item.address || item.placeLabel || "No address available")}
     `);
 
+    marker.corexformerSourceKey = item.sourceKey;
+    marker.corexformerBaseColor = LEAD_CATEGORY_CONFIG[item.category]?.color || "#2f6b50";
+    marker.on("click", () => {
+      setActiveScanResultSourceKey(item.sourceKey);
+      renderLeadMapResults();
+    });
     marker.addTo(leadMapState.markersLayer);
+    leadMapState.scanMarkerLookup.set(item.sourceKey, marker);
   });
+
+  updateLeadMapMarkerStyles();
 }
 
 function clearGoogleLeadMarkers() {
@@ -2349,6 +2391,186 @@ function clearGoogleLeadMarkers() {
     marker?.setMap?.(null);
   });
   leadMapState.googleMarkers = [];
+  leadMapState.scanMarkerLookup = new Map();
+}
+
+function buildLeadResultCardMarkup(item) {
+  const isSaved = Boolean(findSavedLead(item.sourceKey));
+  const isSelected = leadMapState.selectedScanResultKeys.has(item.sourceKey);
+  const contactRows = [
+    item.address ? `<li><strong>Address</strong><span>${escapeHtml(item.address)}</span></li>` : "",
+    item.phone ? `<li><strong>Phone</strong><span>${escapeHtml(item.phone)}</span></li>` : "",
+    item.website ? `<li><strong>Website</strong><span><a href="${escapeAttribute(item.website)}" target="_blank" rel="noreferrer">${escapeHtml(item.website)}</a></span></li>` : "",
+    item.tagSummary ? `<li><strong>Tags</strong><span>${escapeHtml(item.tagSummary)}</span></li>` : ""
+  ].filter(Boolean).join("");
+  const mapLinks = [
+    item.googleMapsUrl ? `<a class="workspace-link" href="${escapeAttribute(item.googleMapsUrl)}" target="_blank" rel="noreferrer">Open in Google Maps</a>` : "",
+    item.osmUrl ? `<a class="workspace-link" href="${escapeAttribute(item.osmUrl)}" target="_blank" rel="noreferrer">Open in OSM</a>` : ""
+  ].filter(Boolean).join("");
+
+  return `
+    <article class="lead-result-card${isSelected ? " is-selected" : ""}" data-lead-result-card="${escapeAttribute(item.sourceKey)}">
+      <div class="lead-result-head">
+        <div>
+          <p class="lead-result-category">${escapeHtml(item.categoryLabel)}</p>
+          <h3>${escapeHtml(item.name)}</h3>
+          <p class="lead-result-meta">${escapeHtml(item.placeLabel || item.address || "Location details available on the map")}</p>
+        </div>
+        <div class="lead-result-controls">
+          <label class="lead-result-select">
+            <input
+              type="checkbox"
+              data-lead-select="${escapeAttribute(item.sourceKey)}"
+              ${isSelected ? "checked" : ""}
+            >
+            <span>Select</span>
+          </label>
+          <span class="status-pill lead-category-pill" style="--lead-pill:${escapeAttribute(LEAD_CATEGORY_CONFIG[item.category]?.color || "#2f6b50")}">${escapeHtml(isSaved ? "Saved lead" : "Scanned")}</span>
+        </div>
+      </div>
+
+      <ul class="detail-list lead-result-details">${contactRows || '<li class="detail-row"><strong>Details</strong><span>Basic public details were limited for this place.</span></li>'}</ul>
+
+      <div class="inline-action-group">
+        <button type="button" class="button" data-lead-save="${escapeAttribute(item.sourceKey)}">${isSaved ? "Update saved lead" : "Save to lead board"}</button>
+        ${mapLinks}
+      </div>
+    </article>
+  `;
+}
+
+function ensureActiveScanResultSource(activeResults = []) {
+  if (!Array.isArray(activeResults) || activeResults.length === 0) {
+    leadMapState.activeScanResultSourceKey = "";
+    return null;
+  }
+
+  const activeResult = activeResults.find((item) => item.sourceKey === leadMapState.activeScanResultSourceKey) || activeResults[0];
+  leadMapState.activeScanResultSourceKey = activeResult.sourceKey;
+  return activeResult;
+}
+
+function setActiveScanResultSourceKey(sourceKey) {
+  leadMapState.activeScanResultSourceKey = normalizeLeadValue(sourceKey);
+}
+
+function renderLeadMapResultNavigator(activeResults = [], activeResult = ensureActiveScanResultSource(activeResults)) {
+  if (!leadMapDom.prevButton || !leadMapDom.nextButton || !leadMapDom.resultIndex) {
+    return;
+  }
+
+  if (!activeResult || activeResults.length === 0) {
+    leadMapDom.resultIndex.textContent = "0 / 0";
+    leadMapDom.prevButton.disabled = true;
+    leadMapDom.nextButton.disabled = true;
+    return;
+  }
+
+  const activeIndex = Math.max(0, activeResults.findIndex((item) => item.sourceKey === activeResult.sourceKey));
+  leadMapDom.resultIndex.textContent = `${activeIndex + 1} / ${activeResults.length}`;
+  leadMapDom.prevButton.disabled = activeIndex === 0;
+  leadMapDom.nextButton.disabled = activeIndex >= activeResults.length - 1;
+}
+
+function renderLeadMapResultScope(activeResults = [], activeResult = ensureActiveScanResultSource(activeResults)) {
+  if (!leadMapDom.resultScope) {
+    return;
+  }
+
+  if (!activeResult || activeResults.length === 0) {
+    leadMapDom.resultScope.classList.add("hidden");
+    leadMapDom.resultScope.textContent = "";
+    return;
+  }
+
+  leadMapDom.resultScope.classList.remove("hidden");
+  leadMapDom.resultScope.textContent = `${activeResult.categoryLabel} · ${activeResult.placeLabel || activeResult.address || "Current scan view"} · ${activeResults.length} visible result${activeResults.length === 1 ? "" : "s"}. Use the arrows or swipe to move through the scan results.`;
+}
+
+function moveLeadMapSelection(direction) {
+  const filtered = getVisibleScanResults();
+
+  if (filtered.length <= 1) {
+    return;
+  }
+
+  const activeResult = ensureActiveScanResultSource(filtered);
+  const currentIndex = Math.max(0, filtered.findIndex((item) => item.sourceKey === activeResult?.sourceKey));
+  const nextIndex = Math.min(filtered.length - 1, Math.max(0, currentIndex + direction));
+
+  if (nextIndex === currentIndex) {
+    return;
+  }
+
+  focusScanResultOnMap(filtered[nextIndex].sourceKey);
+}
+
+function focusScanResultOnMap(sourceKey) {
+  const normalizedSourceKey = normalizeLeadValue(sourceKey);
+  const result = leadMapState.scanResults.find((item) => item.sourceKey === normalizedSourceKey);
+  const marker = leadMapState.scanMarkerLookup.get(normalizedSourceKey);
+
+  if (!result || !leadMapState.map) {
+    return;
+  }
+
+  setActiveScanResultSourceKey(normalizedSourceKey);
+  renderLeadMapResults();
+
+  if (isGoogleLeadMapProvider() && window.google?.maps) {
+    const nextZoom = Math.max(leadMapState.map.getZoom?.() || 0, 15);
+    leadMapState.map.panTo({ lat: result.lat, lng: result.lon });
+    if (typeof leadMapState.map.setZoom === "function") {
+      leadMapState.map.setZoom(nextZoom);
+    }
+
+    if (marker) {
+      leadMapState.googleInfoWindow?.setContent(`
+        <strong>${escapeHtml(result.name)}</strong><br>
+        ${escapeHtml(result.categoryLabel)}<br>
+        ${escapeHtml(result.address || result.placeLabel || "No address available")}
+      `);
+      leadMapState.googleInfoWindow?.open({
+        map: leadMapState.map,
+        anchor: marker
+      });
+    }
+
+    updateLeadMapMarkerStyles();
+    return;
+  }
+
+  if (marker && typeof marker.openPopup === "function") {
+    const nextZoom = Math.max(leadMapState.map.getZoom() || 0, 15);
+    leadMapState.map.setView([result.lat, result.lon], nextZoom, { animate: true });
+    marker.openPopup();
+  }
+
+  updateLeadMapMarkerStyles();
+}
+
+function updateLeadMapMarkerStyles() {
+  if (isGoogleLeadMapProvider()) {
+    leadMapState.scanMarkerLookup.forEach((marker, sourceKey) => {
+      const isActive = sourceKey === leadMapState.activeScanResultSourceKey;
+      marker?.setOpacity?.(isActive ? 1 : 0.72);
+      marker?.setZIndex?.(isActive ? 999 : undefined);
+    });
+    return;
+  }
+
+  leadMapState.scanMarkerLookup.forEach((marker, sourceKey) => {
+    const isActive = sourceKey === leadMapState.activeScanResultSourceKey;
+    const baseColor = marker.corexformerBaseColor || "#2f6b50";
+
+    marker.setStyle({
+      radius: isActive ? 8 : 6,
+      weight: isActive ? 3 : 2,
+      color: baseColor,
+      fillColor: baseColor,
+      fillOpacity: isActive ? 0.95 : 0.8
+    });
+  });
 }
 
 function saveLeadFromScan(sourceKey) {

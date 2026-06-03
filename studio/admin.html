@@ -351,21 +351,21 @@
 
           <div id="leadMapMessage" class="message-banner hidden"></div>
 
-          <div class="lead-map-workbench">
-            <aside class="lead-map-sidebar">
-              <div id="leadMapUsagePanel" class="studio-fieldset lead-map-usage-panel hidden">
-                <div class="lead-map-usage-head">
-                  <div class="studio-fieldset-head">
-                    <h3>Monthly Google usage guard</h3>
-                    <p id="leadMapUsageSummary">Loading your private monthly guard...</p>
-                  </div>
-                  <span id="leadMapUsageStatus" class="status-pill">Safe</span>
+          <div class="lead-map-scanner-workspace">
+            <div id="leadMapUsagePanel" class="studio-fieldset lead-map-usage-panel hidden">
+              <div class="lead-map-usage-head">
+                <div class="studio-fieldset-head">
+                  <h3>Monthly Google usage guard</h3>
+                  <p id="leadMapUsageSummary">Loading your private monthly guard...</p>
                 </div>
-
-                <div id="leadMapUsageCards" class="lead-map-usage-cards"></div>
-                <p id="leadMapUsageFootnote" class="lead-map-usage-footnote"></p>
+                <span id="leadMapUsageStatus" class="status-pill">Safe</span>
               </div>
 
+              <div id="leadMapUsageCards" class="lead-map-usage-cards"></div>
+              <p id="leadMapUsageFootnote" class="lead-map-usage-footnote"></p>
+            </div>
+
+            <div class="lead-map-scanner-controls">
               <div class="studio-fieldset">
                 <div class="studio-fieldset-head">
                   <h3>Move to a place</h3>
@@ -390,26 +390,28 @@
                   <p>These filters shape the search query before the visible area is scanned.</p>
                 </div>
 
-                <label class="studio-checkbox-row">
-                  <input type="checkbox" data-lead-category="schools" checked>
-                  <span>Schools</span>
-                </label>
-                <label class="studio-checkbox-row">
-                  <input type="checkbox" data-lead-category="colleges" checked>
-                  <span>Colleges and universities</span>
-                </label>
-                <label class="studio-checkbox-row">
-                  <input type="checkbox" data-lead-category="corporates" checked>
-                  <span>Employer companies and industrial anchors</span>
-                </label>
-                <label class="studio-checkbox-row">
-                  <input type="checkbox" data-lead-category="communities" checked>
-                  <span>Community and NGO spaces</span>
-                </label>
-                <label class="studio-checkbox-row">
-                  <input type="checkbox" data-lead-category="government">
-                  <span>Government and civic anchors</span>
-                </label>
+                <div class="lead-map-category-grid">
+                  <label class="studio-checkbox-row lead-map-category-toggle">
+                    <input type="checkbox" data-lead-category="schools" checked>
+                    <span>Schools</span>
+                  </label>
+                  <label class="studio-checkbox-row lead-map-category-toggle">
+                    <input type="checkbox" data-lead-category="colleges" checked>
+                    <span>Colleges and universities</span>
+                  </label>
+                  <label class="studio-checkbox-row lead-map-category-toggle">
+                    <input type="checkbox" data-lead-category="corporates" checked>
+                    <span>Employer companies and industrial anchors</span>
+                  </label>
+                  <label class="studio-checkbox-row lead-map-category-toggle">
+                    <input type="checkbox" data-lead-category="communities" checked>
+                    <span>Community and NGO spaces</span>
+                  </label>
+                  <label class="studio-checkbox-row lead-map-category-toggle">
+                    <input type="checkbox" data-lead-category="government">
+                    <span>Government and civic anchors</span>
+                  </label>
+                </div>
               </div>
 
               <div class="studio-fieldset">
@@ -464,11 +466,11 @@
                   <input id="leadMapResultFilter" type="text" placeholder="Filter by name or place details">
                 </label>
               </div>
-            </aside>
+            </div>
 
-            <div class="lead-map-main">
-              <div id="leadMapCanvas" class="lead-map-canvas" aria-label="Lead scouting map"></div>
-              <div id="leadMapStats" class="pipeline-grid lead-map-stats"></div>
+            <div class="lead-map-scanner-main">
+              <div id="leadMapCanvas" class="lead-map-canvas lead-map-scanner-canvas" aria-label="Lead scouting map"></div>
+              <div id="leadMapStats" class="lead-map-stats"></div>
               <div id="leadMapBulkActions" class="lead-map-bulk-actions hidden">
                 <p id="leadMapBulkSummary" class="lead-map-bulk-summary">No scan results selected yet.</p>
                 <div class="inline-action-group">
@@ -477,7 +479,26 @@
                   <button id="leadMapSaveSelectedButton" type="button" class="button">Save selected</button>
                 </div>
               </div>
-              <div id="leadMapResults" class="lead-results-list"></div>
+
+              <div class="lead-map-results-shell">
+                <div class="lead-map-results-head">
+                  <p id="leadMapResultScope" class="lead-map-results-scope hidden"></p>
+                  <div class="lead-map-result-nav">
+                    <button id="leadMapPrevButton" type="button" class="button button-muted lead-map-result-button" aria-label="Show previous scan result">
+                      &lt;
+                    </button>
+                    <span id="leadMapResultIndex" class="status-pill lead-map-result-index">0 / 0</span>
+                    <button id="leadMapNextButton" type="button" class="button button-muted lead-map-result-button" aria-label="Show next scan result">
+                      &gt;
+                    </button>
+                  </div>
+                </div>
+
+                <div id="leadMapCardFrame" class="lead-map-card-frame">
+                  <div id="leadMapResults" class="lead-map-card-stage"></div>
+                </div>
+              </div>
+
               <div id="leadMapEmptyState" class="empty-state">
                 <h3>No area scanned yet</h3>
                 <p>Move the map to the area you want to study, choose the categories you care about, and scan the visible area.</p>
