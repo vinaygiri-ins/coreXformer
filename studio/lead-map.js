@@ -232,6 +232,9 @@ const leadMapDom = {
   emptyState: document.getElementById("leadMapEmptyState"),
   savedStats: document.getElementById("leadSavedStats"),
   savedMapCanvas: document.getElementById("leadSavedMapCanvas"),
+  savedCategoryTabs: document.getElementById("leadSavedCategoryTabs"),
+  savedPlaceTabs: document.getElementById("leadSavedPlaceTabs"),
+  savedScope: document.getElementById("leadSavedScope"),
   savedList: document.getElementById("leadSavedList"),
   savedEmptyState: document.getElementById("leadSavedEmptyState"),
   copyJsonButton: document.getElementById("leadMapCopyJsonButton"),
@@ -261,6 +264,8 @@ const leadMapState = {
   selectedScanResultKeys: new Set(),
   hasScanned: false,
   savedLeads: loadLeadMapSavedState(),
+  activeSavedCategory: "",
+  activeSavedPlace: "",
   usage: loadLeadMapUsageState(),
   activeCategories: new Set(["schools", "colleges", "corporates", "communities"]),
   scanMode: "bounds",
@@ -608,6 +613,20 @@ function bindLeadMapEvents() {
 
     if (removeButton) {
       removeSavedLead(removeButton.dataset.savedLeadRemove);
+    }
+  });
+
+  leadMapDom.savedPanel?.addEventListener("click", (event) => {
+    const categoryButton = event.target.closest("[data-saved-category-tab]");
+    const placeButton = event.target.closest("[data-saved-place-tab]");
+
+    if (categoryButton) {
+      setActiveSavedCategory(categoryButton.dataset.savedCategoryTab);
+      return;
+    }
+
+    if (placeButton) {
+      setActiveSavedPlace(placeButton.dataset.savedPlaceTab);
     }
   });
 
@@ -2438,11 +2457,16 @@ function renderLeadMapBulkActions(filteredResults = getVisibleScanResults()) {
 
 function renderSavedLeadBoard() {
   renderSavedLeadStats();
-  renderSavedLeadReferenceMap();
-  renderSavedLeadList();
+
+  const hierarchy = buildSavedLeadHierarchy([...leadMapState.savedLeads].sort(compareSavedLeads));
+  syncSavedLeadHierarchySelection(hierarchy);
+  renderSavedLeadTabs(hierarchy);
+  renderSavedLeadScope(hierarchy);
+  renderSavedLeadReferenceMap(getActiveSavedLeadSubset(hierarchy));
+  renderSavedLeadList(hierarchy);
 }
 
-function renderSavedLeadReferenceMap() {
+function renderSavedLeadReferenceMap(leads = []) {
   ensureSavedLeadReferenceMap();
 
   if (!leadMapState.savedReferenceMap || !leadMapState.savedReferenceMarkersLayer) {
@@ -2451,7 +2475,7 @@ function renderSavedLeadReferenceMap() {
 
   leadMapState.savedReferenceMarkersLayer.clearLayers();
 
-  if (leadMapState.savedLeads.length === 0) {
+  if (leads.length === 0) {
     leadMapState.savedReferenceMap.setView(LEAD_MAP_DEFAULT_VIEW.center, LEAD_MAP_DEFAULT_VIEW.zoom);
     leadMapState.savedReferenceMarkerCount = 0;
     leadMapState.savedReferenceHasAutoFit = false;
@@ -2461,7 +2485,7 @@ function renderSavedLeadReferenceMap() {
 
   const bounds = [];
 
-  leadMapState.savedLeads.forEach((lead) => {
+  leads.forEach((lead) => {
     const color = LEAD_CATEGORY_CONFIG[lead.category]?.color || "#2f6b50";
     const marker = window.L.circleMarker([lead.lat, lead.lon], {
       radius: 8,
@@ -2481,8 +2505,8 @@ function renderSavedLeadReferenceMap() {
     bounds.push([lead.lat, lead.lon]);
   });
 
-  const markerCountChanged = leadMapState.savedReferenceMarkerCount !== leadMapState.savedLeads.length;
-  leadMapState.savedReferenceMarkerCount = leadMapState.savedLeads.length;
+  const markerCountChanged = leadMapState.savedReferenceMarkerCount !== leads.length;
+  leadMapState.savedReferenceMarkerCount = leads.length;
 
   if (bounds.length > 0 && (!leadMapState.savedReferenceHasAutoFit || markerCountChanged)) {
     leadMapState.savedReferenceMap.fitBounds(bounds, {
@@ -2544,7 +2568,7 @@ function renderSavedLeadStats() {
     .join("");
 }
 
-function renderSavedLeadList() {
+function renderSavedLeadList(hierarchy = buildSavedLeadHierarchy([...leadMapState.savedLeads].sort(compareSavedLeads))) {
   if (!leadMapDom.savedList || !leadMapDom.savedEmptyState) {
     return;
   }
@@ -2556,51 +2580,30 @@ function renderSavedLeadList() {
   }
 
   leadMapDom.savedEmptyState.classList.add("hidden");
-  const sorted = [...leadMapState.savedLeads].sort(compareSavedLeads);
+  const activeCategory = hierarchy.find((group) => group.key === leadMapState.activeSavedCategory) || null;
+  const activePlace = activeCategory?.places.find((group) => group.key === leadMapState.activeSavedPlace) || null;
 
-  const groupedMarkup = Object.entries(LEAD_CATEGORY_CONFIG)
-    .map(([categoryKey, config]) => {
-      const categoryLeads = sorted.filter((lead) => lead.category === categoryKey);
+  if (!activeCategory || !activePlace) {
+    leadMapDom.savedList.innerHTML = `
+      <div class="empty-state">
+        <h3>No active saved lead group</h3>
+        <p>Choose a category and then a place to view the saved leads.</p>
+      </div>
+    `;
+    return;
+  }
 
-      if (categoryLeads.length === 0) {
-        return "";
-      }
-
-      const placeGroups = groupSavedLeadsByPlace(categoryLeads);
-
-      return `
-        <section class="saved-lead-group">
-          <div class="saved-lead-group-head">
-            <div>
-              <p class="lead-result-category">${escapeHtml(config.label)}</p>
-              <h3>${escapeHtml(config.label)} leads</h3>
-            </div>
-            <span class="status-pill lead-category-pill" style="--lead-pill:${escapeAttribute(config.color || "#2f6b50")}">${escapeHtml(String(categoryLeads.length))}</span>
-          </div>
-          <div class="saved-lead-group-list">
-            ${placeGroups.map((group) => buildSavedLeadPlaceGroupMarkup(group, config.color)).join("")}
-          </div>
-        </section>
-      `;
-    })
-    .filter(Boolean)
-    .join("");
-
-  leadMapDom.savedList.innerHTML = groupedMarkup;
-}
-
-function buildSavedLeadPlaceGroupMarkup(group, color) {
-  return `
-    <section class="saved-lead-place-group">
-      <div class="saved-lead-place-head">
+  leadMapDom.savedList.innerHTML = `
+    <section class="saved-lead-group">
+      <div class="saved-lead-group-head">
         <div>
-          <p class="lead-result-category">Place cluster</p>
-          <h4>${escapeHtml(group.place)}</h4>
+          <p class="lead-result-category">${escapeHtml(activeCategory.label)}</p>
+          <h3>${escapeHtml(activePlace.place)}</h3>
         </div>
-        <span class="status-pill lead-category-pill" style="--lead-pill:${escapeAttribute(color || "#2f6b50")}">${escapeHtml(String(group.leads.length))}</span>
+        <span class="status-pill lead-category-pill" style="--lead-pill:${escapeAttribute(activeCategory.color || "#2f6b50")}">${escapeHtml(String(activePlace.leads.length))}</span>
       </div>
       <div class="saved-lead-place-list">
-        ${group.leads.map((lead) => buildSavedLeadCardMarkup(lead)).join("")}
+        ${activePlace.leads.map((lead) => buildSavedLeadCardMarkup(lead)).join("")}
       </div>
     </section>
   `;
@@ -2674,6 +2677,140 @@ function buildSavedLeadCardMarkup(lead) {
   `;
 }
 
+function buildSavedLeadHierarchy(sortedLeads) {
+  return Object.entries(LEAD_CATEGORY_CONFIG)
+    .map(([categoryKey, config]) => {
+      const categoryLeads = sortedLeads.filter((lead) => lead.category === categoryKey);
+
+      if (categoryLeads.length === 0) {
+        return null;
+      }
+
+      return {
+        key: categoryKey,
+        label: config.label,
+        color: config.color,
+        leads: categoryLeads,
+        places: groupSavedLeadsByPlace(categoryLeads)
+      };
+    })
+    .filter(Boolean);
+}
+
+function syncSavedLeadHierarchySelection(hierarchy) {
+  if (hierarchy.length === 0) {
+    leadMapState.activeSavedCategory = "";
+    leadMapState.activeSavedPlace = "";
+    return;
+  }
+
+  const hasActiveCategory = hierarchy.some((group) => group.key === leadMapState.activeSavedCategory);
+
+  if (!hasActiveCategory) {
+    leadMapState.activeSavedCategory = hierarchy[0].key;
+  }
+
+  const activeCategory = hierarchy.find((group) => group.key === leadMapState.activeSavedCategory) || hierarchy[0];
+  const hasActivePlace = activeCategory.places.some((group) => group.key === leadMapState.activeSavedPlace);
+
+  if (!hasActivePlace) {
+    leadMapState.activeSavedPlace = activeCategory.places[0]?.key || "";
+  }
+}
+
+function renderSavedLeadTabs(hierarchy) {
+  if (!leadMapDom.savedCategoryTabs || !leadMapDom.savedPlaceTabs) {
+    return;
+  }
+
+  const hasHierarchy = hierarchy.length > 0;
+  leadMapDom.savedCategoryTabs.classList.toggle("hidden", !hasHierarchy);
+  leadMapDom.savedPlaceTabs.classList.toggle("hidden", !hasHierarchy);
+
+  if (!hasHierarchy) {
+    leadMapDom.savedCategoryTabs.innerHTML = "";
+    leadMapDom.savedPlaceTabs.innerHTML = "";
+    return;
+  }
+
+  leadMapDom.savedCategoryTabs.innerHTML = hierarchy
+    .map((group) => `
+      <button
+        type="button"
+        class="workspace-tab${group.key === leadMapState.activeSavedCategory ? " is-active" : ""}"
+        data-saved-category-tab="${escapeAttribute(group.key)}"
+        aria-selected="${group.key === leadMapState.activeSavedCategory ? "true" : "false"}"
+      >
+        ${escapeHtml(group.label)} (${escapeHtml(String(group.leads.length))})
+      </button>
+    `)
+    .join("");
+
+  const activeCategory = hierarchy.find((group) => group.key === leadMapState.activeSavedCategory) || hierarchy[0];
+
+  leadMapDom.savedPlaceTabs.innerHTML = activeCategory.places
+    .map((group) => `
+      <button
+        type="button"
+        class="workspace-tab${group.key === leadMapState.activeSavedPlace ? " is-active" : ""}"
+        data-saved-place-tab="${escapeAttribute(group.key)}"
+        aria-selected="${group.key === leadMapState.activeSavedPlace ? "true" : "false"}"
+      >
+        ${escapeHtml(group.place)} (${escapeHtml(String(group.leads.length))})
+      </button>
+    `)
+    .join("");
+}
+
+function renderSavedLeadScope(hierarchy) {
+  if (!leadMapDom.savedScope) {
+    return;
+  }
+
+  if (hierarchy.length === 0) {
+    leadMapDom.savedScope.classList.add("hidden");
+    leadMapDom.savedScope.textContent = "";
+    return;
+  }
+
+  const activeCategory = hierarchy.find((group) => group.key === leadMapState.activeSavedCategory) || hierarchy[0];
+  const activePlace = activeCategory.places.find((group) => group.key === leadMapState.activeSavedPlace) || activeCategory.places[0];
+
+  if (!activeCategory || !activePlace) {
+    leadMapDom.savedScope.classList.add("hidden");
+    leadMapDom.savedScope.textContent = "";
+    return;
+  }
+
+  leadMapDom.savedScope.classList.remove("hidden");
+  leadMapDom.savedScope.textContent = `Showing ${activePlace.leads.length} saved lead${activePlace.leads.length === 1 ? "" : "s"} in ${activePlace.place} under ${activeCategory.label}.`;
+}
+
+function getActiveSavedLeadSubset(hierarchy) {
+  const activeCategory = hierarchy.find((group) => group.key === leadMapState.activeSavedCategory) || null;
+  const activePlace = activeCategory?.places.find((group) => group.key === leadMapState.activeSavedPlace) || null;
+  return activePlace?.leads || [];
+}
+
+function setActiveSavedCategory(categoryKey) {
+  if (!categoryKey || categoryKey === leadMapState.activeSavedCategory) {
+    return;
+  }
+
+  leadMapState.activeSavedCategory = categoryKey;
+  leadMapState.activeSavedPlace = "";
+  renderSavedLeadBoard();
+}
+
+function setActiveSavedPlace(placeKey) {
+  if (!placeKey || placeKey === leadMapState.activeSavedPlace) {
+    return;
+  }
+
+  leadMapState.activeSavedPlace = placeKey;
+  renderSavedLeadBoard();
+}
+
 function groupSavedLeadsByPlace(leads) {
   const placeMap = new Map();
 
@@ -2689,6 +2826,7 @@ function groupSavedLeadsByPlace(leads) {
 
   return Array.from(placeMap.entries())
     .map(([place, groupedLeads]) => ({
+      key: slugifyLeadMapValue(place),
       place,
       leads: groupedLeads.sort(compareSavedLeads)
     }))
@@ -2760,6 +2898,15 @@ function normalizeLeadPlacePart(value) {
   }
 
   return withoutPostal;
+}
+
+function slugifyLeadMapValue(value) {
+  const normalized = normalizeLeadValue(value).toLowerCase();
+  const slug = normalized
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return slug || "place";
 }
 
 function saveLeadEdits(sourceKey) {
