@@ -217,6 +217,7 @@ const leadMapDom = {
   radiusControls: document.getElementById("leadRadiusControls"),
   radiusCenterInput: document.getElementById("leadRadiusCenterInput"),
   radiusKmInput: document.getElementById("leadRadiusKmInput"),
+  radiusUseMyLocationButton: document.getElementById("leadRadiusUseMyLocationButton"),
   radiusUseMapCenterButton: document.getElementById("leadRadiusUseMapCenterButton"),
   radiusClearButton: document.getElementById("leadRadiusClearButton"),
   resultFilter: document.getElementById("leadMapResultFilter"),
@@ -262,7 +263,8 @@ const leadMapState = {
   autocompleteDebounceId: 0,
   autocompleteRequestSerial: 0,
   currentFilter: "",
-  scanning: false
+  scanning: false,
+  locatingUserPosition: false
 };
 
 function getLeadMapProviderConfig() {
@@ -514,6 +516,10 @@ function bindLeadMapEvents() {
     event.target.value = String(nextValue);
     renderRadiusSelection();
     updateLeadMapAreaSummary();
+  });
+
+  leadMapDom.radiusUseMyLocationButton?.addEventListener("click", () => {
+    void useLeadMapCurrentLocation();
   });
 
   leadMapDom.radiusUseMapCenterButton?.addEventListener("click", () => {
@@ -1178,6 +1184,48 @@ function clearLeadMapAutocompleteSuggestions() {
   }
 }
 
+function focusLeadMapOnCoordinates(lat, lng, radiusKm = 0) {
+  if (!leadMapState.map) {
+    return;
+  }
+
+  const zoom = getLeadMapRadiusZoom(radiusKm);
+
+  if (isGoogleLeadMapProvider()) {
+    leadMapState.map.setCenter({ lat, lng });
+    leadMapState.map.setZoom(zoom);
+    return;
+  }
+
+  leadMapState.map.setView([lat, lng], zoom);
+}
+
+function getLeadMapRadiusZoom(radiusKm) {
+  const safeRadius = Math.max(1, Number(radiusKm) || 5);
+
+  if (safeRadius <= 2) {
+    return 14;
+  }
+
+  if (safeRadius <= 5) {
+    return 13;
+  }
+
+  if (safeRadius <= 10) {
+    return 12;
+  }
+
+  if (safeRadius <= 20) {
+    return 11;
+  }
+
+  if (safeRadius <= 50) {
+    return 10;
+  }
+
+  return 9;
+}
+
 function moveLeadMapSuggestionHighlight(direction) {
   const suggestions = leadMapState.autocompleteSuggestions;
 
@@ -1193,6 +1241,81 @@ function moveLeadMapSuggestionHighlight(direction) {
 
   leadMapState.highlightedSuggestionIndex = next;
   renderLeadMapAutocompleteSuggestions();
+}
+
+async function useLeadMapCurrentLocation() {
+  if (!navigator.geolocation) {
+    setLeadMapMessage("This browser does not support location access for the lead map.", "error");
+    return;
+  }
+
+  await requestLeadMapInitialization();
+  setLeadMapLocationButtonState(true);
+  setLeadMapMessage("Finding your current location for a nearby radius scan...", "info");
+
+  try {
+    const position = await getLeadMapCurrentPosition();
+    const latitude = Number(position.coords.latitude);
+    const longitude = Number(position.coords.longitude);
+
+    leadMapState.selectedPrediction = null;
+    leadMapState.resolvedAreaHint = "";
+    leadMapState.autocompleteSessionToken = null;
+    clearLeadMapAutocompleteSuggestions();
+
+    if (leadMapDom.searchInput) {
+      leadMapDom.searchInput.value = "";
+    }
+
+    setLeadScanMode("radius");
+    setRadiusCenter(latitude, longitude);
+    focusLeadMapOnCoordinates(latitude, longitude, leadMapState.radiusKm);
+    setLeadMapMessage(`Moved to your current location. You can now scan ${leadMapState.radiusKm} km around you.`, "success");
+  } catch (error) {
+    setLeadMapMessage(error.message || "Your current location could not be used for the lead map.", "error");
+  } finally {
+    setLeadMapLocationButtonState(false);
+  }
+}
+
+function getLeadMapCurrentPosition() {
+  return new Promise((resolve, reject) => {
+    navigator.geolocation.getCurrentPosition(
+      resolve,
+      (error) => {
+        reject(new Error(getLeadMapLocationErrorMessage(error)));
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 12000,
+        maximumAge: 300000
+      }
+    );
+  });
+}
+
+function getLeadMapLocationErrorMessage(error) {
+  switch (error?.code) {
+    case error?.PERMISSION_DENIED:
+      return "Location access was denied. Allow location in the browser and try again.";
+    case error?.POSITION_UNAVAILABLE:
+      return "Your location could not be determined right now. Try again in a moment.";
+    case error?.TIMEOUT:
+      return "Location lookup timed out. Try again or choose a point manually on the map.";
+    default:
+      return "Your current location could not be used right now.";
+  }
+}
+
+function setLeadMapLocationButtonState(isBusy) {
+  leadMapState.locatingUserPosition = Boolean(isBusy);
+
+  if (!leadMapDom.radiusUseMyLocationButton) {
+    return;
+  }
+
+  leadMapDom.radiusUseMyLocationButton.disabled = Boolean(isBusy);
+  leadMapDom.radiusUseMyLocationButton.textContent = isBusy ? "Locating..." : "Use my current location";
 }
 
 async function selectLeadMapAutocompleteSuggestion(index) {
@@ -1444,7 +1567,7 @@ async function scanLeadMapArea() {
   const queryTarget = getLeadQueryTarget();
 
   if (!queryTarget) {
-    setLeadMapMessage("Choose a point on the map or use the current map center before running a radius scan.", "error");
+    setLeadMapMessage("Choose a point on the map, use your current location, or use the current map center before running a radius scan.", "error");
     return;
   }
 
@@ -2385,7 +2508,7 @@ function updateLeadMapAreaSummary() {
 
   if (leadMapState.scanMode === "radius") {
     if (!leadMapState.radiusCenter) {
-      leadMapDom.areaSummary.textContent = `Radius mode is active. Click a point on the map or use the current map center, then scan ${leadMapState.radiusKm} km around it.`;
+      leadMapDom.areaSummary.textContent = `Radius mode is active. Click a point on the map, use your current location, or use the current map center, then scan ${leadMapState.radiusKm} km around it.`;
       return;
     }
 
