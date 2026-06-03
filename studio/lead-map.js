@@ -226,6 +226,7 @@ const leadMapDom = {
   results: document.getElementById("leadMapResults"),
   emptyState: document.getElementById("leadMapEmptyState"),
   savedStats: document.getElementById("leadSavedStats"),
+  savedMapCanvas: document.getElementById("leadSavedMapCanvas"),
   savedList: document.getElementById("leadSavedList"),
   savedEmptyState: document.getElementById("leadSavedEmptyState"),
   copyJsonButton: document.getElementById("leadMapCopyJsonButton"),
@@ -241,6 +242,10 @@ const leadMapState = {
   initializationPromise: null,
   markersLayer: null,
   selectionLayer: null,
+  savedReferenceMap: null,
+  savedReferenceMarkersLayer: null,
+  savedReferenceMarkerCount: 0,
+  savedReferenceHasAutoFit: false,
   radiusMarker: null,
   radiusCircle: null,
   googleMarkers: [],
@@ -433,6 +438,7 @@ function bindLeadMapEvents() {
   document.addEventListener("click", (event) => {
     const moduleButton = event.target.closest('[data-admin-module="lead-map"]');
     const scannerButton = event.target.closest('[data-admin-view="lead-map-scanner"]');
+    const savedButton = event.target.closest('[data-admin-view="lead-map-saved"]');
     const searchSuggestionButton = event.target.closest("[data-lead-suggestion-index]");
     const clickedInsideSearch = event.target.closest(".lead-map-search-box");
 
@@ -452,6 +458,11 @@ function bindLeadMapEvents() {
       }
 
       scheduleLeadMapResize();
+    }
+
+    if (moduleButton || savedButton) {
+      renderSavedLeadBoard();
+      scheduleSavedLeadReferenceMapResize();
     }
   });
 
@@ -2254,7 +2265,79 @@ function saveLeadFromScan(sourceKey) {
 
 function renderSavedLeadBoard() {
   renderSavedLeadStats();
+  renderSavedLeadReferenceMap();
   renderSavedLeadList();
+}
+
+function renderSavedLeadReferenceMap() {
+  ensureSavedLeadReferenceMap();
+
+  if (!leadMapState.savedReferenceMap || !leadMapState.savedReferenceMarkersLayer) {
+    return;
+  }
+
+  leadMapState.savedReferenceMarkersLayer.clearLayers();
+
+  if (leadMapState.savedLeads.length === 0) {
+    leadMapState.savedReferenceMap.setView(LEAD_MAP_DEFAULT_VIEW.center, LEAD_MAP_DEFAULT_VIEW.zoom);
+    leadMapState.savedReferenceMarkerCount = 0;
+    leadMapState.savedReferenceHasAutoFit = false;
+    scheduleSavedLeadReferenceMapResize();
+    return;
+  }
+
+  const bounds = [];
+
+  leadMapState.savedLeads.forEach((lead) => {
+    const color = LEAD_CATEGORY_CONFIG[lead.category]?.color || "#2f6b50";
+    const marker = window.L.circleMarker([lead.lat, lead.lon], {
+      radius: 8,
+      weight: 2,
+      color,
+      fillColor: color,
+      fillOpacity: 0.18
+    });
+
+    marker.bindPopup(`
+      <strong>${escapeHtml(lead.name)}</strong><br>
+      ${escapeHtml(lead.categoryLabel)}<br>
+      ${escapeHtml(lead.address || lead.placeLabel || "Location details saved")}<br>
+      ${escapeHtml(humanizeLeadValue(lead.status))}
+    `);
+    marker.addTo(leadMapState.savedReferenceMarkersLayer);
+    bounds.push([lead.lat, lead.lon]);
+  });
+
+  const markerCountChanged = leadMapState.savedReferenceMarkerCount !== leadMapState.savedLeads.length;
+  leadMapState.savedReferenceMarkerCount = leadMapState.savedLeads.length;
+
+  if (bounds.length > 0 && (!leadMapState.savedReferenceHasAutoFit || markerCountChanged)) {
+    leadMapState.savedReferenceMap.fitBounds(bounds, {
+      padding: [24, 24],
+      maxZoom: 13
+    });
+    leadMapState.savedReferenceHasAutoFit = true;
+  }
+
+  scheduleSavedLeadReferenceMapResize();
+}
+
+function ensureSavedLeadReferenceMap() {
+  if (!leadMapDom.savedMapCanvas || leadMapState.savedReferenceMap || !window.L) {
+    return;
+  }
+
+  leadMapState.savedReferenceMap = window.L.map(leadMapDom.savedMapCanvas, {
+    zoomControl: true,
+    scrollWheelZoom: true
+  }).setView(LEAD_MAP_DEFAULT_VIEW.center, LEAD_MAP_DEFAULT_VIEW.zoom);
+
+  window.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 19
+  }).addTo(leadMapState.savedReferenceMap);
+
+  leadMapState.savedReferenceMarkersLayer = window.L.layerGroup().addTo(leadMapState.savedReferenceMap);
 }
 
 function renderSavedLeadStats() {
@@ -2302,73 +2385,101 @@ function renderSavedLeadList() {
   leadMapDom.savedEmptyState.classList.add("hidden");
   const sorted = [...leadMapState.savedLeads].sort(compareSavedLeads);
 
-  leadMapDom.savedList.innerHTML = sorted
-    .map((lead) => `
-      <article class="application-card saved-lead-card" data-saved-lead-card="${escapeAttribute(lead.sourceKey)}">
-        <div class="application-card-head">
-          <div>
-            <p class="lead-result-category">${escapeHtml(lead.categoryLabel)}</p>
-            <h3>${escapeHtml(lead.name)}</h3>
-            <p class="application-meta">${escapeHtml(lead.address || lead.placeLabel || "Location details saved")}</p>
-          </div>
-          <span class="status-pill lead-category-pill" style="--lead-pill:${escapeAttribute(LEAD_CATEGORY_CONFIG[lead.category]?.color || "#2f6b50")}">${escapeHtml(humanizeLeadValue(lead.status))}</span>
-        </div>
+  const groupedMarkup = Object.entries(LEAD_CATEGORY_CONFIG)
+    .map(([categoryKey, config]) => {
+      const categoryLeads = sorted.filter((lead) => lead.category === categoryKey);
 
-        <div class="application-field-grid">
-          <label class="application-field-block">
-            <strong>Status</strong>
-            <select data-saved-lead-field="status">
-              ${buildSelectOptions(LEAD_STATUS_OPTIONS, lead.status)}
-            </select>
-          </label>
+      if (categoryLeads.length === 0) {
+        return "";
+      }
 
-          <label class="application-field-block">
-            <strong>Priority</strong>
-            <select data-saved-lead-field="priority">
-              ${buildSelectOptions(LEAD_PRIORITY_OPTIONS, lead.priority)}
-            </select>
-          </label>
-
-          <label class="application-field-block">
-            <strong>Best contact person</strong>
-            <input data-saved-lead-field="contactPerson" type="text" value="${escapeAttribute(lead.contactPerson || "")}" placeholder="Principal, coordinator, HR lead, founder...">
-          </label>
-
-          <label class="application-field-block">
-            <strong>Next follow-up</strong>
-            <input data-saved-lead-field="nextFollowUp" type="date" value="${escapeAttribute(lead.nextFollowUp || "")}">
-          </label>
-        </div>
-
-        <div class="application-field-grid">
-          <div class="application-field-block">
-            <strong>Contact details</strong>
-            <p>${escapeHtml(formatLeadContactSummary(lead))}</p>
-          </div>
-          <div class="application-field-block">
-            <strong>Map links</strong>
-            <div class="inline-action-group">
-              ${lead.googleMapsUrl ? `<a class="workspace-link" href="${escapeAttribute(lead.googleMapsUrl)}" target="_blank" rel="noreferrer">Open in Google Maps</a>` : ""}
-              ${lead.osmUrl ? `<a class="workspace-link" href="${escapeAttribute(lead.osmUrl)}" target="_blank" rel="noreferrer">Open in OSM</a>` : ""}
+      return `
+        <section class="saved-lead-group">
+          <div class="saved-lead-group-head">
+            <div>
+              <p class="lead-result-category">${escapeHtml(config.label)}</p>
+              <h3>${escapeHtml(config.label)} leads</h3>
             </div>
+            <span class="status-pill lead-category-pill" style="--lead-pill:${escapeAttribute(config.color || "#2f6b50")}">${escapeHtml(String(categoryLeads.length))}</span>
           </div>
-        </div>
+          <div class="saved-lead-group-list">
+            ${categoryLeads.map((lead) => buildSavedLeadCardMarkup(lead)).join("")}
+          </div>
+        </section>
+      `;
+    })
+    .filter(Boolean)
+    .join("");
 
+  leadMapDom.savedList.innerHTML = groupedMarkup;
+}
+
+function buildSavedLeadCardMarkup(lead) {
+  return `
+    <article class="application-card saved-lead-card" data-saved-lead-card="${escapeAttribute(lead.sourceKey)}">
+      <div class="application-card-head">
+        <div>
+          <p class="lead-result-category">${escapeHtml(lead.categoryLabel)}</p>
+          <h3>${escapeHtml(lead.name)}</h3>
+          <p class="application-meta">${escapeHtml(lead.address || lead.placeLabel || "Location details saved")}</p>
+        </div>
+        <span class="status-pill lead-category-pill" style="--lead-pill:${escapeAttribute(LEAD_CATEGORY_CONFIG[lead.category]?.color || "#2f6b50")}">${escapeHtml(humanizeLeadValue(lead.status))}</span>
+      </div>
+
+      <div class="application-field-grid">
         <label class="application-field-block">
-          <strong>Notes</strong>
-          <textarea data-saved-lead-field="notes" rows="4" placeholder="Why this organization matters, who to reach out to, and what kind of experiential work may resonate.">${escapeHtml(lead.notes || "")}</textarea>
+          <strong>Status</strong>
+          <select data-saved-lead-field="status">
+            ${buildSelectOptions(LEAD_STATUS_OPTIONS, lead.status)}
+          </select>
         </label>
 
-        <div class="application-actions">
-          <small class="application-meta">Saved ${escapeHtml(formatLeadDate(lead.savedAt))}${lead.updatedAt ? ` · updated ${escapeHtml(formatLeadDate(lead.updatedAt))}` : ""}</small>
+        <label class="application-field-block">
+          <strong>Priority</strong>
+          <select data-saved-lead-field="priority">
+            ${buildSelectOptions(LEAD_PRIORITY_OPTIONS, lead.priority)}
+          </select>
+        </label>
+
+        <label class="application-field-block">
+          <strong>Best contact person</strong>
+          <input data-saved-lead-field="contactPerson" type="text" value="${escapeAttribute(lead.contactPerson || "")}" placeholder="Principal, coordinator, HR lead, founder...">
+        </label>
+
+        <label class="application-field-block">
+          <strong>Next follow-up</strong>
+          <input data-saved-lead-field="nextFollowUp" type="date" value="${escapeAttribute(lead.nextFollowUp || "")}">
+        </label>
+      </div>
+
+      <div class="application-field-grid">
+        <div class="application-field-block">
+          <strong>Contact details</strong>
+          <p>${escapeHtml(formatLeadContactSummary(lead))}</p>
+        </div>
+        <div class="application-field-block">
+          <strong>Map links</strong>
           <div class="inline-action-group">
-            <button type="button" class="button" data-saved-lead-save="${escapeAttribute(lead.sourceKey)}">Save notes</button>
-            <button type="button" class="button button-muted" data-saved-lead-remove="${escapeAttribute(lead.sourceKey)}">Remove</button>
+            ${lead.googleMapsUrl ? `<a class="workspace-link" href="${escapeAttribute(lead.googleMapsUrl)}" target="_blank" rel="noreferrer">Open in Google Maps</a>` : ""}
+            ${lead.osmUrl ? `<a class="workspace-link" href="${escapeAttribute(lead.osmUrl)}" target="_blank" rel="noreferrer">Open in OSM</a>` : ""}
           </div>
         </div>
-      </article>
-    `)
-    .join("");
+      </div>
+
+      <label class="application-field-block">
+        <strong>Notes</strong>
+        <textarea data-saved-lead-field="notes" rows="4" placeholder="Why this organization matters, who to reach out to, and what kind of experiential work may resonate.">${escapeHtml(lead.notes || "")}</textarea>
+      </label>
+
+      <div class="application-actions">
+        <small class="application-meta">Saved ${escapeHtml(formatLeadDate(lead.savedAt))}${lead.updatedAt ? ` · updated ${escapeHtml(formatLeadDate(lead.updatedAt))}` : ""}</small>
+        <div class="inline-action-group">
+          <button type="button" class="button" data-saved-lead-save="${escapeAttribute(lead.sourceKey)}">Save notes</button>
+          <button type="button" class="button button-muted" data-saved-lead-remove="${escapeAttribute(lead.sourceKey)}">Remove</button>
+        </div>
+      </div>
+    </article>
+  `;
 }
 
 function saveLeadEdits(sourceKey) {
@@ -2860,6 +2971,16 @@ function scheduleLeadMapResize() {
     }
 
     leadMapState.map.invalidateSize?.();
+  }, 120);
+}
+
+function scheduleSavedLeadReferenceMapResize() {
+  window.setTimeout(() => {
+    if (!leadMapState.savedReferenceMap) {
+      return;
+    }
+
+    leadMapState.savedReferenceMap.invalidateSize?.();
   }, 120);
 }
 

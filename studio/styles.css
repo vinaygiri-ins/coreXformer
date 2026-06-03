@@ -1198,6 +1198,36 @@ button:disabled {
   gap: 18px;
 }
 
+.lead-saved-map-canvas {
+  min-height: 360px;
+}
+
+.saved-lead-group-list {
+  display: grid;
+  gap: 16px;
+}
+
+.saved-lead-group {
+  display: grid;
+  gap: 18px;
+}
+
+.saved-lead-group + .saved-lead-group {
+  padding-top: 20px;
+  border-top: 1px solid rgba(217, 206, 185, 0.88);
+}
+
+.saved-lead-group-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.saved-lead-group-head h3 {
+  margin-bottom: 6px;
+}
+
 .application-card {
   display: grid;
   gap: 16px;
@@ -1326,6 +1356,7 @@ button:disabled {
   .application-card-head,
   .application-actions,
   .inline-action-group,
+  .saved-lead-group-head,
   .detail-row,
   .lead-result-head,
   .lead-result-details li,
