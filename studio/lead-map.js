@@ -252,6 +252,7 @@ const leadMapState = {
   selectionLayer: null,
   savedReferenceMap: null,
   savedReferenceMarkersLayer: null,
+  savedReferenceMarkerLookup: new Map(),
   savedReferenceMarkerCount: 0,
   savedReferenceScopeKey: "",
   savedReferenceHasAutoFit: false,
@@ -267,6 +268,7 @@ const leadMapState = {
   savedLeads: loadLeadMapSavedState(),
   activeSavedCategory: "",
   activeSavedPlace: "",
+  activeSavedLeadSourceKey: "",
   usage: loadLeadMapUsageState(),
   activeCategories: new Set(["schools", "colleges", "corporates", "communities"]),
   scanMode: "bounds",
@@ -614,6 +616,17 @@ function bindLeadMapEvents() {
 
     if (removeButton) {
       removeSavedLead(removeButton.dataset.savedLeadRemove);
+      return;
+    }
+
+    if (event.target.closest("button, a, input, select, textarea, label")) {
+      return;
+    }
+
+    const card = event.target.closest("[data-saved-lead-card]");
+
+    if (card) {
+      focusSavedLeadOnReferenceMap(card.dataset.savedLeadCard);
     }
   });
 
@@ -2478,6 +2491,7 @@ function renderSavedLeadReferenceMap(leads = [], scopeKey = "") {
   }
 
   leadMapState.savedReferenceMarkersLayer.clearLayers();
+  leadMapState.savedReferenceMarkerLookup = new Map();
 
   if (leads.length === 0) {
     leadMapState.savedReferenceMap.setView(LEAD_MAP_DEFAULT_VIEW.center, LEAD_MAP_DEFAULT_VIEW.zoom);
@@ -2506,7 +2520,15 @@ function renderSavedLeadReferenceMap(leads = [], scopeKey = "") {
       ${escapeHtml(lead.address || lead.placeLabel || "Location details saved")}<br>
       ${escapeHtml(humanizeLeadValue(lead.status))}
     `);
+    marker.corexformerSourceKey = lead.sourceKey;
+    marker.corexformerBaseColor = color;
+    marker.on("click", () => {
+      setActiveSavedLeadSourceKey(lead.sourceKey);
+      updateSavedLeadActiveCard();
+      updateSavedLeadReferenceMapMarkerStyles();
+    });
     marker.addTo(leadMapState.savedReferenceMarkersLayer);
+    leadMapState.savedReferenceMarkerLookup.set(lead.sourceKey, marker);
     bounds.push([lead.lat, lead.lon]);
   });
 
@@ -2523,6 +2545,8 @@ function renderSavedLeadReferenceMap(leads = [], scopeKey = "") {
     leadMapState.savedReferenceHasAutoFit = true;
   }
 
+  syncActiveSavedLeadSelection(leads);
+  updateSavedLeadReferenceMapMarkerStyles();
   scheduleSavedLeadReferenceMapResize();
 }
 
@@ -2614,11 +2638,12 @@ function renderSavedLeadList(hierarchy = buildSavedLeadHierarchy([...leadMapStat
       </div>
     </section>
   `;
+  updateSavedLeadActiveCard();
 }
 
 function buildSavedLeadCardMarkup(lead) {
   return `
-    <article class="application-card saved-lead-card" data-saved-lead-card="${escapeAttribute(lead.sourceKey)}">
+    <article class="application-card saved-lead-card${lead.sourceKey === leadMapState.activeSavedLeadSourceKey ? " is-active" : ""}" data-saved-lead-card="${escapeAttribute(lead.sourceKey)}">
       <div class="application-card-head">
         <div>
           <p class="lead-result-category">${escapeHtml(lead.categoryLabel)}</p>
@@ -2807,6 +2832,70 @@ function getActiveSavedLeadScopeKey() {
   return `${leadMapState.activeSavedCategory}:${leadMapState.activeSavedPlace}`;
 }
 
+function syncActiveSavedLeadSelection(activeLeads) {
+  const hasActiveLead = activeLeads.some((lead) => lead.sourceKey === leadMapState.activeSavedLeadSourceKey);
+
+  if (!hasActiveLead) {
+    leadMapState.activeSavedLeadSourceKey = "";
+  }
+}
+
+function setActiveSavedLeadSourceKey(sourceKey) {
+  leadMapState.activeSavedLeadSourceKey = normalizeLeadValue(sourceKey);
+}
+
+function focusSavedLeadOnReferenceMap(sourceKey) {
+  const normalizedSourceKey = normalizeLeadValue(sourceKey);
+
+  if (!normalizedSourceKey) {
+    return;
+  }
+
+  const marker = leadMapState.savedReferenceMarkerLookup.get(normalizedSourceKey);
+  const lead = findSavedLead(normalizedSourceKey);
+
+  if (!marker || !leadMapState.savedReferenceMap || !lead) {
+    return;
+  }
+
+  setActiveSavedLeadSourceKey(normalizedSourceKey);
+  updateSavedLeadActiveCard();
+  updateSavedLeadReferenceMapMarkerStyles();
+
+  const nextZoom = Math.max(leadMapState.savedReferenceMap.getZoom() || 0, 15);
+  leadMapState.savedReferenceMap.setView([lead.lat, lead.lon], nextZoom, {
+    animate: true
+  });
+  marker.openPopup();
+}
+
+function updateSavedLeadActiveCard() {
+  if (!leadMapDom.savedList) {
+    return;
+  }
+
+  const cards = Array.from(leadMapDom.savedList.querySelectorAll("[data-saved-lead-card]"));
+  cards.forEach((card) => {
+    const isActive = card.dataset.savedLeadCard === leadMapState.activeSavedLeadSourceKey;
+    card.classList.toggle("is-active", isActive);
+  });
+}
+
+function updateSavedLeadReferenceMapMarkerStyles() {
+  leadMapState.savedReferenceMarkerLookup.forEach((marker, sourceKey) => {
+    const isActive = sourceKey === leadMapState.activeSavedLeadSourceKey;
+    const baseColor = marker.corexformerBaseColor || "#2f6b50";
+
+    marker.setStyle({
+      radius: isActive ? 10 : 8,
+      weight: isActive ? 3 : 2,
+      color: baseColor,
+      fillColor: baseColor,
+      fillOpacity: isActive ? 0.34 : 0.18
+    });
+  });
+}
+
 function setActiveSavedCategory(categoryKey) {
   if (!categoryKey || categoryKey === leadMapState.activeSavedCategory) {
     return;
@@ -2814,6 +2903,7 @@ function setActiveSavedCategory(categoryKey) {
 
   leadMapState.activeSavedCategory = categoryKey;
   leadMapState.activeSavedPlace = "";
+  leadMapState.activeSavedLeadSourceKey = "";
   renderSavedLeadBoard();
 }
 
@@ -2823,6 +2913,7 @@ function setActiveSavedPlace(placeKey) {
   }
 
   leadMapState.activeSavedPlace = placeKey;
+  leadMapState.activeSavedLeadSourceKey = "";
   renderSavedLeadBoard();
 }
 
