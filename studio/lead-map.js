@@ -253,6 +253,7 @@ const leadMapState = {
   savedReferenceMap: null,
   savedReferenceMarkersLayer: null,
   savedReferenceMarkerCount: 0,
+  savedReferenceScopeKey: "",
   savedReferenceHasAutoFit: false,
   radiusMarker: null,
   radiusCircle: null,
@@ -2462,11 +2463,14 @@ function renderSavedLeadBoard() {
   syncSavedLeadHierarchySelection(hierarchy);
   renderSavedLeadTabs(hierarchy);
   renderSavedLeadScope(hierarchy);
-  renderSavedLeadReferenceMap(getActiveSavedLeadSubset(hierarchy));
+  renderSavedLeadReferenceMap(
+    getActiveSavedLeadSubset(hierarchy),
+    getActiveSavedLeadScopeKey()
+  );
   renderSavedLeadList(hierarchy);
 }
 
-function renderSavedLeadReferenceMap(leads = []) {
+function renderSavedLeadReferenceMap(leads = [], scopeKey = "") {
   ensureSavedLeadReferenceMap();
 
   if (!leadMapState.savedReferenceMap || !leadMapState.savedReferenceMarkersLayer) {
@@ -2478,6 +2482,7 @@ function renderSavedLeadReferenceMap(leads = []) {
   if (leads.length === 0) {
     leadMapState.savedReferenceMap.setView(LEAD_MAP_DEFAULT_VIEW.center, LEAD_MAP_DEFAULT_VIEW.zoom);
     leadMapState.savedReferenceMarkerCount = 0;
+    leadMapState.savedReferenceScopeKey = "";
     leadMapState.savedReferenceHasAutoFit = false;
     scheduleSavedLeadReferenceMapResize();
     return;
@@ -2505,10 +2510,12 @@ function renderSavedLeadReferenceMap(leads = []) {
     bounds.push([lead.lat, lead.lon]);
   });
 
+  const scopeChanged = leadMapState.savedReferenceScopeKey !== scopeKey;
   const markerCountChanged = leadMapState.savedReferenceMarkerCount !== leads.length;
   leadMapState.savedReferenceMarkerCount = leads.length;
+  leadMapState.savedReferenceScopeKey = scopeKey;
 
-  if (bounds.length > 0 && (!leadMapState.savedReferenceHasAutoFit || markerCountChanged)) {
+  if (bounds.length > 0 && (!leadMapState.savedReferenceHasAutoFit || markerCountChanged || scopeChanged)) {
     leadMapState.savedReferenceMap.fitBounds(bounds, {
       padding: [24, 24],
       maxZoom: 13
@@ -2790,6 +2797,14 @@ function getActiveSavedLeadSubset(hierarchy) {
   const activeCategory = hierarchy.find((group) => group.key === leadMapState.activeSavedCategory) || null;
   const activePlace = activeCategory?.places.find((group) => group.key === leadMapState.activeSavedPlace) || null;
   return activePlace?.leads || [];
+}
+
+function getActiveSavedLeadScopeKey() {
+  if (!leadMapState.activeSavedCategory || !leadMapState.activeSavedPlace) {
+    return "";
+  }
+
+  return `${leadMapState.activeSavedCategory}:${leadMapState.activeSavedPlace}`;
 }
 
 function setActiveSavedCategory(categoryKey) {
