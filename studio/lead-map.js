@@ -101,12 +101,10 @@ const LEAD_MAP_GOOGLE_CATEGORY_SEARCH = {
 };
 
 const LEAD_STATUS_OPTIONS = [
-  { value: "new", label: "New" },
-  { value: "shortlisted", label: "Shortlisted" },
-  { value: "contacted", label: "Contacted" },
-  { value: "follow_up", label: "Follow-up" },
-  { value: "warm", label: "Warm" },
-  { value: "not_relevant", label: "Not relevant" }
+  { value: "saved", label: "Saved" },
+  { value: "in_hand", label: "In Hand" },
+  { value: "in_progress", label: "In Progress" },
+  { value: "completed", label: "Completed" }
 ];
 
 const LEAD_PRIORITY_OPTIONS = [
@@ -2610,7 +2608,7 @@ function upsertSavedLeadFromScanResult(result) {
     tagSummary: result.tagSummary,
     googleMapsUrl: result.googleMapsUrl,
     osmUrl: result.osmUrl,
-    status: existing?.status || "new",
+    status: normalizeLeadStatus(existing?.status) || "saved",
     priority: existing?.priority || "medium",
     contactPerson: existing?.contactPerson || "",
     nextFollowUp: existing?.nextFollowUp || "",
@@ -2866,9 +2864,9 @@ function renderSavedLeadStats() {
   const counts = countByStatus(leadMapState.savedLeads);
   const statCards = [
     { label: "Saved", value: String(leadMapState.savedLeads.length) },
-    { label: "New", value: String(counts.new || 0) },
-    { label: "Contacted", value: String(counts.contacted || 0) },
-    { label: "Warm", value: String(counts.warm || 0) }
+    { label: "In Hand", value: String(counts.in_hand || 0) },
+    { label: "In Progress", value: String(counts.in_progress || 0) },
+    { label: "Completed", value: String(counts.completed || 0) }
   ];
 
   leadMapDom.savedStats.innerHTML = statCards
@@ -3391,7 +3389,7 @@ function saveLeadEdits(sourceKey) {
 
   const nextLead = {
     ...existing,
-    status: normalizeLeadValue(card.querySelector('[data-saved-lead-field="status"]')?.value) || existing.status,
+    status: normalizeLeadStatus(card.querySelector('[data-saved-lead-field="status"]')?.value) || normalizeLeadStatus(existing.status),
     priority: normalizeLeadValue(card.querySelector('[data-saved-lead-field="priority"]')?.value) || existing.priority,
     contactPerson: normalizeLeadValue(card.querySelector('[data-saved-lead-field="contactPerson"]')?.value),
     nextFollowUp: normalizeLeadValue(card.querySelector('[data-saved-lead-field="nextFollowUp"]')?.value),
@@ -3796,7 +3794,8 @@ function countByCategory(items) {
 
 function countByStatus(items) {
   return items.reduce((counts, item) => {
-    counts[item.status] = (counts[item.status] || 0) + 1;
+    const normalizedStatus = normalizeLeadStatus(item.status);
+    counts[normalizedStatus] = (counts[normalizedStatus] || 0) + 1;
     return counts;
   }, {});
 }
@@ -3806,11 +3805,23 @@ function findSavedLead(sourceKey) {
 }
 
 function compareSavedLeads(left, right) {
+  const statusWeight = {
+    saved: 0,
+    in_hand: 1,
+    in_progress: 2,
+    completed: 3
+  };
   const priorityWeight = {
     high: 0,
     medium: 1,
     low: 2
   };
+
+  const statusCompare = (statusWeight[normalizeLeadStatus(left.status)] ?? 9) - (statusWeight[normalizeLeadStatus(right.status)] ?? 9);
+
+  if (statusCompare !== 0) {
+    return statusCompare;
+  }
 
   const priorityCompare = (priorityWeight[left.priority] ?? 9) - (priorityWeight[right.priority] ?? 9);
 
@@ -3838,7 +3849,14 @@ function loadLeadMapSavedState() {
     }
 
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
+    return parsed.map((lead) => ({
+      ...lead,
+      status: normalizeLeadStatus(lead?.status)
+    }));
   } catch (error) {
     console.warn("CoreXformer lead map storage could not be read.", error);
     return [];
@@ -3921,6 +3939,36 @@ function setLeadMapMessage(message, tone = "info") {
 
 function normalizeLeadValue(value) {
   return String(value || "").trim();
+}
+
+function normalizeLeadStatus(value) {
+  const normalized = normalizeLeadValue(value).toLowerCase();
+
+  if (!normalized) {
+    return "saved";
+  }
+
+  if (["saved", "save"].includes(normalized)) {
+    return "saved";
+  }
+
+  if (["in_hand", "in hand", "project_in_hand", "project in hand", "working_on", "working on", "assigned"].includes(normalized)) {
+    return "in_hand";
+  }
+
+  if (["in_progress", "in progress", "contacted", "follow_up", "follow up", "warm", "active_conversation", "active conversation"].includes(normalized)) {
+    return "in_progress";
+  }
+
+  if (["completed", "complete", "done", "closed", "not_relevant", "not relevant"].includes(normalized)) {
+    return "completed";
+  }
+
+  if (["new", "shortlisted"].includes(normalized)) {
+    return "saved";
+  }
+
+  return "saved";
 }
 
 function normalizeLeadUrl(value) {
