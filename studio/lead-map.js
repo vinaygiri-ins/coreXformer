@@ -667,6 +667,7 @@ function bindLeadMapEvents() {
   leadMapDom.savedList?.addEventListener("click", (event) => {
     const saveButton = event.target.closest("[data-saved-lead-save]");
     const removeButton = event.target.closest("[data-saved-lead-remove]");
+    const stageButton = event.target.closest("[data-saved-lead-stage]");
 
     if (saveButton) {
       saveLeadEdits(saveButton.dataset.savedLeadSave);
@@ -675,6 +676,14 @@ function bindLeadMapEvents() {
 
     if (removeButton) {
       removeSavedLead(removeButton.dataset.savedLeadRemove);
+      return;
+    }
+
+    if (stageButton) {
+      updateSavedLeadStatus(
+        stageButton.dataset.savedLeadSource,
+        stageButton.dataset.savedLeadStage
+      );
       return;
     }
 
@@ -2935,9 +2944,16 @@ function buildSavedLeadCardMarkup(lead) {
         <span class="status-pill lead-category-pill" style="--lead-pill:${escapeAttribute(LEAD_CATEGORY_CONFIG[lead.category]?.color || "#2f6b50")}">${escapeHtml(humanizeLeadValue(lead.status))}</span>
       </div>
 
+      <div class="lead-saved-stage-strip">
+        <p class="lead-saved-stage-label">Move this lead</p>
+        <div class="lead-saved-stage-buttons" role="group" aria-label="Lead pipeline stages">
+          ${buildSavedLeadStageButtonsMarkup(lead)}
+        </div>
+      </div>
+
       <div class="application-field-grid">
         <label class="application-field-block">
-          <strong>Status</strong>
+          <strong>Pipeline stage</strong>
           <select data-saved-lead-field="status">
             ${buildSelectOptions(LEAD_STATUS_OPTIONS, lead.status)}
           </select>
@@ -2989,6 +3005,24 @@ function buildSavedLeadCardMarkup(lead) {
       </div>
     </article>
   `;
+}
+
+function buildSavedLeadStageButtonsMarkup(lead) {
+  const activeStatus = normalizeLeadStatus(lead.status);
+
+  return LEAD_STATUS_OPTIONS
+    .map((option) => `
+      <button
+        type="button"
+        class="lead-saved-stage-button${option.value === activeStatus ? " is-active" : ""}"
+        data-saved-lead-stage="${escapeAttribute(option.value)}"
+        data-saved-lead-source="${escapeAttribute(lead.sourceKey)}"
+        aria-pressed="${option.value === activeStatus ? "true" : "false"}"
+      >
+        ${escapeHtml(option.label)}
+      </button>
+    `)
+    .join("");
 }
 
 function buildSavedLeadHierarchy(sortedLeads) {
@@ -3402,6 +3436,33 @@ function saveLeadEdits(sourceKey) {
   renderSavedLeadBoard();
   renderLeadMapResults();
   setLeadMapMessage(`${nextLead.name} has been updated on your private lead board.`, "success");
+}
+
+function updateSavedLeadStatus(sourceKey, nextStatus) {
+  const lead = findSavedLead(sourceKey);
+
+  if (!lead) {
+    return;
+  }
+
+  const normalizedStatus = normalizeLeadStatus(nextStatus);
+
+  if (normalizeLeadStatus(lead.status) === normalizedStatus) {
+    return;
+  }
+
+  leadMapState.savedLeads = leadMapState.savedLeads.map((item) => (
+    item.sourceKey === sourceKey
+      ? {
+          ...item,
+          status: normalizedStatus,
+          updatedAt: new Date().toISOString()
+        }
+      : item
+  ));
+  persistSavedLeads();
+  renderSavedLeadBoard();
+  setLeadMapMessage(`${lead.name} moved to ${humanizeLeadValue(normalizedStatus)}.`, "success");
 }
 
 function removeSavedLead(sourceKey) {
