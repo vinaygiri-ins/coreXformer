@@ -1385,6 +1385,24 @@ button:disabled {
   line-height: 1.7;
 }
 
+.lead-saved-distance-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 16px 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(217, 206, 185, 0.92);
+  background: rgba(255, 255, 255, 0.74);
+}
+
+.lead-saved-distance-summary {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
 .lead-saved-stats {
   display: flex;
   flex-wrap: wrap;
@@ -1452,6 +1470,25 @@ button:disabled {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+}
+
+.lead-saved-place-tab {
+  display: grid;
+  gap: 4px;
+  align-content: start;
+  text-align: left;
+}
+
+.lead-saved-place-tab-label {
+  display: block;
+}
+
+.lead-saved-place-tab-meta {
+  display: block;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--highlight);
 }
 
 .lead-saved-tab-nav-button {

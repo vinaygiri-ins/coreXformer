@@ -234,6 +234,9 @@ const leadMapDom = {
   results: document.getElementById("leadMapResults"),
   emptyState: document.getElementById("leadMapEmptyState"),
   savedStats: document.getElementById("leadSavedStats"),
+  savedDistanceSummary: document.getElementById("leadSavedDistanceSummary"),
+  savedUseMyLocationButton: document.getElementById("leadSavedUseMyLocationButton"),
+  savedClearDistanceButton: document.getElementById("leadSavedClearDistanceButton"),
   savedMapCanvas: document.getElementById("leadSavedMapCanvas"),
   savedCategoryTabs: document.getElementById("leadSavedCategoryTabs"),
   savedPlaceTabs: document.getElementById("leadSavedPlaceTabs"),
@@ -281,6 +284,7 @@ const leadMapState = {
   activeSavedCategory: "",
   activeSavedPlace: "",
   activeSavedLeadSourceKey: "",
+  savedDistanceOrigin: null,
   usage: loadLeadMapUsageState(),
   activeCategories: new Set(["schools", "colleges", "corporates", "communities"]),
   scanMode: "bounds",
@@ -296,6 +300,7 @@ const leadMapState = {
   currentFilter: "",
   scanning: false,
   locatingUserPosition: false,
+  locatingSavedUserPosition: false,
   scanResultSwipeStartX: 0,
   scanResultSwipeStartY: 0,
   savedLeadSwipeStartX: 0,
@@ -725,6 +730,14 @@ function bindLeadMapEvents() {
 
   leadMapDom.savedPlaceTabsNext?.addEventListener("click", () => {
     scrollSavedPlaceTabs(1);
+  });
+
+  leadMapDom.savedUseMyLocationButton?.addEventListener("click", async () => {
+    await useSavedLeadCurrentLocation();
+  });
+
+  leadMapDom.savedClearDistanceButton?.addEventListener("click", () => {
+    clearSavedLeadDistanceSort();
   });
 
   leadMapDom.savedPlaceTabs?.addEventListener("scroll", () => {
@@ -2764,9 +2777,10 @@ function renderLeadMapBulkActions(filteredResults = getVisibleScanResults()) {
 }
 
 function renderSavedLeadBoard() {
+  renderSavedLeadDistanceSummary();
   renderSavedLeadStats();
 
-  const visibleSavedLeads = getSavedLeadsForActiveStatus().sort(compareSavedLeads);
+  const visibleSavedLeads = getSavedLeadsForActiveStatus().sort(compareSavedLeadDisplayOrder);
   const hierarchy = buildSavedLeadHierarchy(visibleSavedLeads);
   syncSavedLeadHierarchySelection(hierarchy);
   const activeLeads = getActiveSavedLeadSubset(hierarchy);
@@ -2905,7 +2919,7 @@ function renderSavedLeadStats() {
 }
 
 function renderSavedLeadList(
-  hierarchy = buildSavedLeadHierarchy(getSavedLeadsForActiveStatus().sort(compareSavedLeads)),
+  hierarchy = buildSavedLeadHierarchy(getSavedLeadsForActiveStatus().sort(compareSavedLeadDisplayOrder)),
   visibleLeads = getSavedLeadsForActiveStatus()
 ) {
   if (!leadMapDom.savedList || !leadMapDom.savedEmptyState) {
@@ -2963,6 +2977,8 @@ function renderSavedLeadList(
 }
 
 function buildSavedLeadCardMarkup(lead) {
+  const distanceLabel = formatSavedLeadDistanceLabel(lead);
+
   return `
     <article class="application-card saved-lead-card${lead.sourceKey === leadMapState.activeSavedLeadSourceKey ? " is-active" : ""}" data-saved-lead-card="${escapeAttribute(lead.sourceKey)}">
       <div class="application-card-head">
@@ -2970,6 +2986,7 @@ function buildSavedLeadCardMarkup(lead) {
           <p class="lead-result-category">${escapeHtml(lead.categoryLabel)}</p>
           <h3>${escapeHtml(lead.name)}</h3>
           <p class="application-meta">${escapeHtml(lead.address || lead.placeLabel || "Location details saved")}</p>
+          ${distanceLabel ? `<p class="application-meta">${escapeHtml(distanceLabel)} away from your current location</p>` : ""}
         </div>
         <span class="status-pill lead-category-pill" style="--lead-pill:${escapeAttribute(LEAD_CATEGORY_CONFIG[lead.category]?.color || "#2f6b50")}">${escapeHtml(humanizeLeadValue(lead.status))}</span>
       </div>
@@ -3131,11 +3148,12 @@ function renderSavedLeadTabs(hierarchy) {
     .map((group) => `
       <button
         type="button"
-        class="workspace-tab${group.key === leadMapState.activeSavedPlace ? " is-active" : ""}"
+        class="workspace-tab lead-saved-place-tab${group.key === leadMapState.activeSavedPlace ? " is-active" : ""}"
         data-saved-place-tab="${escapeAttribute(group.key)}"
         aria-selected="${group.key === leadMapState.activeSavedPlace ? "true" : "false"}"
       >
-        ${escapeHtml(group.place)} (${escapeHtml(String(group.leads.length))})
+        <span class="lead-saved-place-tab-label">${escapeHtml(group.place)} (${escapeHtml(String(group.leads.length))})</span>
+        ${group.distanceLabel ? `<span class="lead-saved-place-tab-meta">${escapeHtml(group.distanceLabel)}</span>` : ""}
       </button>
     `)
     .join("");
@@ -3172,7 +3190,8 @@ function renderSavedLeadScope(hierarchy) {
   }
 
   leadMapDom.savedScope.classList.remove("hidden");
-  leadMapDom.savedScope.textContent = `${activeCategory.label} · ${activePlace.place} · ${activePlace.leads.length} lead${activePlace.leads.length === 1 ? "" : "s"} in ${getLeadStatusLabel(leadMapState.activeSavedStatusView)}. Use the arrows or swipe to move one lead at a time.`;
+  const distanceHint = activePlace.distanceLabel ? ` Nearest lead is about ${activePlace.distanceLabel} from you.` : "";
+  leadMapDom.savedScope.textContent = `${activeCategory.label} · ${activePlace.place} · ${activePlace.leads.length} lead${activePlace.leads.length === 1 ? "" : "s"} in ${getLeadStatusLabel(leadMapState.activeSavedStatusView)}. Use the arrows or swipe to move one lead at a time.${distanceHint}`;
 }
 
 function getActiveSavedLeadSubset(hierarchy) {
@@ -3285,7 +3304,7 @@ function renderSavedLeadNavigator(activeLeads = [], activeLead = ensureActiveSav
 }
 
 function moveSavedLeadSelection(direction) {
-  const hierarchy = buildSavedLeadHierarchy(getSavedLeadsForActiveStatus().sort(compareSavedLeads));
+  const hierarchy = buildSavedLeadHierarchy(getSavedLeadsForActiveStatus().sort(compareSavedLeadDisplayOrder));
   const activeLeads = getActiveSavedLeadSubset(hierarchy);
 
   if (activeLeads.length <= 1) {
@@ -3389,9 +3408,14 @@ function groupSavedLeadsByPlace(leads) {
     .map(([place, groupedLeads]) => ({
       key: slugifyLeadMapValue(place),
       place,
-      leads: groupedLeads.sort(compareSavedLeads)
+      leads: groupedLeads.sort(compareSavedLeadDisplayOrder),
+      distanceMeters: getSavedPlaceDistanceMeters(groupedLeads)
     }))
-    .sort((left, right) => left.place.localeCompare(right.place));
+    .sort(compareSavedPlaceGroups)
+    .map((group) => ({
+      ...group,
+      distanceLabel: formatDistanceLabel(group.distanceMeters)
+    }));
 }
 
 function resolveLeadPlaceGroup(lead) {
@@ -3897,6 +3921,136 @@ function countByStatus(items) {
     counts[normalizedStatus] = (counts[normalizedStatus] || 0) + 1;
     return counts;
   }, {});
+}
+
+function getSavedLeadDistanceMeters(lead, origin = leadMapState.savedDistanceOrigin) {
+  if (!origin || !lead || !Number.isFinite(Number(lead.lat)) || !Number.isFinite(Number(lead.lon))) {
+    return Number.POSITIVE_INFINITY;
+  }
+
+  return haversineDistanceMeters(origin, {
+    lat: Number(lead.lat),
+    lng: Number(lead.lon)
+  });
+}
+
+function getSavedPlaceDistanceMeters(leads = []) {
+  if (!leadMapState.savedDistanceOrigin || !Array.isArray(leads) || leads.length === 0) {
+    return Number.POSITIVE_INFINITY;
+  }
+
+  return leads.reduce((nearest, lead) => Math.min(nearest, getSavedLeadDistanceMeters(lead)), Number.POSITIVE_INFINITY);
+}
+
+function compareSavedLeadDisplayOrder(left, right) {
+  const leftDistance = getSavedLeadDistanceMeters(left);
+  const rightDistance = getSavedLeadDistanceMeters(right);
+
+  if (Number.isFinite(leftDistance) || Number.isFinite(rightDistance)) {
+    if (!Number.isFinite(leftDistance)) {
+      return 1;
+    }
+
+    if (!Number.isFinite(rightDistance)) {
+      return -1;
+    }
+
+    if (Math.abs(leftDistance - rightDistance) > 1) {
+      return leftDistance - rightDistance;
+    }
+  }
+
+  return compareSavedLeads(left, right);
+}
+
+function compareSavedPlaceGroups(left, right) {
+  const leftDistance = Number.isFinite(left.distanceMeters) ? left.distanceMeters : Number.POSITIVE_INFINITY;
+  const rightDistance = Number.isFinite(right.distanceMeters) ? right.distanceMeters : Number.POSITIVE_INFINITY;
+
+  if (leftDistance !== rightDistance) {
+    return leftDistance - rightDistance;
+  }
+
+  return left.place.localeCompare(right.place);
+}
+
+function formatDistanceLabel(distanceMeters) {
+  if (!Number.isFinite(distanceMeters)) {
+    return "";
+  }
+
+  if (distanceMeters < 1000) {
+    return `${Math.max(1, Math.round(distanceMeters))} m`;
+  }
+
+  return `${(distanceMeters / 1000).toFixed(distanceMeters < 10000 ? 1 : 0)} km`;
+}
+
+function formatSavedLeadDistanceLabel(lead) {
+  return formatDistanceLabel(getSavedLeadDistanceMeters(lead));
+}
+
+async function useSavedLeadCurrentLocation() {
+  if (!navigator.geolocation) {
+    setLeadMapMessage("This browser does not support location access for sorting saved leads.", "error");
+    return;
+  }
+
+  setSavedLeadLocationButtonState(true);
+  setLeadMapMessage("Finding your current location to sort saved leads by distance...", "info");
+
+  try {
+    const position = await getLeadMapCurrentPosition();
+    leadMapState.savedDistanceOrigin = {
+      lat: Number(position.coords.latitude),
+      lng: Number(position.coords.longitude)
+    };
+    renderSavedLeadBoard();
+    setLeadMapMessage("Saved leads are now ordered from nearest to farthest from your current location.", "success");
+  } catch (error) {
+    setLeadMapMessage(error.message || "Your current location could not be used for saved leads.", "error");
+  } finally {
+    setSavedLeadLocationButtonState(false);
+  }
+}
+
+function clearSavedLeadDistanceSort() {
+  if (!leadMapState.savedDistanceOrigin) {
+    return;
+  }
+
+  leadMapState.savedDistanceOrigin = null;
+  renderSavedLeadBoard();
+  setLeadMapMessage("Saved leads returned to their regular workflow ordering.", "success");
+}
+
+function setSavedLeadLocationButtonState(isBusy) {
+  leadMapState.locatingSavedUserPosition = Boolean(isBusy);
+
+  if (leadMapDom.savedUseMyLocationButton) {
+    leadMapDom.savedUseMyLocationButton.disabled = Boolean(isBusy);
+    leadMapDom.savedUseMyLocationButton.textContent = isBusy ? "Locating..." : "Use my current location";
+  }
+
+  if (leadMapDom.savedClearDistanceButton) {
+    leadMapDom.savedClearDistanceButton.disabled = Boolean(isBusy) || !leadMapState.savedDistanceOrigin;
+  }
+}
+
+function renderSavedLeadDistanceSummary() {
+  if (!leadMapDom.savedDistanceSummary) {
+    return;
+  }
+
+  if (!leadMapState.savedDistanceOrigin) {
+    leadMapDom.savedDistanceSummary.textContent = "Distance order is off. Use your current location to sort places and leads from nearest to farthest.";
+  } else {
+    leadMapDom.savedDistanceSummary.textContent = "Distance order is on. Places and leads are sorted nearest first from your current location.";
+  }
+
+  if (leadMapDom.savedClearDistanceButton) {
+    leadMapDom.savedClearDistanceButton.disabled = leadMapState.locatingSavedUserPosition || !leadMapState.savedDistanceOrigin;
+  }
 }
 
 function buildSavedLeadDraftFromCard(sourceKey, statusOverride = "") {
