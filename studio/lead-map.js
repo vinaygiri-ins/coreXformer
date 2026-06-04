@@ -3204,6 +3204,12 @@ function focusSavedLeadOnReferenceMap(sourceKey) {
     return;
   }
 
+  if (normalizedSourceKey !== leadMapState.activeSavedLeadSourceKey) {
+    persistSavedLeadDraft(leadMapState.activeSavedLeadSourceKey, {
+      silent: true
+    });
+  }
+
   const marker = leadMapState.savedReferenceMarkerLookup.get(normalizedSourceKey);
   const lead = findSavedLead(normalizedSourceKey);
 
@@ -3329,6 +3335,9 @@ function setActiveSavedCategory(categoryKey) {
     return;
   }
 
+  persistSavedLeadDraft(leadMapState.activeSavedLeadSourceKey, {
+    silent: true
+  });
   leadMapState.activeSavedCategory = categoryKey;
   leadMapState.activeSavedPlace = "";
   leadMapState.activeSavedLeadSourceKey = "";
@@ -3342,6 +3351,9 @@ function setActiveSavedStatusView(statusKey) {
     return;
   }
 
+  persistSavedLeadDraft(leadMapState.activeSavedLeadSourceKey, {
+    silent: true
+  });
   leadMapState.activeSavedStatusView = normalizedStatus;
   leadMapState.activeSavedLeadSourceKey = "";
   renderSavedLeadBoard();
@@ -3352,6 +3364,9 @@ function setActiveSavedPlace(placeKey) {
     return;
   }
 
+  persistSavedLeadDraft(leadMapState.activeSavedLeadSourceKey, {
+    silent: true
+  });
   leadMapState.activeSavedPlace = placeKey;
   leadMapState.activeSavedLeadSourceKey = "";
   renderSavedLeadBoard();
@@ -3456,28 +3471,15 @@ function slugifyLeadMapValue(value) {
 }
 
 function saveLeadEdits(sourceKey) {
-  const card = leadMapDom.savedList?.querySelector(`[data-saved-lead-card="${cssEscape(sourceKey)}"]`);
-  const existing = findSavedLead(sourceKey);
+  const nextLead = persistSavedLeadDraft(sourceKey, {
+    rerenderBoard: true,
+    rerenderResults: true,
+    successMessage: "updated on your private lead board."
+  });
 
-  if (!card || !existing) {
-    return;
+  if (!nextLead) {
+    setLeadMapMessage("The lead notes could not be saved from this card right now.", "error");
   }
-
-  const nextLead = {
-    ...existing,
-    status: normalizeLeadStatus(card.querySelector('[data-saved-lead-field="status"]')?.value) || normalizeLeadStatus(existing.status),
-    priority: normalizeLeadValue(card.querySelector('[data-saved-lead-field="priority"]')?.value) || existing.priority,
-    contactPerson: normalizeLeadValue(card.querySelector('[data-saved-lead-field="contactPerson"]')?.value),
-    nextFollowUp: normalizeLeadValue(card.querySelector('[data-saved-lead-field="nextFollowUp"]')?.value),
-    notes: normalizeLeadValue(card.querySelector('[data-saved-lead-field="notes"]')?.value),
-    updatedAt: new Date().toISOString()
-  };
-
-  leadMapState.savedLeads = leadMapState.savedLeads.map((lead) => (lead.sourceKey === sourceKey ? nextLead : lead));
-  persistSavedLeads();
-  renderSavedLeadBoard();
-  renderLeadMapResults();
-  setLeadMapMessage(`${nextLead.name} has been updated on your private lead board.`, "success");
 }
 
 function updateSavedLeadStatus(sourceKey, nextStatus) {
@@ -3493,18 +3495,12 @@ function updateSavedLeadStatus(sourceKey, nextStatus) {
     return;
   }
 
-  leadMapState.savedLeads = leadMapState.savedLeads.map((item) => (
-    item.sourceKey === sourceKey
-      ? {
-          ...item,
-          status: normalizedStatus,
-          updatedAt: new Date().toISOString()
-        }
-      : item
-  ));
-  persistSavedLeads();
-  renderSavedLeadBoard();
-  setLeadMapMessage(`${lead.name} moved to ${humanizeLeadValue(normalizedStatus)}.`, "success");
+  persistSavedLeadDraft(sourceKey, {
+    statusOverride: normalizedStatus,
+    rerenderBoard: true,
+    rerenderResults: true,
+    successMessage: `moved to ${humanizeLeadValue(normalizedStatus)}.`
+  });
 }
 
 function removeSavedLead(sourceKey) {
@@ -3901,6 +3897,89 @@ function countByStatus(items) {
     counts[normalizedStatus] = (counts[normalizedStatus] || 0) + 1;
     return counts;
   }, {});
+}
+
+function buildSavedLeadDraftFromCard(sourceKey, statusOverride = "") {
+  const existing = findSavedLead(sourceKey);
+
+  if (!existing) {
+    return null;
+  }
+
+  const card = leadMapDom.savedList?.querySelector(`[data-saved-lead-card="${cssEscape(sourceKey)}"]`);
+
+  if (!card) {
+    return {
+      ...existing,
+      status: normalizeLeadStatus(statusOverride || existing.status)
+    };
+  }
+
+  return {
+    ...existing,
+    status: normalizeLeadStatus(statusOverride || card.querySelector('[data-saved-lead-field="status"]')?.value || existing.status),
+    priority: normalizeLeadValue(card.querySelector('[data-saved-lead-field="priority"]')?.value) || existing.priority,
+    contactPerson: normalizeLeadValue(card.querySelector('[data-saved-lead-field="contactPerson"]')?.value),
+    nextFollowUp: normalizeLeadValue(card.querySelector('[data-saved-lead-field="nextFollowUp"]')?.value),
+    notes: normalizeLeadValue(card.querySelector('[data-saved-lead-field="notes"]')?.value)
+  };
+}
+
+function savedLeadDraftHasChanges(existing, nextLead) {
+  if (!existing || !nextLead) {
+    return false;
+  }
+
+  return (
+    normalizeLeadStatus(existing.status) !== normalizeLeadStatus(nextLead.status) ||
+    normalizeLeadValue(existing.priority) !== normalizeLeadValue(nextLead.priority) ||
+    normalizeLeadValue(existing.contactPerson) !== normalizeLeadValue(nextLead.contactPerson) ||
+    normalizeLeadValue(existing.nextFollowUp) !== normalizeLeadValue(nextLead.nextFollowUp) ||
+    normalizeLeadValue(existing.notes) !== normalizeLeadValue(nextLead.notes)
+  );
+}
+
+function persistSavedLeadDraft(sourceKey, options = {}) {
+  const normalizedSourceKey = normalizeLeadValue(sourceKey);
+  const existing = findSavedLead(normalizedSourceKey);
+
+  if (!normalizedSourceKey || !existing) {
+    return null;
+  }
+
+  const nextLeadDraft = buildSavedLeadDraftFromCard(normalizedSourceKey, options.statusOverride);
+
+  if (!nextLeadDraft) {
+    return null;
+  }
+
+  if (!savedLeadDraftHasChanges(existing, nextLeadDraft)) {
+    return existing;
+  }
+
+  const nextLead = {
+    ...nextLeadDraft,
+    updatedAt: new Date().toISOString()
+  };
+
+  leadMapState.savedLeads = leadMapState.savedLeads.map((lead) => (
+    lead.sourceKey === normalizedSourceKey ? nextLead : lead
+  ));
+  persistSavedLeads();
+
+  if (options.rerenderBoard) {
+    renderSavedLeadBoard();
+  }
+
+  if (options.rerenderResults) {
+    renderLeadMapResults();
+  }
+
+  if (!options.silent && options.successMessage) {
+    setLeadMapMessage(`${nextLead.name} ${options.successMessage}`, "success");
+  }
+
+  return nextLead;
 }
 
 function getSavedLeadsForActiveStatus() {
