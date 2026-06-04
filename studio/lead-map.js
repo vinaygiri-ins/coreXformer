@@ -3153,7 +3153,11 @@ function renderSavedLeadTabs(hierarchy) {
         aria-selected="${group.key === leadMapState.activeSavedPlace ? "true" : "false"}"
       >
         <span class="lead-saved-place-tab-label">${escapeHtml(group.place)} (${escapeHtml(String(group.leads.length))})</span>
-        ${group.distanceLabel ? `<span class="lead-saved-place-tab-meta">${escapeHtml(group.distanceLabel)}</span>` : ""}
+        ${group.isAllPlaces
+          ? `<span class="lead-saved-place-tab-meta">${escapeHtml(`${group.placeCount || 0} places`)}</span>`
+          : group.distanceLabel
+            ? `<span class="lead-saved-place-tab-meta">${escapeHtml(group.distanceLabel)}</span>`
+            : ""}
       </button>
     `)
     .join("");
@@ -3190,8 +3194,9 @@ function renderSavedLeadScope(hierarchy) {
   }
 
   leadMapDom.savedScope.classList.remove("hidden");
-  const distanceHint = activePlace.distanceLabel ? ` Nearest lead is about ${activePlace.distanceLabel} from you.` : "";
-  leadMapDom.savedScope.textContent = `${activeCategory.label} · ${activePlace.place} · ${activePlace.leads.length} lead${activePlace.leads.length === 1 ? "" : "s"} in ${getLeadStatusLabel(leadMapState.activeSavedStatusView)}. Use the arrows or swipe to move one lead at a time.${distanceHint}`;
+  const distanceHint = !activePlace.isAllPlaces && activePlace.distanceLabel ? ` Nearest lead is about ${activePlace.distanceLabel} from you.` : "";
+  const allPlacesHint = activePlace.isAllPlaces ? ` across ${activePlace.placeCount || 0} place${activePlace.placeCount === 1 ? "" : "s"}` : "";
+  leadMapDom.savedScope.textContent = `${activeCategory.label} · ${activePlace.place} · ${activePlace.leads.length} lead${activePlace.leads.length === 1 ? "" : "s"} in ${getLeadStatusLabel(leadMapState.activeSavedStatusView)}${allPlacesHint}. Use the arrows or swipe to move one lead at a time.${distanceHint}`;
 }
 
 function getActiveSavedLeadSubset(hierarchy) {
@@ -3404,18 +3409,32 @@ function groupSavedLeadsByPlace(leads) {
     placeMap.get(place).push(lead);
   });
 
-  return Array.from(placeMap.entries())
+  const groupedPlaces = Array.from(placeMap.entries())
     .map(([place, groupedLeads]) => ({
       key: slugifyLeadMapValue(place),
       place,
       leads: groupedLeads.sort(compareSavedLeadDisplayOrder),
-      distanceMeters: getSavedPlaceDistanceMeters(groupedLeads)
+      distanceMeters: getSavedPlaceDistanceMeters(groupedLeads),
+      isAllPlaces: false
     }))
     .sort(compareSavedPlaceGroups)
     .map((group) => ({
       ...group,
       distanceLabel: formatDistanceLabel(group.distanceMeters)
     }));
+
+  return [
+    {
+      key: "all-places",
+      place: "All places",
+      leads: [...leads].sort(compareSavedLeadDisplayOrder),
+      distanceMeters: getSavedPlaceDistanceMeters(leads),
+      distanceLabel: "",
+      isAllPlaces: true,
+      placeCount: groupedPlaces.length
+    },
+    ...groupedPlaces
+  ];
 }
 
 function resolveLeadPlaceGroup(lead) {
