@@ -1398,6 +1398,24 @@ button:disabled {
   border-radius: 18px;
   border: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.92);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: border-color 180ms ease, background 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.lead-saved-stat-chip:hover {
+  border-color: rgba(47, 107, 80, 0.28);
+  box-shadow: 0 12px 24px rgba(47, 107, 80, 0.08);
+}
+
+.lead-saved-stat-chip.is-active {
+  border-color: rgba(47, 107, 80, 0.42);
+  background: rgba(47, 107, 80, 0.12);
+  box-shadow: 0 16px 28px rgba(47, 107, 80, 0.1);
+  transform: translateY(-1px);
 }
 
 .lead-saved-stat-chip span {

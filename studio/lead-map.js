@@ -277,6 +277,7 @@ const leadMapState = {
   hasScanned: false,
   savedLeads: loadLeadMapSavedState(),
   activeScanResultSourceKey: "",
+  activeSavedStatusView: "saved",
   activeSavedCategory: "",
   activeSavedPlace: "",
   activeSavedLeadSourceKey: "",
@@ -699,8 +700,14 @@ function bindLeadMapEvents() {
   });
 
   leadMapDom.savedPanel?.addEventListener("click", (event) => {
+    const statusButton = event.target.closest("[data-saved-status-tab]");
     const categoryButton = event.target.closest("[data-saved-category-tab]");
     const placeButton = event.target.closest("[data-saved-place-tab]");
+
+    if (statusButton) {
+      setActiveSavedStatusView(statusButton.dataset.savedStatusTab);
+      return;
+    }
 
     if (categoryButton) {
       setActiveSavedCategory(categoryButton.dataset.savedCategoryTab);
@@ -2759,7 +2766,8 @@ function renderLeadMapBulkActions(filteredResults = getVisibleScanResults()) {
 function renderSavedLeadBoard() {
   renderSavedLeadStats();
 
-  const hierarchy = buildSavedLeadHierarchy([...leadMapState.savedLeads].sort(compareSavedLeads));
+  const visibleSavedLeads = getSavedLeadsForActiveStatus().sort(compareSavedLeads);
+  const hierarchy = buildSavedLeadHierarchy(visibleSavedLeads);
   syncSavedLeadHierarchySelection(hierarchy);
   const activeLeads = getActiveSavedLeadSubset(hierarchy);
   syncActiveSavedLeadSelection(activeLeads);
@@ -2769,7 +2777,7 @@ function renderSavedLeadBoard() {
     activeLeads,
     getActiveSavedLeadScopeKey()
   );
-  renderSavedLeadList(hierarchy);
+  renderSavedLeadList(hierarchy, visibleSavedLeads);
 }
 
 function renderSavedLeadReferenceMap(leads = [], scopeKey = "") {
@@ -2871,26 +2879,35 @@ function renderSavedLeadStats() {
   leadMapDom.savedStats.classList.remove("hidden");
 
   const counts = countByStatus(leadMapState.savedLeads);
-  const statCards = [
-    { label: "Saved", value: String(leadMapState.savedLeads.length) },
-    { label: "In Hand", value: String(counts.in_hand || 0) },
-    { label: "In Progress", value: String(counts.in_progress || 0) },
-    { label: "Completed", value: String(counts.completed || 0) }
-  ];
+  const activeStatus = normalizeLeadStatus(leadMapState.activeSavedStatusView);
+  const statCards = LEAD_STATUS_OPTIONS.map((option) => ({
+    key: option.value,
+    label: option.label,
+    value: String(counts[option.value] || 0),
+    active: option.value === activeStatus
+  }));
 
   leadMapDom.savedStats.innerHTML = statCards
     .map(
       (item) => `
-        <div class="lead-saved-stat-chip">
+        <button
+          type="button"
+          class="lead-saved-stat-chip${item.active ? " is-active" : ""}"
+          data-saved-status-tab="${escapeAttribute(item.key)}"
+          aria-pressed="${item.active ? "true" : "false"}"
+        >
           <span>${escapeHtml(item.label)}</span>
           <strong>${escapeHtml(item.value)}</strong>
-        </div>
+        </button>
       `
     )
     .join("");
 }
 
-function renderSavedLeadList(hierarchy = buildSavedLeadHierarchy([...leadMapState.savedLeads].sort(compareSavedLeads))) {
+function renderSavedLeadList(
+  hierarchy = buildSavedLeadHierarchy(getSavedLeadsForActiveStatus().sort(compareSavedLeads)),
+  visibleLeads = getSavedLeadsForActiveStatus()
+) {
   if (!leadMapDom.savedList || !leadMapDom.savedEmptyState) {
     return;
   }
@@ -2903,14 +2920,27 @@ function renderSavedLeadList(hierarchy = buildSavedLeadHierarchy([...leadMapStat
   }
 
   leadMapDom.savedEmptyState.classList.add("hidden");
+
+  if (visibleLeads.length === 0) {
+    const activeStageLabel = getLeadStatusLabel(leadMapState.activeSavedStatusView);
+    leadMapDom.savedList.innerHTML = `
+      <div class="empty-state">
+        <h3>No leads in ${escapeHtml(activeStageLabel)} yet</h3>
+        <p>Move a saved institution into ${escapeHtml(activeStageLabel)} and it will appear here for focused follow-through.</p>
+      </div>
+    `;
+    renderSavedLeadNavigator([]);
+    return;
+  }
+
   const activeCategory = hierarchy.find((group) => group.key === leadMapState.activeSavedCategory) || null;
   const activePlace = activeCategory?.places.find((group) => group.key === leadMapState.activeSavedPlace) || null;
 
   if (!activeCategory || !activePlace) {
     leadMapDom.savedList.innerHTML = `
       <div class="empty-state">
-        <h3>No active saved lead group</h3>
-        <p>Choose a category and then a place to view the saved leads.</p>
+        <h3>No active lead group</h3>
+        <p>Choose a category and then a place to view the leads in this stage.</p>
       </div>
     `;
     renderSavedLeadNavigator([]);
@@ -3142,7 +3172,7 @@ function renderSavedLeadScope(hierarchy) {
   }
 
   leadMapDom.savedScope.classList.remove("hidden");
-  leadMapDom.savedScope.textContent = `${activeCategory.label} · ${activePlace.place} · ${activePlace.leads.length} saved lead${activePlace.leads.length === 1 ? "" : "s"}. Use the arrows or swipe to move one lead at a time.`;
+  leadMapDom.savedScope.textContent = `${activeCategory.label} · ${activePlace.place} · ${activePlace.leads.length} lead${activePlace.leads.length === 1 ? "" : "s"} in ${getLeadStatusLabel(leadMapState.activeSavedStatusView)}. Use the arrows or swipe to move one lead at a time.`;
 }
 
 function getActiveSavedLeadSubset(hierarchy) {
@@ -3152,11 +3182,11 @@ function getActiveSavedLeadSubset(hierarchy) {
 }
 
 function getActiveSavedLeadScopeKey() {
-  if (!leadMapState.activeSavedCategory || !leadMapState.activeSavedPlace) {
+  if (!leadMapState.activeSavedStatusView || !leadMapState.activeSavedCategory || !leadMapState.activeSavedPlace) {
     return "";
   }
 
-  return `${leadMapState.activeSavedCategory}:${leadMapState.activeSavedPlace}`;
+  return `${normalizeLeadStatus(leadMapState.activeSavedStatusView)}:${leadMapState.activeSavedCategory}:${leadMapState.activeSavedPlace}`;
 }
 
 function syncActiveSavedLeadSelection(activeLeads) {
@@ -3249,7 +3279,7 @@ function renderSavedLeadNavigator(activeLeads = [], activeLead = ensureActiveSav
 }
 
 function moveSavedLeadSelection(direction) {
-  const hierarchy = buildSavedLeadHierarchy([...leadMapState.savedLeads].sort(compareSavedLeads));
+  const hierarchy = buildSavedLeadHierarchy(getSavedLeadsForActiveStatus().sort(compareSavedLeads));
   const activeLeads = getActiveSavedLeadSubset(hierarchy);
 
   if (activeLeads.length <= 1) {
@@ -3301,6 +3331,18 @@ function setActiveSavedCategory(categoryKey) {
 
   leadMapState.activeSavedCategory = categoryKey;
   leadMapState.activeSavedPlace = "";
+  leadMapState.activeSavedLeadSourceKey = "";
+  renderSavedLeadBoard();
+}
+
+function setActiveSavedStatusView(statusKey) {
+  const normalizedStatus = normalizeLeadStatus(statusKey);
+
+  if (!normalizedStatus || normalizedStatus === leadMapState.activeSavedStatusView) {
+    return;
+  }
+
+  leadMapState.activeSavedStatusView = normalizedStatus;
   leadMapState.activeSavedLeadSourceKey = "";
   renderSavedLeadBoard();
 }
@@ -3859,6 +3901,15 @@ function countByStatus(items) {
     counts[normalizedStatus] = (counts[normalizedStatus] || 0) + 1;
     return counts;
   }, {});
+}
+
+function getSavedLeadsForActiveStatus() {
+  const activeStatus = normalizeLeadStatus(leadMapState.activeSavedStatusView);
+  return leadMapState.savedLeads.filter((lead) => normalizeLeadStatus(lead.status) === activeStatus);
+}
+
+function getLeadStatusLabel(statusKey) {
+  return LEAD_STATUS_OPTIONS.find((option) => option.value === normalizeLeadStatus(statusKey))?.label || humanizeLeadValue(statusKey);
 }
 
 function findSavedLead(sourceKey) {
