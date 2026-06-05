@@ -4163,6 +4163,37 @@ function buildLeadAppointmentEmailBody(draft) {
   ].filter(Boolean).join("\n");
 }
 
+function buildLeadEmailMailtoUrl(to, subject, body) {
+  return `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
+function buildLeadEmailGmailUrl(to, subject, body) {
+  const params = new URLSearchParams({
+    view: "cm",
+    fs: "1",
+    tf: "1",
+    to,
+    su: subject,
+    body
+  });
+
+  return `https://mail.google.com/mail/?${params.toString()}`;
+}
+
+function openLeadEmailComposer({ to, subject, body, successMessage, fallbackMessage }) {
+  const gmailUrl = buildLeadEmailGmailUrl(to, subject, body);
+  const gmailWindow = window.open(gmailUrl, "_blank", "noopener,noreferrer");
+
+  if (gmailWindow) {
+    setLeadMapMessage(successMessage, "success");
+    return;
+  }
+
+  const mailto = buildLeadEmailMailtoUrl(to, subject, body);
+  window.location.href = mailto;
+  setLeadMapMessage(fallbackMessage, "success");
+}
+
 function getLeadProposalDraftForAction(sourceKey) {
   const persistedLead = persistSavedLeadDraft(sourceKey, {
     silent: true
@@ -4220,9 +4251,13 @@ function openLeadAppointmentEmailDraft(sourceKey) {
     return;
   }
 
-  const mailto = `mailto:${encodeURIComponent(draft.lead.contactEmail)}?subject=${encodeURIComponent(draft.subject)}&body=${encodeURIComponent(buildLeadAppointmentEmailBody(draft))}`;
-  window.location.href = mailto;
-  setLeadMapMessage(`Appointment email draft opened for ${draft.lead.name}.`, "success");
+  openLeadEmailComposer({
+    to: draft.lead.contactEmail,
+    subject: draft.subject,
+    body: buildLeadAppointmentEmailBody(draft),
+    successMessage: `Appointment email draft opened for ${draft.lead.name}.`,
+    fallbackMessage: `Appointment email draft opened for ${draft.lead.name} using your default mail app.`
+  });
 }
 
 function markLeadAppointmentRequestSent(sourceKey) {
@@ -4318,9 +4353,13 @@ function openLeadProposalEmailDraft(sourceKey) {
     return;
   }
 
-  const mailto = `mailto:${encodeURIComponent(draft.lead.contactEmail)}?subject=${encodeURIComponent(draft.subject)}&body=${encodeURIComponent(buildLeadProposalEmailBody(draft))}`;
-  window.location.href = mailto;
-  setLeadMapMessage(`Email draft opened for ${draft.lead.name}. Attach the downloaded proposal before sending.`, "success");
+  openLeadEmailComposer({
+    to: draft.lead.contactEmail,
+    subject: draft.subject,
+    body: buildLeadProposalEmailBody(draft),
+    successMessage: `Proposal email draft opened for ${draft.lead.name}. Attach the downloaded proposal before sending.`,
+    fallbackMessage: `Proposal email draft opened for ${draft.lead.name} using your default mail app. Attach the downloaded proposal before sending.`
+  });
 }
 
 function markLeadProposalSent(sourceKey) {
