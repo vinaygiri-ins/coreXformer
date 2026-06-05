@@ -2478,7 +2478,7 @@ function clearGoogleLeadMarkers() {
 }
 
 function buildLeadResultCardMarkup(item) {
-  const isSaved = Boolean(findSavedLead(item.sourceKey));
+  const isSaved = Boolean(findSavedLeadForResult(item));
   const isSelected = leadMapState.selectedScanResultKeys.has(item.sourceKey);
   const contactRows = [
     item.address ? `<li><strong>Address</strong><span>${escapeHtml(item.address)}</span></li>` : "",
@@ -2675,11 +2675,11 @@ function saveLeadFromScan(sourceKey) {
 }
 
 function upsertSavedLeadFromScanResult(result) {
-  const existing = findSavedLead(result.sourceKey);
+  const existing = findSavedLeadForResult(result);
   const nextLead = {
-    sourceKey: result.sourceKey,
+    sourceKey: existing?.sourceKey || result.sourceKey,
     sourceProvider: result.sourceProvider || "osm",
-    placeId: result.placeId || "",
+    placeId: existing?.placeId || result.placeId || "",
     name: result.name,
     category: result.category,
     categoryLabel: result.categoryLabel,
@@ -2712,10 +2712,12 @@ function upsertSavedLeadFromScanResult(result) {
   };
 
   if (existing) {
-    leadMapState.savedLeads = leadMapState.savedLeads.map((lead) => (lead.sourceKey === result.sourceKey ? nextLead : lead));
+    leadMapState.savedLeads = leadMapState.savedLeads.map((lead) => (lead.sourceKey === existing.sourceKey ? nextLead : lead));
   } else {
     leadMapState.savedLeads = [nextLead, ...leadMapState.savedLeads];
   }
+
+  leadMapState.savedLeads = consolidateSavedLeads(leadMapState.savedLeads);
 
   persistSavedLeads();
   return {
@@ -4774,6 +4776,220 @@ function dedupeLeadResults(results) {
   return deduped;
 }
 
+function normalizeLeadMatchText(value) {
+  return normalizeLeadValue(value)
+    .toLowerCase()
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function buildLeadCoordinateFingerprint(lat, lon, precision = 3) {
+  const numericLat = Number(lat);
+  const numericLon = Number(lon);
+
+  if (!Number.isFinite(numericLat) || !Number.isFinite(numericLon)) {
+    return "";
+  }
+
+  return `${numericLat.toFixed(precision)}:${numericLon.toFixed(precision)}`;
+}
+
+function buildLeadIdentityKeys(item) {
+  if (!item) {
+    return [];
+  }
+
+  const keys = [];
+  const category = normalizeLeadMatchText(item.category || "general");
+  const sourceKey = normalizeLeadValue(item.sourceKey);
+  const placeId = normalizeLeadMatchText(item.placeId);
+  const website = normalizeLeadUrl(item.website).toLowerCase().replace(/\/+$/g, "");
+  const phone = normalizeLeadValue(item.phone).replace(/[^\d+]/g, "");
+  const name = normalizeLeadMatchText(item.name);
+  const address = normalizeLeadMatchText(item.address);
+  const placeLabel = normalizeLeadMatchText(item.placeLabel);
+  const coordinates = buildLeadCoordinateFingerprint(item.lat, item.lon);
+
+  if (sourceKey) {
+    keys.push(`source:${sourceKey}`);
+  }
+
+  if (placeId) {
+    keys.push(`place:${placeId}`);
+  }
+
+  if (website) {
+    keys.push(`site:${website}`);
+  }
+
+  if (phone) {
+    keys.push(`phone:${phone}`);
+  }
+
+  if (name && address) {
+    keys.push(`name-address:${category}:${name}:${address}`);
+  }
+
+  if (name && placeLabel) {
+    keys.push(`name-place:${category}:${name}:${placeLabel}`);
+  }
+
+  if (name && coordinates) {
+    keys.push(`name-coord:${category}:${name}:${coordinates}`);
+  }
+
+  return [...new Set(keys.filter(Boolean))];
+}
+
+function savedLeadMatchesIdentity(left, right) {
+  const leftKeys = buildLeadIdentityKeys(left);
+  const rightKeys = buildLeadIdentityKeys(right);
+
+  if (leftKeys.length === 0 || rightKeys.length === 0) {
+    return false;
+  }
+
+  const rightSet = new Set(rightKeys);
+  return leftKeys.some((key) => rightSet.has(key));
+}
+
+function getLeadStatusRank(status) {
+  const rank = {
+    saved: 0,
+    in_hand: 1,
+    in_progress: 2,
+    completed: 3
+  };
+
+  return rank[normalizeLeadStatus(status)] ?? 0;
+}
+
+function getLeadPriorityRank(priority) {
+  const rank = {
+    high: 3,
+    medium: 2,
+    low: 1
+  };
+
+  return rank[normalizeLeadValue(priority).toLowerCase()] ?? 0;
+}
+
+function selectPreferredLeadText(primary, secondary) {
+  const first = normalizeLeadValue(primary);
+  const second = normalizeLeadValue(secondary);
+
+  if (!first) {
+    return second;
+  }
+
+  if (!second) {
+    return first;
+  }
+
+  return second.length > first.length ? second : first;
+}
+
+function getSavedLeadRichnessScore(lead) {
+  return [
+    lead?.website,
+    lead?.phone,
+    lead?.email,
+    lead?.address,
+    lead?.notes,
+    lead?.contactPerson,
+    lead?.contactEmail,
+    lead?.appointmentContext,
+    lead?.proposalContext
+  ].reduce((score, value) => score + (normalizeLeadValue(value) ? 1 : 0), 0);
+}
+
+function getEarlierLeadDate(left, right) {
+  const leftTime = new Date(left || "").getTime();
+  const rightTime = new Date(right || "").getTime();
+
+  if (Number.isNaN(leftTime)) {
+    return right || "";
+  }
+
+  if (Number.isNaN(rightTime)) {
+    return left || "";
+  }
+
+  return leftTime <= rightTime ? left : right;
+}
+
+function getLaterLeadDate(left, right) {
+  const leftTime = new Date(left || "").getTime();
+  const rightTime = new Date(right || "").getTime();
+
+  if (Number.isNaN(leftTime)) {
+    return right || "";
+  }
+
+  if (Number.isNaN(rightTime)) {
+    return left || "";
+  }
+
+  return leftTime >= rightTime ? left : right;
+}
+
+function mergeSavedLeadRecords(left, right) {
+  const preferred = getSavedLeadRichnessScore(left) >= getSavedLeadRichnessScore(right) ? left : right;
+  const secondary = preferred === left ? right : left;
+
+  return {
+    ...secondary,
+    ...preferred,
+    sourceKey: normalizeLeadValue(left.sourceKey) || normalizeLeadValue(right.sourceKey),
+    sourceProvider: normalizeLeadValue(preferred.sourceProvider) || normalizeLeadValue(secondary.sourceProvider),
+    placeId: normalizeLeadValue(preferred.placeId) || normalizeLeadValue(secondary.placeId),
+    name: selectPreferredLeadText(left.name, right.name),
+    category: normalizeLeadValue(left.category) || normalizeLeadValue(right.category),
+    categoryLabel: selectPreferredLeadText(left.categoryLabel, right.categoryLabel),
+    address: selectPreferredLeadText(left.address, right.address),
+    website: normalizeLeadValue(left.website) || normalizeLeadValue(right.website),
+    phone: normalizeLeadValue(left.phone) || normalizeLeadValue(right.phone),
+    email: normalizeLeadValue(left.email) || normalizeLeadValue(right.email),
+    lat: Number.isFinite(Number(left.lat)) ? left.lat : right.lat,
+    lon: Number.isFinite(Number(left.lon)) ? left.lon : right.lon,
+    placeLabel: selectPreferredLeadText(left.placeLabel, right.placeLabel),
+    tagSummary: selectPreferredLeadText(left.tagSummary, right.tagSummary),
+    googleMapsUrl: normalizeLeadValue(left.googleMapsUrl) || normalizeLeadValue(right.googleMapsUrl),
+    osmUrl: normalizeLeadValue(left.osmUrl) || normalizeLeadValue(right.osmUrl),
+    status: getLeadStatusRank(left.status) >= getLeadStatusRank(right.status) ? normalizeLeadStatus(left.status) : normalizeLeadStatus(right.status),
+    priority: getLeadPriorityRank(left.priority) >= getLeadPriorityRank(right.priority) ? normalizeLeadValue(left.priority || "medium") : normalizeLeadValue(right.priority || "medium"),
+    contactPerson: selectPreferredLeadText(left.contactPerson, right.contactPerson),
+    contactEmail: normalizeLeadValue(left.contactEmail) || normalizeLeadValue(right.contactEmail),
+    nextFollowUp: normalizeLeadValue(left.nextFollowUp) || normalizeLeadValue(right.nextFollowUp),
+    notes: selectPreferredLeadText(left.notes, right.notes),
+    appointmentPurpose: selectPreferredLeadText(left.appointmentPurpose, right.appointmentPurpose),
+    appointmentContext: selectPreferredLeadText(left.appointmentContext, right.appointmentContext),
+    appointmentRequestedAt: getLaterLeadDate(left.appointmentRequestedAt, right.appointmentRequestedAt),
+    proposalAudience: selectPreferredLeadText(left.proposalAudience, right.proposalAudience),
+    proposalFocus: selectPreferredLeadText(left.proposalFocus, right.proposalFocus),
+    proposalDuration: selectPreferredLeadText(left.proposalDuration, right.proposalDuration),
+    proposalContext: selectPreferredLeadText(left.proposalContext, right.proposalContext),
+    proposalSentAt: getLaterLeadDate(left.proposalSentAt, right.proposalSentAt),
+    savedAt: getEarlierLeadDate(left.savedAt, right.savedAt) || new Date().toISOString(),
+    updatedAt: getLaterLeadDate(left.updatedAt, right.updatedAt) || new Date().toISOString()
+  };
+}
+
+function consolidateSavedLeads(leads = []) {
+  return leads.reduce((merged, lead) => {
+    const existingIndex = merged.findIndex((item) => savedLeadMatchesIdentity(item, lead));
+
+    if (existingIndex === -1) {
+      merged.push(lead);
+      return merged;
+    }
+
+    merged[existingIndex] = mergeSavedLeadRecords(merged[existingIndex], lead);
+    return merged;
+  }, []);
+}
+
 function countByCategory(items) {
   return items.reduce((counts, item) => {
     counts[item.category] = (counts[item.category] || 0) + 1;
@@ -5031,6 +5247,14 @@ function findSavedLead(sourceKey) {
   return leadMapState.savedLeads.find((lead) => lead.sourceKey === sourceKey) || null;
 }
 
+function findSavedLeadForResult(result) {
+  if (!result) {
+    return null;
+  }
+
+  return leadMapState.savedLeads.find((lead) => savedLeadMatchesIdentity(lead, result)) || null;
+}
+
 function compareSavedLeads(left, right) {
   const statusWeight = {
     saved: 0,
@@ -5080,10 +5304,10 @@ function loadLeadMapSavedState() {
       return [];
     }
 
-    return parsed.map((lead) => ({
+    return consolidateSavedLeads(parsed.map((lead) => ({
       ...lead,
       status: normalizeLeadStatus(lead?.status)
-    }));
+    })));
   } catch (error) {
     console.warn("CoreXformer lead map storage could not be read.", error);
     return [];
