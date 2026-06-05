@@ -687,9 +687,13 @@ function bindLeadMapEvents() {
   const saveButton = event.target.closest("[data-saved-lead-save]");
   const removeButton = event.target.closest("[data-saved-lead-remove]");
   const stageButton = event.target.closest("[data-saved-lead-stage]");
+  const copyAppointmentButton = event.target.closest("[data-saved-appointment-copy]");
+  const openAppointmentButton = event.target.closest("[data-saved-appointment-open]");
+  const markAppointmentButton = event.target.closest("[data-saved-appointment-mark]");
   const downloadProposalButton = event.target.closest("[data-saved-proposal-download]");
   const copyEmailButton = event.target.closest("[data-saved-email-copy]");
   const openEmailButton = event.target.closest("[data-saved-email-open]");
+  const markProposalButton = event.target.closest("[data-saved-proposal-mark]");
 
   if (saveButton) {
     saveLeadEdits(saveButton.dataset.savedLeadSave);
@@ -709,6 +713,21 @@ function bindLeadMapEvents() {
     return;
   }
 
+  if (copyAppointmentButton) {
+    copyLeadAppointmentEmailDraft(copyAppointmentButton.dataset.savedAppointmentCopy);
+    return;
+  }
+
+  if (openAppointmentButton) {
+    openLeadAppointmentEmailDraft(openAppointmentButton.dataset.savedAppointmentOpen);
+    return;
+  }
+
+  if (markAppointmentButton) {
+    markLeadAppointmentRequestSent(markAppointmentButton.dataset.savedAppointmentMark);
+    return;
+  }
+
   if (downloadProposalButton) {
     downloadLeadProposalDraft(downloadProposalButton.dataset.savedProposalDownload);
     return;
@@ -721,6 +740,11 @@ function bindLeadMapEvents() {
 
   if (openEmailButton) {
     openLeadProposalEmailDraft(openEmailButton.dataset.savedEmailOpen);
+    return;
+  }
+
+  if (markProposalButton) {
+    markLeadProposalSent(markProposalButton.dataset.savedProposalMark);
     return;
   }
 
@@ -2674,10 +2698,14 @@ function upsertSavedLeadFromScanResult(result) {
     contactEmail: existing?.contactEmail || result.email || "",
     nextFollowUp: existing?.nextFollowUp || "",
     notes: existing?.notes || "",
+    appointmentPurpose: existing?.appointmentPurpose || getDefaultLeadAppointmentPurpose(result.category),
+    appointmentContext: existing?.appointmentContext || "",
+    appointmentRequestedAt: existing?.appointmentRequestedAt || "",
     proposalAudience: existing?.proposalAudience || getDefaultLeadProposalAudience(result.category),
     proposalFocus: existing?.proposalFocus || getDefaultLeadProposalFocus(result.category),
     proposalDuration: existing?.proposalDuration || getDefaultLeadProposalDuration(result.category),
     proposalContext: existing?.proposalContext || "",
+    proposalSentAt: existing?.proposalSentAt || "",
     savedAt: existing?.savedAt || new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
@@ -3116,16 +3144,27 @@ function buildSavedLeadProposalMarkup(lead) {
     return "";
   }
 
-  const draft = buildLeadProposalDraftFromLead(lead);
+  const appointmentMarkup = buildSavedLeadAppointmentMarkup(lead);
+  const proposalMarkup = buildSavedLeadProposalRequestMarkup(lead);
+
+  return `
+    ${appointmentMarkup}
+    ${proposalMarkup}
+  `;
+}
+
+function buildSavedLeadAppointmentMarkup(lead) {
+  const draft = buildLeadAppointmentDraftFromLead(lead);
+  const sentLabel = lead.appointmentRequestedAt ? `Appointment request marked sent on ${formatLeadDate(lead.appointmentRequestedAt)}.` : "Send or draft the first email asking for a conversation on experiential learning.";
 
   return `
     <section class="lead-proposal-shell">
       <div class="lead-proposal-head">
         <div>
-          <p class="lead-saved-stage-label">Proposal automation</p>
-          <h4>Create a proposal and outreach email from this lead</h4>
+          <p class="lead-saved-stage-label">Appointment request</p>
+          <h4>Request a conversation before sharing the proposal</h4>
         </div>
-        <span class="status-pill">In Hand workflow</span>
+        <span class="status-pill">${lead.appointmentRequestedAt ? "Sent" : "Pending"}</span>
       </div>
 
       <div class="application-field-grid">
@@ -3135,26 +3174,81 @@ function buildSavedLeadProposalMarkup(lead) {
         </label>
 
         <label class="application-field-block">
+          <strong>Conversation focus</strong>
+          <input data-saved-lead-field="appointmentPurpose" type="text" value="${escapeAttribute(draft.purpose)}" placeholder="Experiential learning introduction, staff well-being, student connection...">
+        </label>
+      </div>
+
+      <label class="application-field-block">
+        <strong>Appointment context</strong>
+        <textarea data-saved-lead-field="appointmentContext" rows="3" placeholder="What should this first outreach acknowledge about the institution or why now is a meaningful time to connect?">${escapeHtml(draft.context)}</textarea>
+      </label>
+
+      <div class="lead-proposal-preview">
+        <div class="lead-proposal-preview-block">
+          <strong>Email subject</strong>
+          <p>${escapeHtml(draft.subject)}</p>
+        </div>
+        <div class="lead-proposal-preview-block">
+          <strong>Opening note</strong>
+          <p>${escapeHtml(draft.opening)}</p>
+        </div>
+      </div>
+
+      <div class="inline-action-group">
+        <button type="button" class="button button-ghost" data-saved-appointment-copy="${escapeAttribute(lead.sourceKey)}">Copy appointment email</button>
+        <button type="button" class="button button-muted" data-saved-appointment-open="${escapeAttribute(lead.sourceKey)}">Open appointment email</button>
+        <button type="button" class="button" data-saved-appointment-mark="${escapeAttribute(lead.sourceKey)}">${lead.appointmentRequestedAt ? "Update appointment sent" : "Mark appointment sent"}</button>
+      </div>
+
+      <p class="lead-proposal-footnote">Save lead details to refresh this preview. ${escapeHtml(sentLabel)}</p>
+    </section>
+  `;
+}
+
+function buildSavedLeadProposalRequestMarkup(lead) {
+  const unlocked = canLeadSendProposal(lead);
+  const draft = buildLeadProposalDraftFromLead(lead);
+
+  return `
+    <section class="lead-proposal-shell">
+      <div class="lead-proposal-head">
+        <div>
+          <p class="lead-saved-stage-label">Proposal request</p>
+          <h4>Share the formal experiential learning proposal</h4>
+        </div>
+        <span class="status-pill">${lead.proposalSentAt ? "Shared" : unlocked ? "Ready" : "Waiting"}</span>
+      </div>
+
+      ${!unlocked ? `
+        <div class="lead-proposal-gate">
+          <strong>Appointment request first</strong>
+          <p>Mark the appointment request as sent before preparing the proposal email. That keeps the lead workflow aligned with your real outreach sequence.</p>
+        </div>
+      ` : ""}
+
+      <div class="application-field-grid${unlocked ? "" : " is-disabled"}">
+        <label class="application-field-block">
           <strong>Audience</strong>
-          <input data-saved-lead-field="proposalAudience" type="text" value="${escapeAttribute(draft.audience)}" placeholder="Students, teachers, managers, officers...">
+          <input data-saved-lead-field="proposalAudience" type="text" value="${escapeAttribute(draft.audience)}" placeholder="Students, teachers, managers, officers..." ${unlocked ? "" : "disabled"}>
         </label>
 
         <label class="application-field-block">
           <strong>Session format</strong>
-          <select data-saved-lead-field="proposalDuration">
+          <select data-saved-lead-field="proposalDuration" ${unlocked ? "" : "disabled"}>
             ${buildSelectOptions(LEAD_PROPOSAL_DURATION_OPTIONS, draft.duration)}
           </select>
         </label>
 
         <label class="application-field-block">
           <strong>Primary focus</strong>
-          <input data-saved-lead-field="proposalFocus" type="text" value="${escapeAttribute(draft.focus)}" placeholder="Belonging, emotional agility, team connection...">
+          <input data-saved-lead-field="proposalFocus" type="text" value="${escapeAttribute(draft.focus)}" placeholder="Belonging, emotional agility, team connection..." ${unlocked ? "" : "disabled"}>
         </label>
       </div>
 
-      <label class="application-field-block">
+      <label class="application-field-block${unlocked ? "" : " is-disabled"}">
         <strong>Proposal context</strong>
-        <textarea data-saved-lead-field="proposalContext" rows="3" placeholder="What makes this institution important right now, and what should the opening note reference?">${escapeHtml(draft.context)}</textarea>
+        <textarea data-saved-lead-field="proposalContext" rows="3" placeholder="What makes this institution important right now, and what should the opening note reference?" ${unlocked ? "" : "disabled"}>${escapeHtml(draft.context)}</textarea>
       </label>
 
       <div class="lead-proposal-preview">
@@ -3175,12 +3269,13 @@ function buildSavedLeadProposalMarkup(lead) {
       </div>
 
       <div class="inline-action-group">
-        <button type="button" class="button" data-saved-proposal-download="${escapeAttribute(lead.sourceKey)}">Create proposal draft</button>
-        <button type="button" class="button button-ghost" data-saved-email-copy="${escapeAttribute(lead.sourceKey)}">Copy email draft</button>
-        <button type="button" class="button button-muted" data-saved-email-open="${escapeAttribute(lead.sourceKey)}">Open email draft</button>
+        <button type="button" class="button" data-saved-proposal-download="${escapeAttribute(lead.sourceKey)}" ${unlocked ? "" : "disabled"}>Create proposal draft</button>
+        <button type="button" class="button button-ghost" data-saved-email-copy="${escapeAttribute(lead.sourceKey)}" ${unlocked ? "" : "disabled"}>Copy proposal email</button>
+        <button type="button" class="button button-muted" data-saved-email-open="${escapeAttribute(lead.sourceKey)}" ${unlocked ? "" : "disabled"}>Open proposal email</button>
+        <button type="button" class="button button-muted" data-saved-proposal-mark="${escapeAttribute(lead.sourceKey)}" ${unlocked ? "" : "disabled"}>${lead.proposalSentAt ? "Update proposal shared" : "Mark proposal shared"}</button>
       </div>
 
-      <p class="lead-proposal-footnote">Save lead details to refresh the preview. This version prepares the proposal file and email draft from the lead card. Direct authenticated sending from your account can be added as the next secure backend step.</p>
+      <p class="lead-proposal-footnote">Save lead details to refresh this preview. This version prepares the proposal file and proposal email from the lead card. Direct authenticated sending from your account can be added as the next secure backend step.</p>
     </section>
   `;
 }
@@ -3706,6 +3801,23 @@ function getDefaultLeadProposalDuration(category) {
   return "3-hour experiential learning session";
 }
 
+function getDefaultLeadAppointmentPurpose(category) {
+  switch (category) {
+    case "schools":
+      return "an introductory conversation on experiential learning for students and school communities";
+    case "colleges":
+      return "an exploratory conversation on experiential learning for young adults and campus groups";
+    case "corporates":
+      return "a conversation on experiential learning for team development and emotional intelligence";
+    case "communities":
+      return "a conversation on experiential learning for community connection and reflection";
+    case "government":
+      return "a conversation on experiential learning for human-centered team development";
+    default:
+      return "a conversation on experiential learning";
+  }
+}
+
 function getLeadProposalObjectives(lead) {
   switch (lead.category) {
     case "schools":
@@ -3745,6 +3857,26 @@ function getLeadProposalObjectives(lead) {
         "Support clearer intention, presence, and collaborative energy"
       ];
   }
+}
+
+function canLeadSendProposal(lead) {
+  return Boolean(lead?.appointmentRequestedAt) || ["in_progress", "completed"].includes(normalizeLeadStatus(lead?.status));
+}
+
+function buildLeadAppointmentDraftFromLead(lead) {
+  const purpose = normalizeLeadValue(lead.appointmentPurpose) || getDefaultLeadAppointmentPurpose(lead.category);
+  const context = normalizeLeadValue(lead.appointmentContext) || normalizeLeadValue(lead.notes);
+  const contactName = normalizeLeadValue(lead.contactPerson) || `${lead.name} team`;
+
+  return {
+    lead,
+    purpose,
+    context,
+    contactName,
+    subject: `Request for a conversation on experiential learning | ${lead.name}`,
+    opening: `Dear ${contactName},\n\nWarm greetings. I’m reaching out to explore whether there may be space for ${purpose} at ${lead.name}.${context ? ` ${context}` : ""}`,
+    nextStep: "If this resonates, I would be glad to connect over a short call or meeting at a convenient time."
+  };
 }
 
 function buildLeadProposalDraftFromLead(lead) {
@@ -3843,6 +3975,26 @@ function buildLeadProposalEmailBody(draft) {
   ].filter(Boolean).join("\n");
 }
 
+function buildLeadAppointmentEmailBody(draft) {
+  return [
+    `Dear ${draft.contactName},`,
+    "",
+    "Warm greetings.",
+    "",
+    `I’m reaching out to explore whether there may be space for ${draft.purpose} at ${draft.lead.name}.`,
+    draft.context ? `Context note: ${draft.context}` : "",
+    "",
+    "My work is rooted in experiential learning and facilitated reflection, with sessions designed to help groups reconnect with self-awareness, emotional agility, and meaningful human connection.",
+    "",
+    draft.nextStep,
+    "",
+    "Warm regards,",
+    "Vinay Giri",
+    LEAD_PROPOSAL_CONTACT.phone,
+    LEAD_PROPOSAL_CONTACT.email
+  ].filter(Boolean).join("\n");
+}
+
 function getLeadProposalDraftForAction(sourceKey) {
   const persistedLead = persistSavedLeadDraft(sourceKey, {
     silent: true
@@ -3856,11 +4008,91 @@ function getLeadProposalDraftForAction(sourceKey) {
   return buildLeadProposalDraftFromLead(lead);
 }
 
+function getLeadAppointmentDraftForAction(sourceKey) {
+  const persistedLead = persistSavedLeadDraft(sourceKey, {
+    silent: true
+  });
+  const lead = persistedLead || buildSavedLeadDraftFromCard(sourceKey);
+
+  if (!lead) {
+    return null;
+  }
+
+  return buildLeadAppointmentDraftFromLead(lead);
+}
+
+async function copyLeadAppointmentEmailDraft(sourceKey) {
+  const draft = getLeadAppointmentDraftForAction(sourceKey);
+
+  if (!draft) {
+    setLeadMapMessage("The appointment request could not be prepared from this lead right now.", "error");
+    return;
+  }
+
+  const emailText = `Subject: ${draft.subject}\n\n${buildLeadAppointmentEmailBody(draft)}`;
+
+  try {
+    await navigator.clipboard.writeText(emailText);
+    setLeadMapMessage(`Appointment email copied for ${draft.lead.name}.`, "success");
+  } catch (error) {
+    setLeadMapMessage("The appointment email could not be copied to the clipboard on this browser.", "error");
+  }
+}
+
+function openLeadAppointmentEmailDraft(sourceKey) {
+  const draft = getLeadAppointmentDraftForAction(sourceKey);
+
+  if (!draft) {
+    setLeadMapMessage("The appointment request could not be opened from this lead right now.", "error");
+    return;
+  }
+
+  if (!normalizeLeadValue(draft.lead.contactEmail)) {
+    setLeadMapMessage("Add a destination email on the lead card before opening the appointment email.", "error");
+    return;
+  }
+
+  const mailto = `mailto:${encodeURIComponent(draft.lead.contactEmail)}?subject=${encodeURIComponent(draft.subject)}&body=${encodeURIComponent(buildLeadAppointmentEmailBody(draft))}`;
+  window.location.href = mailto;
+  setLeadMapMessage(`Appointment email draft opened for ${draft.lead.name}.`, "success");
+}
+
+function markLeadAppointmentRequestSent(sourceKey) {
+  const normalizedSourceKey = normalizeLeadValue(sourceKey);
+  const existing = findSavedLead(normalizedSourceKey);
+
+  if (!existing) {
+    return;
+  }
+
+  persistSavedLeadDraft(normalizedSourceKey, {
+    silent: true
+  });
+
+  leadMapState.savedLeads = leadMapState.savedLeads.map((lead) => (
+    lead.sourceKey === normalizedSourceKey
+      ? {
+          ...lead,
+          appointmentRequestedAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      : lead
+  ));
+  persistSavedLeads();
+  renderSavedLeadBoard();
+  setLeadMapMessage(`${existing.name} marked as appointment outreach sent.`, "success");
+}
+
 function downloadLeadProposalDraft(sourceKey) {
   const draft = getLeadProposalDraftForAction(sourceKey);
 
   if (!draft) {
     setLeadMapMessage("The proposal draft could not be created from this lead right now.", "error");
+    return;
+  }
+
+  if (!canLeadSendProposal(draft.lead)) {
+    setLeadMapMessage("Send or mark the appointment request first before creating the proposal package.", "error");
     return;
   }
 
@@ -3885,6 +4117,11 @@ async function copyLeadProposalEmailDraft(sourceKey) {
     return;
   }
 
+  if (!canLeadSendProposal(draft.lead)) {
+    setLeadMapMessage("Send or mark the appointment request first before copying the proposal email.", "error");
+    return;
+  }
+
   const emailText = `Subject: ${draft.subject}\n\n${buildLeadProposalEmailBody(draft)}`;
 
   try {
@@ -3903,6 +4140,11 @@ function openLeadProposalEmailDraft(sourceKey) {
     return;
   }
 
+  if (!canLeadSendProposal(draft.lead)) {
+    setLeadMapMessage("Send or mark the appointment request first before opening the proposal email.", "error");
+    return;
+  }
+
   if (!normalizeLeadValue(draft.lead.contactEmail)) {
     setLeadMapMessage("Add a destination email on the lead card before opening the email draft.", "error");
     return;
@@ -3911,6 +4153,37 @@ function openLeadProposalEmailDraft(sourceKey) {
   const mailto = `mailto:${encodeURIComponent(draft.lead.contactEmail)}?subject=${encodeURIComponent(draft.subject)}&body=${encodeURIComponent(buildLeadProposalEmailBody(draft))}`;
   window.location.href = mailto;
   setLeadMapMessage(`Email draft opened for ${draft.lead.name}. Attach the downloaded proposal before sending.`, "success");
+}
+
+function markLeadProposalSent(sourceKey) {
+  const normalizedSourceKey = normalizeLeadValue(sourceKey);
+  const existing = findSavedLead(normalizedSourceKey);
+
+  if (!existing) {
+    return;
+  }
+
+  if (!canLeadSendProposal(existing)) {
+    setLeadMapMessage("Send or mark the appointment request first before marking the proposal as shared.", "error");
+    return;
+  }
+
+  persistSavedLeadDraft(normalizedSourceKey, {
+    silent: true
+  });
+
+  leadMapState.savedLeads = leadMapState.savedLeads.map((lead) => (
+    lead.sourceKey === normalizedSourceKey
+      ? {
+          ...lead,
+          proposalSentAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      : lead
+  ));
+  persistSavedLeads();
+  renderSavedLeadBoard();
+  setLeadMapMessage(`${existing.name} marked as proposal shared.`, "success");
 }
 
 function removeSavedLead(sourceKey) {
@@ -4463,10 +4736,14 @@ function buildSavedLeadDraftFromCard(sourceKey, statusOverride = "") {
     contactEmail: normalizeLeadValue(card.querySelector('[data-saved-lead-field="contactEmail"]')?.value) || existing.contactEmail || "",
     nextFollowUp: normalizeLeadValue(card.querySelector('[data-saved-lead-field="nextFollowUp"]')?.value),
     notes: normalizeLeadValue(card.querySelector('[data-saved-lead-field="notes"]')?.value),
+    appointmentPurpose: normalizeLeadValue(card.querySelector('[data-saved-lead-field="appointmentPurpose"]')?.value) || existing.appointmentPurpose || "",
+    appointmentContext: normalizeLeadValue(card.querySelector('[data-saved-lead-field="appointmentContext"]')?.value) || existing.appointmentContext || "",
+    appointmentRequestedAt: existing.appointmentRequestedAt || "",
     proposalAudience: normalizeLeadValue(card.querySelector('[data-saved-lead-field="proposalAudience"]')?.value) || existing.proposalAudience || "",
     proposalFocus: normalizeLeadValue(card.querySelector('[data-saved-lead-field="proposalFocus"]')?.value) || existing.proposalFocus || "",
     proposalDuration: normalizeLeadValue(card.querySelector('[data-saved-lead-field="proposalDuration"]')?.value) || existing.proposalDuration || "",
-    proposalContext: normalizeLeadValue(card.querySelector('[data-saved-lead-field="proposalContext"]')?.value) || existing.proposalContext || ""
+    proposalContext: normalizeLeadValue(card.querySelector('[data-saved-lead-field="proposalContext"]')?.value) || existing.proposalContext || "",
+    proposalSentAt: existing.proposalSentAt || ""
   };
 }
 
@@ -4482,6 +4759,8 @@ function savedLeadDraftHasChanges(existing, nextLead) {
     normalizeLeadValue(existing.contactEmail) !== normalizeLeadValue(nextLead.contactEmail) ||
     normalizeLeadValue(existing.nextFollowUp) !== normalizeLeadValue(nextLead.nextFollowUp) ||
     normalizeLeadValue(existing.notes) !== normalizeLeadValue(nextLead.notes) ||
+    normalizeLeadValue(existing.appointmentPurpose) !== normalizeLeadValue(nextLead.appointmentPurpose) ||
+    normalizeLeadValue(existing.appointmentContext) !== normalizeLeadValue(nextLead.appointmentContext) ||
     normalizeLeadValue(existing.proposalAudience) !== normalizeLeadValue(nextLead.proposalAudience) ||
     normalizeLeadValue(existing.proposalFocus) !== normalizeLeadValue(nextLead.proposalFocus) ||
     normalizeLeadValue(existing.proposalDuration) !== normalizeLeadValue(nextLead.proposalDuration) ||

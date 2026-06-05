@@ -1656,6 +1656,25 @@ button:disabled {
   white-space: pre-line;
 }
 
+.lead-proposal-gate {
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px dashed rgba(139, 106, 27, 0.45);
+  background: rgba(244, 240, 232, 0.82);
+}
+
+.lead-proposal-gate p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.application-field-block.is-disabled {
+  opacity: 0.72;
+}
+
 .lead-proposal-attachment-list {
   margin: 0;
   padding-left: 18px;
