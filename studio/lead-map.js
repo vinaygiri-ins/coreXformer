@@ -113,6 +113,19 @@ const LEAD_PRIORITY_OPTIONS = [
   { value: "low", label: "Low" }
 ];
 
+const LEAD_PROPOSAL_DURATION_OPTIONS = [
+  { value: "3-hour experiential learning session", label: "3-hour session" },
+  { value: "2-hour experiential learning session", label: "2-hour session" },
+  { value: "60-minute session series", label: "60-minute series" },
+  { value: "Custom multi-session design", label: "Custom multi-session design" }
+];
+
+const LEAD_PROPOSAL_FACILITATOR_BRIEF = "I’m Lt. Commander Vinay Giri (Retd.), a Bangalore-based independent experiential learning consultant with over a decade of work across education, corporate learning, and facilitated group development.";
+const LEAD_PROPOSAL_CONTACT = {
+  phone: "+91 9679544267",
+  email: "vinaygiri.experiential@gmail.com"
+};
+
 const LEAD_OSM_ENTITY_TYPES = ["node", "way", "relation"];
 const LEAD_COLLEGE_NAME_PATTERN = /\b(college|university|campus|iit|iim|institute of technology|engineering college|business school|law school|polytechnic)\b/i;
 const LEAD_SCHOOL_NAME_PATTERN = /\b(school|academy|public school|high school|secondary school|senior secondary|kindergarten|play school)\b/i;
@@ -671,27 +684,45 @@ function bindLeadMapEvents() {
   }, { passive: true });
 
   leadMapDom.savedList?.addEventListener("click", (event) => {
-    const saveButton = event.target.closest("[data-saved-lead-save]");
-    const removeButton = event.target.closest("[data-saved-lead-remove]");
-    const stageButton = event.target.closest("[data-saved-lead-stage]");
+  const saveButton = event.target.closest("[data-saved-lead-save]");
+  const removeButton = event.target.closest("[data-saved-lead-remove]");
+  const stageButton = event.target.closest("[data-saved-lead-stage]");
+  const downloadProposalButton = event.target.closest("[data-saved-proposal-download]");
+  const copyEmailButton = event.target.closest("[data-saved-email-copy]");
+  const openEmailButton = event.target.closest("[data-saved-email-open]");
 
-    if (saveButton) {
-      saveLeadEdits(saveButton.dataset.savedLeadSave);
-      return;
-    }
+  if (saveButton) {
+    saveLeadEdits(saveButton.dataset.savedLeadSave);
+    return;
+  }
 
     if (removeButton) {
       removeSavedLead(removeButton.dataset.savedLeadRemove);
       return;
     }
 
-    if (stageButton) {
-      updateSavedLeadStatus(
-        stageButton.dataset.savedLeadSource,
-        stageButton.dataset.savedLeadStage
-      );
-      return;
-    }
+  if (stageButton) {
+    updateSavedLeadStatus(
+      stageButton.dataset.savedLeadSource,
+      stageButton.dataset.savedLeadStage
+    );
+    return;
+  }
+
+  if (downloadProposalButton) {
+    downloadLeadProposalDraft(downloadProposalButton.dataset.savedProposalDownload);
+    return;
+  }
+
+  if (copyEmailButton) {
+    copyLeadProposalEmailDraft(copyEmailButton.dataset.savedEmailCopy);
+    return;
+  }
+
+  if (openEmailButton) {
+    openLeadProposalEmailDraft(openEmailButton.dataset.savedEmailOpen);
+    return;
+  }
 
     if (event.target.closest("button, a, input, select, textarea, label")) {
       return;
@@ -2640,8 +2671,13 @@ function upsertSavedLeadFromScanResult(result) {
     status: normalizeLeadStatus(existing?.status) || "saved",
     priority: existing?.priority || "medium",
     contactPerson: existing?.contactPerson || "",
+    contactEmail: existing?.contactEmail || result.email || "",
     nextFollowUp: existing?.nextFollowUp || "",
     notes: existing?.notes || "",
+    proposalAudience: existing?.proposalAudience || getDefaultLeadProposalAudience(result.category),
+    proposalFocus: existing?.proposalFocus || getDefaultLeadProposalFocus(result.category),
+    proposalDuration: existing?.proposalDuration || getDefaultLeadProposalDuration(result.category),
+    proposalContext: existing?.proposalContext || "",
     savedAt: existing?.savedAt || new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
@@ -2978,6 +3014,7 @@ function renderSavedLeadList(
 
 function buildSavedLeadCardMarkup(lead) {
   const distanceLabel = formatSavedLeadDistanceLabel(lead);
+  const proposalMarkup = buildSavedLeadProposalMarkup(lead);
 
   return `
     <article class="application-card saved-lead-card${lead.sourceKey === leadMapState.activeSavedLeadSourceKey ? " is-active" : ""}" data-saved-lead-card="${escapeAttribute(lead.sourceKey)}">
@@ -3043,10 +3080,12 @@ function buildSavedLeadCardMarkup(lead) {
         <textarea data-saved-lead-field="notes" rows="4" placeholder="Why this organization matters, who to reach out to, and what kind of experiential work may resonate.">${escapeHtml(lead.notes || "")}</textarea>
       </label>
 
+      ${proposalMarkup}
+
       <div class="application-actions">
         <small class="application-meta">Saved ${escapeHtml(formatLeadDate(lead.savedAt))}${lead.updatedAt ? ` · updated ${escapeHtml(formatLeadDate(lead.updatedAt))}` : ""}</small>
         <div class="inline-action-group">
-          <button type="button" class="button" data-saved-lead-save="${escapeAttribute(lead.sourceKey)}">Save notes</button>
+          <button type="button" class="button" data-saved-lead-save="${escapeAttribute(lead.sourceKey)}">Save lead details</button>
           <button type="button" class="button button-muted" data-saved-lead-remove="${escapeAttribute(lead.sourceKey)}">Remove</button>
         </div>
       </div>
@@ -3070,6 +3109,80 @@ function buildSavedLeadStageButtonsMarkup(lead) {
       </button>
     `)
     .join("");
+}
+
+function buildSavedLeadProposalMarkup(lead) {
+  if (!shouldShowLeadProposalAutomation(lead)) {
+    return "";
+  }
+
+  const draft = buildLeadProposalDraftFromLead(lead);
+
+  return `
+    <section class="lead-proposal-shell">
+      <div class="lead-proposal-head">
+        <div>
+          <p class="lead-saved-stage-label">Proposal automation</p>
+          <h4>Create a proposal and outreach email from this lead</h4>
+        </div>
+        <span class="status-pill">In Hand workflow</span>
+      </div>
+
+      <div class="application-field-grid">
+        <label class="application-field-block">
+          <strong>Destination email</strong>
+          <input data-saved-lead-field="contactEmail" type="email" value="${escapeAttribute(lead.contactEmail || lead.email || "")}" placeholder="principal@school.org or hr@company.com">
+        </label>
+
+        <label class="application-field-block">
+          <strong>Audience</strong>
+          <input data-saved-lead-field="proposalAudience" type="text" value="${escapeAttribute(draft.audience)}" placeholder="Students, teachers, managers, officers...">
+        </label>
+
+        <label class="application-field-block">
+          <strong>Session format</strong>
+          <select data-saved-lead-field="proposalDuration">
+            ${buildSelectOptions(LEAD_PROPOSAL_DURATION_OPTIONS, draft.duration)}
+          </select>
+        </label>
+
+        <label class="application-field-block">
+          <strong>Primary focus</strong>
+          <input data-saved-lead-field="proposalFocus" type="text" value="${escapeAttribute(draft.focus)}" placeholder="Belonging, emotional agility, team connection...">
+        </label>
+      </div>
+
+      <label class="application-field-block">
+        <strong>Proposal context</strong>
+        <textarea data-saved-lead-field="proposalContext" rows="3" placeholder="What makes this institution important right now, and what should the opening note reference?">${escapeHtml(draft.context)}</textarea>
+      </label>
+
+      <div class="lead-proposal-preview">
+        <div class="lead-proposal-preview-block">
+          <strong>Email subject</strong>
+          <p>${escapeHtml(draft.subject)}</p>
+        </div>
+        <div class="lead-proposal-preview-block">
+          <strong>Opening note</strong>
+          <p>${escapeHtml(draft.opening)}</p>
+        </div>
+        <div class="lead-proposal-preview-block">
+          <strong>Suggested attachments</strong>
+          <ul class="lead-proposal-attachment-list">
+            ${draft.attachments.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+          </ul>
+        </div>
+      </div>
+
+      <div class="inline-action-group">
+        <button type="button" class="button" data-saved-proposal-download="${escapeAttribute(lead.sourceKey)}">Create proposal draft</button>
+        <button type="button" class="button button-ghost" data-saved-email-copy="${escapeAttribute(lead.sourceKey)}">Copy email draft</button>
+        <button type="button" class="button button-muted" data-saved-email-open="${escapeAttribute(lead.sourceKey)}">Open email draft</button>
+      </div>
+
+      <p class="lead-proposal-footnote">Save lead details to refresh the preview. This version prepares the proposal file and email draft from the lead card. Direct authenticated sending from your account can be added as the next secure backend step.</p>
+    </section>
+  `;
 }
 
 function buildSavedLeadHierarchy(sortedLeads) {
@@ -3544,6 +3657,260 @@ function updateSavedLeadStatus(sourceKey, nextStatus) {
     rerenderResults: true,
     successMessage: `moved to ${humanizeLeadValue(normalizedStatus)}.`
   });
+}
+
+function shouldShowLeadProposalAutomation(lead) {
+  const status = normalizeLeadStatus(lead?.status);
+  return status === "in_hand" || status === "in_progress";
+}
+
+function getDefaultLeadProposalAudience(category) {
+  switch (category) {
+    case "schools":
+      return "students and school teams";
+    case "colleges":
+      return "students and young adults";
+    case "corporates":
+      return "teams, managers, and professionals";
+    case "communities":
+      return "community participants and group leaders";
+    case "government":
+      return "officers, teams, and public-facing staff";
+    default:
+      return "participants";
+  }
+}
+
+function getDefaultLeadProposalFocus(category) {
+  switch (category) {
+    case "schools":
+      return "belonging, self-awareness, and emotional agility";
+    case "colleges":
+      return "reflection, clarity, confidence, and expression";
+    case "corporates":
+      return "team connection, communication, and emotional intelligence";
+    case "communities":
+      return "connection, trust, and reflective participation";
+    case "government":
+      return "human connection, emotional agility, and team responsiveness";
+    default:
+      return "self-awareness, reflection, and team connection";
+  }
+}
+
+function getDefaultLeadProposalDuration(category) {
+  if (category === "corporates" || category === "government") {
+    return "2-hour experiential learning session";
+  }
+
+  return "3-hour experiential learning session";
+}
+
+function getLeadProposalObjectives(lead) {
+  switch (lead.category) {
+    case "schools":
+      return [
+        "Create space for self-awareness, belonging, and emotional expression among students",
+        "Strengthen peer connection, empathy, and a healthier classroom atmosphere",
+        "Help learners reflect on energy, attention, and personal intention"
+      ];
+    case "colleges":
+      return [
+        "Build self-awareness, expression, and emotional agility in young adults",
+        "Support trust, reflection, and deeper connection across the student group",
+        "Create clarity around direction, collaboration, and presence"
+      ];
+    case "corporates":
+      return [
+        "Strengthen team connection, communication, and psychological safety",
+        "Create reflective space around emotional intelligence and working relationships",
+        "Support clearer intention, ownership, and collaborative effectiveness"
+      ];
+    case "communities":
+      return [
+        "Create a meaningful shared experience rooted in trust and participation",
+        "Support expression, reflection, and group cohesion",
+        "Help participants reconnect with collective purpose and local context"
+      ];
+    case "government":
+      return [
+        "Support self-awareness, composure, and emotional responsiveness in teams",
+        "Strengthen human connection and collaboration in public-facing work",
+        "Create reflective space for clarity, trust, and service orientation"
+      ];
+    default:
+      return [
+        "Create space for self-awareness and reflection",
+        "Strengthen trust, empathy, and group connection",
+        "Support clearer intention, presence, and collaborative energy"
+      ];
+  }
+}
+
+function buildLeadProposalDraftFromLead(lead) {
+  const audience = normalizeLeadValue(lead.proposalAudience) || getDefaultLeadProposalAudience(lead.category);
+  const focus = normalizeLeadValue(lead.proposalFocus) || getDefaultLeadProposalFocus(lead.category);
+  const duration = normalizeLeadValue(lead.proposalDuration) || getDefaultLeadProposalDuration(lead.category);
+  const context = normalizeLeadValue(lead.proposalContext) || normalizeLeadValue(lead.notes);
+  const contactName = normalizeLeadValue(lead.contactPerson) || `${lead.name} team`;
+  const summary = `This proposal outlines a ${duration.toLowerCase()} for ${audience} at ${lead.name}, designed around ${focus}. The session can be adapted to your group size, timing, and internal context so that the experience feels relevant, reflective, and actionable.`;
+  const opening = `Dear ${contactName},\n\nWarm greetings. Based on our interest in creating a meaningful experiential learning process for ${audience} at ${lead.name}, I’m sharing a proposal for a ${duration.toLowerCase()} focused on ${focus}.${context ? ` ${context}` : ""}`;
+  const nextStep = `If this direction feels aligned, I would be glad to schedule a short conversation to understand your participants, timing, and desired outcomes more closely.`;
+
+  return {
+    lead,
+    audience,
+    focus,
+    duration,
+    context,
+    contactName,
+    subject: `Proposal for Experiential Learning Session | ${lead.name}`,
+    opening,
+    summary,
+    objectives: getLeadProposalObjectives(lead),
+    nextStep,
+    attachments: [
+      `Proposal for ${lead.name}`,
+      "Facilitator profile / introduction note"
+    ]
+  };
+}
+
+function buildLeadProposalHtml(draft) {
+  const objectiveMarkup = draft.objectives.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+  const contextMarkup = draft.context ? `<p><strong>Context note:</strong> ${escapeHtml(draft.context)}</p>` : "";
+
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>${escapeHtml(draft.subject)}</title>
+  <style>
+    body { font-family: Georgia, serif; color: #1f2b24; margin: 48px auto; max-width: 820px; line-height: 1.65; padding: 0 28px; }
+    h1, h2, h3 { color: #2f6b50; margin-bottom: 12px; }
+    h1 { font-size: 32px; margin-top: 0; }
+    h2 { font-size: 20px; margin-top: 34px; border-top: 1px solid #d9ceb9; padding-top: 22px; }
+    .eyebrow { text-transform: uppercase; letter-spacing: 0.08em; font-size: 12px; font-weight: 700; color: #8b6a1b; }
+    .contact { margin: 16px 0 24px; font-size: 15px; }
+    ul { padding-left: 22px; }
+  </style>
+</head>
+<body>
+  <p class="eyebrow">Lead From Within</p>
+  <h1>Proposal for Experiential Learning Session</h1>
+  <p><strong>Institution:</strong> ${escapeHtml(draft.lead.name)}</p>
+  <p><strong>Audience:</strong> ${escapeHtml(draft.audience)}</p>
+  <p><strong>Suggested format:</strong> ${escapeHtml(draft.duration)}</p>
+  <p><strong>Primary focus:</strong> ${escapeHtml(draft.focus)}</p>
+
+  <h2>Facilitator brief</h2>
+  <p>${escapeHtml(LEAD_PROPOSAL_FACILITATOR_BRIEF)}</p>
+  <p class="contact">${escapeHtml(LEAD_PROPOSAL_CONTACT.phone)} · ${escapeHtml(LEAD_PROPOSAL_CONTACT.email)}</p>
+
+  <h2>Executive summary</h2>
+  <p>${escapeHtml(draft.summary)}</p>
+  ${contextMarkup}
+
+  <h2>Program objectives</h2>
+  <ul>${objectiveMarkup}</ul>
+
+  <h2>Suggested next step</h2>
+  <p>${escapeHtml(draft.nextStep)}</p>
+</body>
+</html>`;
+}
+
+function buildLeadProposalEmailBody(draft) {
+  return [
+    `Dear ${draft.contactName},`,
+    "",
+    "Warm greetings.",
+    "",
+    `Based on our interest in creating a meaningful experiential learning process for ${draft.audience} at ${draft.lead.name}, I’m sharing a proposal for a ${draft.duration.toLowerCase()} focused on ${draft.focus}.`,
+    draft.context ? `Context note: ${draft.context}` : "",
+    "",
+    draft.summary,
+    "",
+    "Suggested attachments:",
+    ...draft.attachments.map((item) => `- ${item}`),
+    "",
+    draft.nextStep,
+    "",
+    "Warm regards,",
+    "Vinay Giri",
+    LEAD_PROPOSAL_CONTACT.phone,
+    LEAD_PROPOSAL_CONTACT.email
+  ].filter(Boolean).join("\n");
+}
+
+function getLeadProposalDraftForAction(sourceKey) {
+  const persistedLead = persistSavedLeadDraft(sourceKey, {
+    silent: true
+  });
+  const lead = persistedLead || buildSavedLeadDraftFromCard(sourceKey);
+
+  if (!lead) {
+    return null;
+  }
+
+  return buildLeadProposalDraftFromLead(lead);
+}
+
+function downloadLeadProposalDraft(sourceKey) {
+  const draft = getLeadProposalDraftForAction(sourceKey);
+
+  if (!draft) {
+    setLeadMapMessage("The proposal draft could not be created from this lead right now.", "error");
+    return;
+  }
+
+  const html = buildLeadProposalHtml(draft);
+  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${slugifyLeadMapValue(draft.lead.name)}-proposal.html`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+  setLeadMapMessage(`Proposal draft created for ${draft.lead.name}.`, "success");
+}
+
+async function copyLeadProposalEmailDraft(sourceKey) {
+  const draft = getLeadProposalDraftForAction(sourceKey);
+
+  if (!draft) {
+    setLeadMapMessage("The email draft could not be prepared from this lead right now.", "error");
+    return;
+  }
+
+  const emailText = `Subject: ${draft.subject}\n\n${buildLeadProposalEmailBody(draft)}`;
+
+  try {
+    await navigator.clipboard.writeText(emailText);
+    setLeadMapMessage(`Email draft copied for ${draft.lead.name}.`, "success");
+  } catch (error) {
+    setLeadMapMessage("The email draft could not be copied to the clipboard on this browser.", "error");
+  }
+}
+
+function openLeadProposalEmailDraft(sourceKey) {
+  const draft = getLeadProposalDraftForAction(sourceKey);
+
+  if (!draft) {
+    setLeadMapMessage("The email draft could not be opened from this lead right now.", "error");
+    return;
+  }
+
+  if (!normalizeLeadValue(draft.lead.contactEmail)) {
+    setLeadMapMessage("Add a destination email on the lead card before opening the email draft.", "error");
+    return;
+  }
+
+  const mailto = `mailto:${encodeURIComponent(draft.lead.contactEmail)}?subject=${encodeURIComponent(draft.subject)}&body=${encodeURIComponent(buildLeadProposalEmailBody(draft))}`;
+  window.location.href = mailto;
+  setLeadMapMessage(`Email draft opened for ${draft.lead.name}. Attach the downloaded proposal before sending.`, "success");
 }
 
 function removeSavedLead(sourceKey) {
@@ -4093,8 +4460,13 @@ function buildSavedLeadDraftFromCard(sourceKey, statusOverride = "") {
     status: normalizeLeadStatus(statusOverride || card.querySelector('[data-saved-lead-field="status"]')?.value || existing.status),
     priority: normalizeLeadValue(card.querySelector('[data-saved-lead-field="priority"]')?.value) || existing.priority,
     contactPerson: normalizeLeadValue(card.querySelector('[data-saved-lead-field="contactPerson"]')?.value),
+    contactEmail: normalizeLeadValue(card.querySelector('[data-saved-lead-field="contactEmail"]')?.value) || existing.contactEmail || "",
     nextFollowUp: normalizeLeadValue(card.querySelector('[data-saved-lead-field="nextFollowUp"]')?.value),
-    notes: normalizeLeadValue(card.querySelector('[data-saved-lead-field="notes"]')?.value)
+    notes: normalizeLeadValue(card.querySelector('[data-saved-lead-field="notes"]')?.value),
+    proposalAudience: normalizeLeadValue(card.querySelector('[data-saved-lead-field="proposalAudience"]')?.value) || existing.proposalAudience || "",
+    proposalFocus: normalizeLeadValue(card.querySelector('[data-saved-lead-field="proposalFocus"]')?.value) || existing.proposalFocus || "",
+    proposalDuration: normalizeLeadValue(card.querySelector('[data-saved-lead-field="proposalDuration"]')?.value) || existing.proposalDuration || "",
+    proposalContext: normalizeLeadValue(card.querySelector('[data-saved-lead-field="proposalContext"]')?.value) || existing.proposalContext || ""
   };
 }
 
@@ -4107,8 +4479,13 @@ function savedLeadDraftHasChanges(existing, nextLead) {
     normalizeLeadStatus(existing.status) !== normalizeLeadStatus(nextLead.status) ||
     normalizeLeadValue(existing.priority) !== normalizeLeadValue(nextLead.priority) ||
     normalizeLeadValue(existing.contactPerson) !== normalizeLeadValue(nextLead.contactPerson) ||
+    normalizeLeadValue(existing.contactEmail) !== normalizeLeadValue(nextLead.contactEmail) ||
     normalizeLeadValue(existing.nextFollowUp) !== normalizeLeadValue(nextLead.nextFollowUp) ||
-    normalizeLeadValue(existing.notes) !== normalizeLeadValue(nextLead.notes)
+    normalizeLeadValue(existing.notes) !== normalizeLeadValue(nextLead.notes) ||
+    normalizeLeadValue(existing.proposalAudience) !== normalizeLeadValue(nextLead.proposalAudience) ||
+    normalizeLeadValue(existing.proposalFocus) !== normalizeLeadValue(nextLead.proposalFocus) ||
+    normalizeLeadValue(existing.proposalDuration) !== normalizeLeadValue(nextLead.proposalDuration) ||
+    normalizeLeadValue(existing.proposalContext) !== normalizeLeadValue(nextLead.proposalContext)
   );
 }
 

@@ -1613,6 +1613,66 @@ button:disabled {
   color: var(--accent);
 }
 
+.lead-proposal-shell {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  border-radius: 22px;
+  border: 1px solid rgba(47, 107, 80, 0.16);
+  background: linear-gradient(180deg, rgba(47, 107, 80, 0.06), rgba(255, 255, 255, 0.94));
+}
+
+.lead-proposal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.lead-proposal-head h4 {
+  margin: 6px 0 0;
+  font-size: 1.08rem;
+}
+
+.lead-proposal-preview {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(217, 206, 185, 0.92);
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.lead-proposal-preview-block {
+  display: grid;
+  gap: 6px;
+}
+
+.lead-proposal-preview-block p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.65;
+  white-space: pre-line;
+}
+
+.lead-proposal-attachment-list {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+}
+
+.lead-proposal-attachment-list li + li {
+  margin-top: 4px;
+}
+
+.lead-proposal-footnote {
+  margin: -2px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.65;
+}
+
 .saved-lead-card .application-card-head {
   align-items: flex-start;
 }
