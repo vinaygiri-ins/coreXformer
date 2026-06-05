@@ -3910,6 +3910,78 @@ function getLeadProposalObjectives(lead) {
   }
 }
 
+function getLeadAudienceExperienceLine(category, audience) {
+  switch (category) {
+    case "schools":
+      return `for ${audience}, where self-awareness, belonging, and healthier peer connection can be explored through shared experience`;
+    case "colleges":
+      return `for ${audience}, where reflection, expression, and a more conscious group culture can emerge through lived situations`;
+    case "corporates":
+      return `for ${audience}, where collaboration, emotional intelligence, and stronger working relationships can be explored in a more human way`;
+    case "communities":
+      return `for ${audience}, where trust, participation, and collective reflection can be strengthened through shared activity`;
+    case "government":
+      return `for ${audience}, where human-centered teamwork, composure, and service-oriented collaboration can be explored through experience`;
+    default:
+      return `for ${audience}, where awareness, reflection, and healthier group connection can emerge through shared experience`;
+  }
+}
+
+function getLeadAudienceReasonLine(category) {
+  switch (category) {
+    case "schools":
+      return "The intention is not only engagement, but helping students and school communities notice emotions, behavior, belonging, and shared responsibility in a safe and reflective space.";
+    case "colleges":
+      return "The intention is not only engagement, but helping young adults become more aware of themselves, understand one another more openly, and relate more consciously in shared spaces.";
+    case "corporates":
+      return "The intention is not only team engagement, but creating a space where patterns of communication, pressure, trust, and collaboration can become visible and more workable.";
+    case "communities":
+      return "The intention is not only participation, but helping people reconnect with one another through a process that invites openness, reflection, and collective meaning-making.";
+    case "government":
+      return "The intention is not only development activity, but creating a human space where teams can reflect on behavior, pressure, empathy, and service orientation in a more grounded way.";
+    default:
+      return "The intention is not only engagement, but creating a space where people can notice themselves, understand others, and learn through experience and reflection.";
+  }
+}
+
+function getLeadProposalSummaryLine(category, audience, focus, duration, leadName) {
+  switch (category) {
+    case "schools":
+      return `This proposal outlines a ${duration.toLowerCase()} for ${audience} at ${leadName}, designed around ${focus}, with the aim of creating a warm, activity-led, and reflective space where students can notice themselves, relate more honestly with others, and carry the learning back into school life.`;
+    case "colleges":
+      return `This proposal outlines a ${duration.toLowerCase()} for ${audience} at ${leadName}, designed around ${focus}, with the aim of helping participants move through experience, reflection, and shared insight rather than passive instruction alone.`;
+    case "corporates":
+      return `This proposal outlines a ${duration.toLowerCase()} for ${audience} at ${leadName}, designed around ${focus}, with the aim of strengthening team connection, emotional awareness, and more conscious collaboration through live shared situations.`;
+    case "communities":
+      return `This proposal outlines a ${duration.toLowerCase()} for ${audience} at ${leadName}, designed around ${focus}, with the aim of supporting participation, trust, and a stronger felt sense of connection through shared experience and guided reflection.`;
+    case "government":
+      return `This proposal outlines a ${duration.toLowerCase()} for ${audience} at ${leadName}, designed around ${focus}, with the aim of creating reflective space for human-centered teamwork, awareness under pressure, and more grounded collaboration.`;
+    default:
+      return `This proposal outlines a ${duration.toLowerCase()} for ${audience} at ${leadName}, designed around ${focus}, so the experience feels human, reflective, and meaningfully connected to real group life.`;
+  }
+}
+
+function getLeadSessionArcItems() {
+  return [
+    {
+      title: "Warm entry into the space",
+      detail: "The session opens with a human welcome, simple connection, and a non-judgmental tone so participants can arrive more openly."
+    },
+    {
+      title: "Shared activity with a common objective",
+      detail: "Participants enter an activity-led situation that invites coordination, attention, emotion, and real-time decision-making."
+    },
+    {
+      title: "What surfaces becomes visible",
+      detail: "Patterns around communication, hesitation, confidence, pressure, support, and participation begin to show themselves naturally."
+    },
+    {
+      title: "Guided reflection and meaningful takeaway",
+      detail: "The group pauses to reflect, understand what happened, and carry clearer awareness into future classrooms, teams, or shared situations."
+    }
+  ];
+}
+
 function canLeadSendProposal(lead) {
   return Boolean(lead?.appointmentRequestedAt) || ["in_progress", "completed"].includes(normalizeLeadStatus(lead?.status));
 }
@@ -3919,16 +3991,24 @@ function buildLeadAppointmentDraftFromLead(lead) {
   const context = normalizeLeadValue(lead.appointmentContext) || normalizeLeadValue(lead.notes);
   const contactName = normalizeLeadValue(lead.contactPerson) || `${lead.name} team`;
   const siteLinks = getLeadAudienceSiteLinks(lead.category);
+  const audience = normalizeLeadValue(lead.proposalAudience) || getDefaultLeadProposalAudience(lead.category);
+  const experienceLine = getLeadAudienceExperienceLine(lead.category, audience);
+  const reasonLine = getLeadAudienceReasonLine(lead.category);
+  const contextLine = context ? `I am reaching out with ${lead.name} in mind because ${context}` : "";
 
   return {
     lead,
     purpose,
     context,
+    audience,
     contactName,
+    experienceLine,
+    reasonLine,
+    contextLine,
     siteLinks,
-    subject: `Request for a conversation on experiential learning | ${lead.name}`,
-    opening: `Dear ${contactName},\n\nWarm greetings. I’m reaching out to explore whether there may be space for ${purpose} at ${lead.name}.${context ? ` ${context}` : ""}`,
-    nextStep: "If this resonates, I would be glad to connect over a short call or meeting at a convenient time."
+    subject: `Request for a conversation on experiential learning at ${lead.name}`,
+    opening: `Dear ${contactName},\n\nWarm greetings. I’m reaching out to explore whether there may be space for ${purpose} at ${lead.name}.\n\nAt CoreXformer, the work is activity-led and reflection-led rather than lecture-led, with sessions designed ${experienceLine}.`,
+    nextStep: "If this feels worth exploring, I would be glad to connect over a short call or meeting at a time that works for you."
   };
 }
 
@@ -3939,9 +4019,12 @@ function buildLeadProposalDraftFromLead(lead) {
   const context = normalizeLeadValue(lead.proposalContext) || normalizeLeadValue(lead.notes);
   const contactName = normalizeLeadValue(lead.contactPerson) || `${lead.name} team`;
   const siteLinks = getLeadAudienceSiteLinks(lead.category);
-  const summary = `This proposal outlines a ${duration.toLowerCase()} for ${audience} at ${lead.name}, designed around ${focus}. The session can be adapted to your group size, timing, and internal context so that the experience feels relevant, reflective, and actionable.`;
-  const opening = `Dear ${contactName},\n\nWarm greetings. Based on our interest in creating a meaningful experiential learning process for ${audience} at ${lead.name}, I’m sharing a proposal for a ${duration.toLowerCase()} focused on ${focus}.${context ? ` ${context}` : ""}`;
-  const nextStep = `If this direction feels aligned, I would be glad to schedule a short conversation to understand your participants, timing, and desired outcomes more closely.`;
+  const summary = getLeadProposalSummaryLine(lead.category, audience, focus, duration, lead.name);
+  const experienceLine = getLeadAudienceExperienceLine(lead.category, audience);
+  const reasonLine = getLeadAudienceReasonLine(lead.category);
+  const sessionArc = getLeadSessionArcItems();
+  const opening = `Dear ${contactName},\n\nWarm greetings. Following the initial outreach, I’m sharing a proposal for a ${duration.toLowerCase()} for ${audience} at ${lead.name}, centered on ${focus}.\n\n${summary}`;
+  const nextStep = "If this direction feels aligned, I would be glad to shape the session further around your participants, timing, and context through a short follow-up conversation.";
 
   return {
     lead,
@@ -3950,21 +4033,26 @@ function buildLeadProposalDraftFromLead(lead) {
     duration,
     context,
     contactName,
+    experienceLine,
+    reasonLine,
     siteLinks,
-    subject: `Proposal for Experiential Learning Session | ${lead.name}`,
+    subject: `Experiential learning proposal for ${lead.name}`,
     opening,
     summary,
     objectives: getLeadProposalObjectives(lead),
+    sessionArc,
     nextStep,
     attachments: [
       `Proposal for ${lead.name}`,
-      "Facilitator profile / introduction note"
+      "Facilitator introduction note",
+      "Relevant CoreXformer links"
     ]
   };
 }
 
 function buildLeadProposalHtml(draft) {
   const objectiveMarkup = draft.objectives.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+  const sessionArcMarkup = draft.sessionArc.map((item) => `<li><strong>${escapeHtml(item.title)}:</strong> ${escapeHtml(item.detail)}</li>`).join("");
   const contextMarkup = draft.context ? `<p><strong>Context note:</strong> ${escapeHtml(draft.context)}</p>` : "";
   const siteLinksMarkup = draft.siteLinks.map((item) => `<li><a href="${escapeAttribute(item.url)}">${escapeHtml(item.label)}</a></li>`).join("");
 
@@ -3984,8 +4072,8 @@ function buildLeadProposalHtml(draft) {
   </style>
 </head>
 <body>
-  <p class="eyebrow">Lead From Within</p>
-  <h1>Proposal for Experiential Learning Session</h1>
+  <p class="eyebrow">CoreXformer · Shared experience. Honest reflection.</p>
+  <h1>Experiential Learning Proposal</h1>
   <p><strong>Institution:</strong> ${escapeHtml(draft.lead.name)}</p>
   <p><strong>Audience:</strong> ${escapeHtml(draft.audience)}</p>
   <p><strong>Suggested format:</strong> ${escapeHtml(draft.duration)}</p>
@@ -3995,9 +4083,16 @@ function buildLeadProposalHtml(draft) {
   <p>${escapeHtml(LEAD_PROPOSAL_FACILITATOR_BRIEF)}</p>
   <p class="contact">${escapeHtml(LEAD_PROPOSAL_CONTACT.phone)} · ${escapeHtml(LEAD_PROPOSAL_CONTACT.email)}</p>
 
+  <h2>Why this proposal</h2>
+  <p>${escapeHtml(draft.reasonLine)}</p>
+
   <h2>Executive summary</h2>
   <p>${escapeHtml(draft.summary)}</p>
+  <p>${escapeHtml(`The experience is designed ${draft.experienceLine}.`)}</p>
   ${contextMarkup}
+
+  <h2>How the session works</h2>
+  <ul>${sessionArcMarkup}</ul>
 
   <h2>Program objectives</h2>
   <ul>${objectiveMarkup}</ul>
@@ -4017,10 +4112,14 @@ function buildLeadProposalEmailBody(draft) {
     "",
     "Warm greetings.",
     "",
-    `Based on our interest in creating a meaningful experiential learning process for ${draft.audience} at ${draft.lead.name}, I’m sharing a proposal for a ${draft.duration.toLowerCase()} focused on ${draft.focus}.`,
-    draft.context ? `Context note: ${draft.context}` : "",
+    `As a follow-up to the initial outreach, I’m sharing a proposal for a ${draft.duration.toLowerCase()} for ${draft.audience} at ${draft.lead.name}, centered on ${draft.focus}.`,
+    "",
+    draft.reasonLine,
     "",
     draft.summary,
+    "",
+    `The experience is designed ${draft.experienceLine}.`,
+    draft.context ? `Context note: ${draft.context}` : "",
     "",
     "Helpful links:",
     ...draft.siteLinks.map((item) => `- ${item.label}: ${item.url}`),
@@ -4044,9 +4143,13 @@ function buildLeadAppointmentEmailBody(draft) {
     "Warm greetings.",
     "",
     `I’m reaching out to explore whether there may be space for ${draft.purpose} at ${draft.lead.name}.`,
-    draft.context ? `Context note: ${draft.context}` : "",
     "",
-    "My work is rooted in experiential learning and facilitated reflection, with sessions designed to help groups reconnect with self-awareness, emotional agility, and meaningful human connection.",
+    `At CoreXformer, the work is activity-led and reflection-led rather than lecture-led, with sessions designed ${draft.experienceLine}.`,
+    "",
+    draft.reasonLine,
+    "",
+    draft.contextLine,
+    draft.context && !draft.contextLine ? `Context note: ${draft.context}` : "",
     "",
     "Helpful links:",
     ...draft.siteLinks.map((item) => `- ${item.label}: ${item.url}`),
