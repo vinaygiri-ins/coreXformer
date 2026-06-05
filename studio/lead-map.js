@@ -4252,16 +4252,13 @@ function openLeadAppointmentEmailDraft(sourceKey) {
     return;
   }
 
-  if (!normalizeLeadValue(draft.lead.contactEmail)) {
-    setLeadMapMessage("Add a destination email on the lead card before opening the appointment email.", "error");
-    return;
-  }
-
   openLeadEmailComposer({
-    to: draft.lead.contactEmail,
+    to: normalizeLeadValue(draft.lead.contactEmail),
     subject: draft.subject,
     body: buildLeadAppointmentEmailBody(draft),
-    fallbackMessage: `Appointment email draft opened for ${draft.lead.name} using your default mail app.`
+    fallbackMessage: normalizeLeadValue(draft.lead.contactEmail)
+      ? `Appointment email draft opened for ${draft.lead.name} using your default mail app.`
+      : `Appointment email draft opened for ${draft.lead.name}. Add the recipient inside your mail app before sending.`
   });
 }
 
@@ -4353,16 +4350,13 @@ function openLeadProposalEmailDraft(sourceKey) {
     return;
   }
 
-  if (!normalizeLeadValue(draft.lead.contactEmail)) {
-    setLeadMapMessage("Add a destination email on the lead card before opening the email draft.", "error");
-    return;
-  }
-
   openLeadEmailComposer({
-    to: draft.lead.contactEmail,
+    to: normalizeLeadValue(draft.lead.contactEmail),
     subject: draft.subject,
     body: buildLeadProposalEmailBody(draft),
-    fallbackMessage: `Proposal email draft opened for ${draft.lead.name} using your default mail app. Attach the downloaded proposal before sending.`
+    fallbackMessage: normalizeLeadValue(draft.lead.contactEmail)
+      ? `Proposal email draft opened for ${draft.lead.name} using your default mail app. Attach the downloaded proposal before sending.`
+      : `Proposal email draft opened for ${draft.lead.name}. Add the recipient and attach the downloaded proposal before sending.`
   });
 }
 
