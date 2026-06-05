@@ -125,6 +125,10 @@ const LEAD_PROPOSAL_CONTACT = {
   phone: "+91 9679544267",
   email: "vinaygiri.experiential@gmail.com"
 };
+const LEAD_EMAIL_SIGNATURE_LINES = [
+  "Lt. Commander Vinay Giri (Retd.)",
+  "Experiential Learning Consultant | Leadership Facilitator | Ex-Naval Officer"
+];
 const COREXFORMER_SITE_BASE_URL = "https://corexformer.pages.dev";
 
 const LEAD_OSM_ENTITY_TYPES = ["node", "way", "relation"];
@@ -4132,7 +4136,7 @@ function buildLeadProposalEmailBody(draft) {
     draft.nextStep,
     "",
     "Warm regards,",
-    "Vinay Giri",
+    ...LEAD_EMAIL_SIGNATURE_LINES,
     LEAD_PROPOSAL_CONTACT.phone,
     LEAD_PROPOSAL_CONTACT.email
   ].filter(Boolean).join("\n");
@@ -4159,7 +4163,7 @@ function buildLeadAppointmentEmailBody(draft) {
     draft.nextStep,
     "",
     "Warm regards,",
-    "Vinay Giri",
+    ...LEAD_EMAIL_SIGNATURE_LINES,
     LEAD_PROPOSAL_CONTACT.phone,
     LEAD_PROPOSAL_CONTACT.email
   ].filter(Boolean).join("\n");
@@ -4171,6 +4175,7 @@ function buildLeadEmailMailtoUrl(to, subject, body) {
 
 function buildLeadEmailGmailUrl(to, subject, body) {
   const params = new URLSearchParams({
+    authuser: LEAD_PROPOSAL_CONTACT.email,
     view: "cm",
     fs: "1",
     tf: "1",
