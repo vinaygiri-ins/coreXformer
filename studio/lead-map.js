@@ -4187,18 +4187,17 @@ function buildLeadEmailGmailUrl(to, subject, body) {
   return `https://mail.google.com/mail/?${params.toString()}`;
 }
 
-function openLeadEmailComposer({ to, subject, body, successMessage, fallbackMessage }) {
+function openLeadEmailComposer({ to, subject, body, fallbackMessage }) {
   const gmailUrl = buildLeadEmailGmailUrl(to, subject, body);
-  const gmailWindow = window.open(gmailUrl, "_blank", "noopener,noreferrer");
 
-  if (gmailWindow) {
-    setLeadMapMessage(successMessage, "success");
+  try {
+    window.location.assign(gmailUrl);
     return;
+  } catch (error) {
+    const mailto = buildLeadEmailMailtoUrl(to, subject, body);
+    window.location.href = mailto;
+    setLeadMapMessage(fallbackMessage, "success");
   }
-
-  const mailto = buildLeadEmailMailtoUrl(to, subject, body);
-  window.location.href = mailto;
-  setLeadMapMessage(fallbackMessage, "success");
 }
 
 function getLeadProposalDraftForAction(sourceKey) {
@@ -4262,7 +4261,6 @@ function openLeadAppointmentEmailDraft(sourceKey) {
     to: draft.lead.contactEmail,
     subject: draft.subject,
     body: buildLeadAppointmentEmailBody(draft),
-    successMessage: `Appointment email draft opened for ${draft.lead.name}.`,
     fallbackMessage: `Appointment email draft opened for ${draft.lead.name} using your default mail app.`
   });
 }
@@ -4364,7 +4362,6 @@ function openLeadProposalEmailDraft(sourceKey) {
     to: draft.lead.contactEmail,
     subject: draft.subject,
     body: buildLeadProposalEmailBody(draft),
-    successMessage: `Proposal email draft opened for ${draft.lead.name}. Attach the downloaded proposal before sending.`,
     fallbackMessage: `Proposal email draft opened for ${draft.lead.name} using your default mail app. Attach the downloaded proposal before sending.`
   });
 }
