@@ -1681,8 +1681,22 @@ button:disabled {
   color: var(--muted);
 }
 
+.lead-proposal-link-list {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+}
+
 .lead-proposal-attachment-list li + li {
   margin-top: 4px;
+}
+
+.lead-proposal-link-list li + li {
+  margin-top: 4px;
+}
+
+.lead-proposal-link-list a {
+  color: var(--accent);
 }
 
 .lead-proposal-footnote {

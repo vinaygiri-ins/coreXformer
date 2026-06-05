@@ -125,6 +125,7 @@ const LEAD_PROPOSAL_CONTACT = {
   phone: "+91 9679544267",
   email: "vinaygiri.experiential@gmail.com"
 };
+const COREXFORMER_SITE_BASE_URL = "https://corexformer.pages.dev";
 
 const LEAD_OSM_ENTITY_TYPES = ["node", "way", "relation"];
 const LEAD_COLLEGE_NAME_PATTERN = /\b(college|university|campus|iit|iim|institute of technology|engineering college|business school|law school|polytechnic)\b/i;
@@ -3193,6 +3194,12 @@ function buildSavedLeadAppointmentMarkup(lead) {
           <strong>Opening note</strong>
           <p>${escapeHtml(draft.opening)}</p>
         </div>
+        <div class="lead-proposal-preview-block">
+          <strong>Relevant site links</strong>
+          <ul class="lead-proposal-link-list">
+            ${draft.siteLinks.map((item) => `<li><a href="${escapeAttribute(item.url)}" target="_blank" rel="noreferrer">${escapeHtml(item.label)}</a></li>`).join("")}
+          </ul>
+        </div>
       </div>
 
       <div class="inline-action-group">
@@ -3264,6 +3271,12 @@ function buildSavedLeadProposalRequestMarkup(lead) {
           <strong>Suggested attachments</strong>
           <ul class="lead-proposal-attachment-list">
             ${draft.attachments.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+          </ul>
+        </div>
+        <div class="lead-proposal-preview-block">
+          <strong>Relevant site links</strong>
+          <ul class="lead-proposal-link-list">
+            ${draft.siteLinks.map((item) => `<li><a href="${escapeAttribute(item.url)}" target="_blank" rel="noreferrer">${escapeHtml(item.label)}</a></li>`).join("")}
           </ul>
         </div>
       </div>
@@ -3818,6 +3831,44 @@ function getDefaultLeadAppointmentPurpose(category) {
   }
 }
 
+function buildCorexformerSiteUrl(path = "/") {
+  const normalizedPath = String(path || "/").startsWith("/") ? String(path || "/") : `/${String(path || "/")}`;
+  return `${COREXFORMER_SITE_BASE_URL}${normalizedPath === "/index.html" ? "/" : normalizedPath}`;
+}
+
+function getLeadAudienceSiteLinks(category) {
+  const commonLinks = [
+    { label: "CoreXformer overview", url: buildCorexformerSiteUrl("/") },
+    { label: "Concept", url: buildCorexformerSiteUrl("/concept.html") },
+    { label: "Approach", url: buildCorexformerSiteUrl("/approach.html") }
+  ];
+
+  const categoryLinks = {
+    schools: [
+      { label: "School experiences", url: buildCorexformerSiteUrl("/products-schools.html") },
+      { label: "Belong & Connect", url: buildCorexformerSiteUrl("/product-belong-connect.html") }
+    ],
+    colleges: [
+      { label: "College experiences", url: buildCorexformerSiteUrl("/products-colleges.html") },
+      { label: "How it works", url: buildCorexformerSiteUrl("/how-it-works.html") }
+    ],
+    corporates: [
+      { label: "Corporate experiences", url: buildCorexformerSiteUrl("/products-corporates.html") },
+      { label: "Why it matters", url: buildCorexformerSiteUrl("/why-it-matters.html") }
+    ],
+    communities: [
+      { label: "Community experiences", url: buildCorexformerSiteUrl("/products-communities.html") },
+      { label: "How it works", url: buildCorexformerSiteUrl("/how-it-works.html") }
+    ],
+    government: [
+      { label: "Government experiences", url: buildCorexformerSiteUrl("/products-government.html") },
+      { label: "Why it matters", url: buildCorexformerSiteUrl("/why-it-matters.html") }
+    ]
+  };
+
+  return [...commonLinks, ...(categoryLinks[category] || [{ label: "Products", url: buildCorexformerSiteUrl("/products.html") }])];
+}
+
 function getLeadProposalObjectives(lead) {
   switch (lead.category) {
     case "schools":
@@ -3867,12 +3918,14 @@ function buildLeadAppointmentDraftFromLead(lead) {
   const purpose = normalizeLeadValue(lead.appointmentPurpose) || getDefaultLeadAppointmentPurpose(lead.category);
   const context = normalizeLeadValue(lead.appointmentContext) || normalizeLeadValue(lead.notes);
   const contactName = normalizeLeadValue(lead.contactPerson) || `${lead.name} team`;
+  const siteLinks = getLeadAudienceSiteLinks(lead.category);
 
   return {
     lead,
     purpose,
     context,
     contactName,
+    siteLinks,
     subject: `Request for a conversation on experiential learning | ${lead.name}`,
     opening: `Dear ${contactName},\n\nWarm greetings. I’m reaching out to explore whether there may be space for ${purpose} at ${lead.name}.${context ? ` ${context}` : ""}`,
     nextStep: "If this resonates, I would be glad to connect over a short call or meeting at a convenient time."
@@ -3885,6 +3938,7 @@ function buildLeadProposalDraftFromLead(lead) {
   const duration = normalizeLeadValue(lead.proposalDuration) || getDefaultLeadProposalDuration(lead.category);
   const context = normalizeLeadValue(lead.proposalContext) || normalizeLeadValue(lead.notes);
   const contactName = normalizeLeadValue(lead.contactPerson) || `${lead.name} team`;
+  const siteLinks = getLeadAudienceSiteLinks(lead.category);
   const summary = `This proposal outlines a ${duration.toLowerCase()} for ${audience} at ${lead.name}, designed around ${focus}. The session can be adapted to your group size, timing, and internal context so that the experience feels relevant, reflective, and actionable.`;
   const opening = `Dear ${contactName},\n\nWarm greetings. Based on our interest in creating a meaningful experiential learning process for ${audience} at ${lead.name}, I’m sharing a proposal for a ${duration.toLowerCase()} focused on ${focus}.${context ? ` ${context}` : ""}`;
   const nextStep = `If this direction feels aligned, I would be glad to schedule a short conversation to understand your participants, timing, and desired outcomes more closely.`;
@@ -3896,6 +3950,7 @@ function buildLeadProposalDraftFromLead(lead) {
     duration,
     context,
     contactName,
+    siteLinks,
     subject: `Proposal for Experiential Learning Session | ${lead.name}`,
     opening,
     summary,
@@ -3911,6 +3966,7 @@ function buildLeadProposalDraftFromLead(lead) {
 function buildLeadProposalHtml(draft) {
   const objectiveMarkup = draft.objectives.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
   const contextMarkup = draft.context ? `<p><strong>Context note:</strong> ${escapeHtml(draft.context)}</p>` : "";
+  const siteLinksMarkup = draft.siteLinks.map((item) => `<li><a href="${escapeAttribute(item.url)}">${escapeHtml(item.label)}</a></li>`).join("");
 
   return `<!doctype html>
 <html lang="en">
@@ -3948,6 +4004,9 @@ function buildLeadProposalHtml(draft) {
 
   <h2>Suggested next step</h2>
   <p>${escapeHtml(draft.nextStep)}</p>
+
+  <h2>Relevant CoreXformer links</h2>
+  <ul>${siteLinksMarkup}</ul>
 </body>
 </html>`;
 }
@@ -3962,6 +4021,9 @@ function buildLeadProposalEmailBody(draft) {
     draft.context ? `Context note: ${draft.context}` : "",
     "",
     draft.summary,
+    "",
+    "Helpful links:",
+    ...draft.siteLinks.map((item) => `- ${item.label}: ${item.url}`),
     "",
     "Suggested attachments:",
     ...draft.attachments.map((item) => `- ${item}`),
@@ -3985,6 +4047,9 @@ function buildLeadAppointmentEmailBody(draft) {
     draft.context ? `Context note: ${draft.context}` : "",
     "",
     "My work is rooted in experiential learning and facilitated reflection, with sessions designed to help groups reconnect with self-awareness, emotional agility, and meaningful human connection.",
+    "",
+    "Helpful links:",
+    ...draft.siteLinks.map((item) => `- ${item.label}: ${item.url}`),
     "",
     draft.nextStep,
     "",
