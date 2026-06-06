@@ -107,6 +107,15 @@ async function submitFeedback(supabase, feedbackForm, feedbackContext) {
     return;
   }
 
+  await window.COREXFORMER_ANALYTICS?.trackFormSuccess("session_feedback", {
+    formContext: payload.product_slug || payload.product_name || "feedback",
+    metadata: {
+      audienceType: payload.audience_type || null,
+      productSlug: payload.product_slug || null,
+      sharePublicly: payload.share_publicly
+    }
+  });
+
   feedbackForm.reset();
 
   const shareNameWrap = feedbackForm.querySelector("[data-share-name-wrap]");

@@ -17,6 +17,13 @@ const publicSupabase =
       })
     : null;
 
+const publicAnalytics = publicSupabase ? createCoreXformerAnalytics(publicSupabase) : createNoopAnalytics();
+window.COREXFORMER_ANALYTICS = publicAnalytics;
+
+if (publicAnalytics.isReady) {
+  void publicAnalytics.trackPageView();
+}
+
 if (navToggle && siteNav) {
   navToggle.addEventListener("click", () => {
     const isOpen = siteNav.classList.toggle("is-open");
@@ -29,6 +36,456 @@ if (navToggle && siteNav) {
       navToggle.setAttribute("aria-expanded", "false");
     });
   });
+}
+
+function createNoopAnalytics() {
+  return {
+    isReady: false,
+    async trackPageView() {},
+    async trackFormSuccess() {}
+  };
+}
+
+function createCoreXformerAnalytics(supabase) {
+  const sessionStorageKey = "corexformer.analytics.session.v1";
+  const sessionTimeoutMs = 30 * 60 * 1000;
+  const currentHost = window.location.hostname;
+  const searchEngines = [
+    { label: "Google", pattern: /(^|\.)google\./i, queryParams: ["q"] },
+    { label: "Bing", pattern: /(^|\.)bing\.com$/i, queryParams: ["q"] },
+    { label: "Yahoo", pattern: /(^|\.)search\.yahoo\./i, queryParams: ["p"] },
+    { label: "DuckDuckGo", pattern: /(^|\.)duckduckgo\.com$/i, queryParams: ["q"] },
+    { label: "Ecosia", pattern: /(^|\.)ecosia\.org$/i, queryParams: ["q"] },
+    { label: "Yandex", pattern: /(^|\.)yandex\./i, queryParams: ["text"] },
+    { label: "Baidu", pattern: /(^|\.)baidu\.com$/i, queryParams: ["wd", "word"] }
+  ];
+  const socialHosts = [
+    { label: "LinkedIn", pattern: /(^|\.)linkedin\.com$/i },
+    { label: "Instagram", pattern: /(^|\.)instagram\.com$/i },
+    { label: "Facebook", pattern: /(^|\.)facebook\.com$/i },
+    { label: "X", pattern: /(^|\.)x\.com$/i },
+    { label: "Twitter", pattern: /(^|\.)twitter\.com$/i },
+    { label: "WhatsApp", pattern: /(^|\.)whatsapp\.com$/i },
+    { label: "Telegram", pattern: /(^|\.)t\.me$/i }
+  ];
+
+  return {
+    isReady: true,
+    async trackPageView() {
+      const sessionContext = registerPageViewSession();
+      await insertAnalyticsEvent(
+        buildAnalyticsPayload(sessionContext, "page_view", null, {
+          metadata: {
+            pageIndex: sessionContext.pageIndex,
+            sessionStartedAt: toIsoString(sessionContext.startedAt)
+          }
+        })
+      );
+    },
+    async trackFormSuccess(formName, options = {}) {
+      const sessionContext = touchAnalyticsSession();
+      await insertAnalyticsEvent(
+        buildAnalyticsPayload(sessionContext, "form_submit", formName, options)
+      );
+    }
+  };
+
+  async function insertAnalyticsEvent(payload) {
+    const { error } = await supabase.from("website_analytics_events").insert([payload]);
+
+    if (error) {
+      console.warn("CoreXformer website analytics event could not be saved.", error);
+    }
+  }
+
+  function buildAnalyticsPayload(sessionContext, eventName, formName, options = {}) {
+    const normalizedPath = getAnalyticsPath();
+    const referrerInfo = getReferrerInfo();
+    const utm = getUtmParameters();
+
+    return {
+      session_id: sessionContext.id,
+      event_name: eventName,
+      page_path: normalizedPath,
+      page_slug: getPageSlug(normalizedPath),
+      page_title: sanitizeAnalyticsText(document.title),
+      full_url: window.location.href,
+      landing_path: sessionContext.landingPath,
+      previous_path: sessionContext.previousPath,
+      referrer: referrerInfo.rawReferrer,
+      referrer_host: referrerInfo.host,
+      referrer_type: referrerInfo.type,
+      search_engine: referrerInfo.searchEngine,
+      search_query: referrerInfo.searchQuery,
+      source_label: buildSourceLabel(referrerInfo, utm),
+      utm_source: utm.source,
+      utm_medium: utm.medium,
+      utm_campaign: utm.campaign,
+      utm_term: utm.term,
+      utm_content: utm.content,
+      device_type: getDeviceType(),
+      browser_name: getBrowserName(),
+      os_name: getOsName(),
+      screen_width: Number(window.innerWidth || window.screen?.width || 0) || null,
+      screen_height: Number(window.innerHeight || window.screen?.height || 0) || null,
+      language: sanitizeAnalyticsText(navigator.language),
+      timezone: sanitizeAnalyticsText(getViewerTimezone()),
+      form_name: formName,
+      form_context: sanitizeAnalyticsText(options.formContext),
+      metadata: buildAnalyticsMetadata(options.metadata, sessionContext)
+    };
+  }
+
+  function buildAnalyticsMetadata(metadata, sessionContext) {
+    const base = {
+      sessionStartedAt: toIsoString(sessionContext.startedAt)
+    };
+
+    if (typeof sessionContext.pageIndex === "number") {
+      base.pageIndex = sessionContext.pageIndex;
+    }
+
+    if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) {
+      return base;
+    }
+
+    return { ...base, ...metadata };
+  }
+
+  function getAnalyticsPath() {
+    return normalizeAnalyticsPath(window.location.pathname || "/");
+  }
+
+  function normalizeAnalyticsPath(pathname) {
+    const rawPath = sanitizeAnalyticsText(pathname) || "/";
+    let normalized = rawPath.replace(/\/index\.html$/i, "/").replace(/\.html$/i, "");
+
+    if (!normalized.startsWith("/")) {
+      normalized = `/${normalized}`;
+    }
+
+    if (normalized.length > 1 && normalized.endsWith("/")) {
+      normalized = normalized.slice(0, -1);
+    }
+
+    return normalized || "/";
+  }
+
+  function getPageSlug(pagePath) {
+    if (pagePath === "/") {
+      return "home";
+    }
+
+    const bits = pagePath.split("/").filter(Boolean);
+    return bits.length ? bits[bits.length - 1] : "home";
+  }
+
+  function getUtmParameters() {
+    const params = new URLSearchParams(window.location.search);
+
+    return {
+      source: sanitizeAnalyticsText(params.get("utm_source")),
+      medium: sanitizeAnalyticsText(params.get("utm_medium")),
+      campaign: sanitizeAnalyticsText(params.get("utm_campaign")),
+      term: sanitizeAnalyticsText(params.get("utm_term")),
+      content: sanitizeAnalyticsText(params.get("utm_content"))
+    };
+  }
+
+  function getReferrerInfo() {
+    const rawReferrer = sanitizeAnalyticsText(document.referrer);
+
+    if (!rawReferrer) {
+      return {
+        rawReferrer: null,
+        host: null,
+        type: "direct",
+        searchEngine: null,
+        searchQuery: null,
+        socialLabel: null
+      };
+    }
+
+    let url;
+
+    try {
+      url = new URL(rawReferrer);
+    } catch (_error) {
+      return {
+        rawReferrer,
+        host: null,
+        type: "referral",
+        searchEngine: null,
+        searchQuery: null,
+        socialLabel: null
+      };
+    }
+
+    const host = sanitizeAnalyticsText(url.hostname?.replace(/^www\./i, ""));
+
+    if (!host) {
+      return {
+        rawReferrer,
+        host: null,
+        type: "referral",
+        searchEngine: null,
+        searchQuery: null,
+        socialLabel: null
+      };
+    }
+
+    if (host === currentHost || host.endsWith(`.${currentHost}`)) {
+      return {
+        rawReferrer,
+        host,
+        type: "internal",
+        searchEngine: null,
+        searchQuery: null,
+        socialLabel: null
+      };
+    }
+
+    const matchedSearchEngine = searchEngines.find((entry) => entry.pattern.test(host));
+
+    if (matchedSearchEngine) {
+      return {
+        rawReferrer,
+        host,
+        type: "search",
+        searchEngine: matchedSearchEngine.label,
+        searchQuery: extractSearchQuery(url, matchedSearchEngine.queryParams),
+        socialLabel: null
+      };
+    }
+
+    const matchedSocial = socialHosts.find((entry) => entry.pattern.test(host));
+
+    if (matchedSocial) {
+      return {
+        rawReferrer,
+        host,
+        type: "social",
+        searchEngine: null,
+        searchQuery: null,
+        socialLabel: matchedSocial.label
+      };
+    }
+
+    return {
+      rawReferrer,
+      host,
+      type: "referral",
+      searchEngine: null,
+      searchQuery: null,
+      socialLabel: null
+    };
+  }
+
+  function extractSearchQuery(url, queryParams) {
+    for (const key of queryParams) {
+      const value = sanitizeAnalyticsText(url.searchParams.get(key));
+
+      if (value) {
+        return value;
+      }
+    }
+
+    return null;
+  }
+
+  function buildSourceLabel(referrerInfo, utm) {
+    if (utm.source) {
+      return [utm.source, utm.medium].filter(Boolean).join(" / ");
+    }
+
+    if (referrerInfo.type === "direct") {
+      return "Direct";
+    }
+
+    if (referrerInfo.type === "internal") {
+      return "Internal";
+    }
+
+    if (referrerInfo.type === "search") {
+      return referrerInfo.searchEngine ? `${referrerInfo.searchEngine} search` : "Search";
+    }
+
+    if (referrerInfo.type === "social") {
+      return referrerInfo.socialLabel || "Social";
+    }
+
+    return referrerInfo.host || "Referral";
+  }
+
+  function getDeviceType() {
+    const width = Number(window.innerWidth || window.screen?.width || 0);
+
+    if (width && width < 768) {
+      return "mobile";
+    }
+
+    if (width && width < 1100) {
+      return "tablet";
+    }
+
+    return "desktop";
+  }
+
+  function getBrowserName() {
+    const agent = navigator.userAgent || "";
+
+    if (/Edg\//.test(agent)) {
+      return "Edge";
+    }
+
+    if (/SamsungBrowser\//.test(agent)) {
+      return "Samsung Internet";
+    }
+
+    if (/OPR\//.test(agent)) {
+      return "Opera";
+    }
+
+    if (/Chrome\//.test(agent)) {
+      return "Chrome";
+    }
+
+    if (/Firefox\//.test(agent)) {
+      return "Firefox";
+    }
+
+    if (/Safari\//.test(agent) && !/Chrome\//.test(agent)) {
+      return "Safari";
+    }
+
+    return "Unknown";
+  }
+
+  function getOsName() {
+    const agent = navigator.userAgent || "";
+
+    if (/Android/i.test(agent)) {
+      return "Android";
+    }
+
+    if (/iPhone|iPad|iPod/i.test(agent)) {
+      return "iOS";
+    }
+
+    if (/Windows/i.test(agent)) {
+      return "Windows";
+    }
+
+    if (/Mac OS X/i.test(agent)) {
+      return "macOS";
+    }
+
+    if (/Linux/i.test(agent)) {
+      return "Linux";
+    }
+
+    return "Unknown";
+  }
+
+  function getViewerTimezone() {
+    try {
+      return Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+    } catch (_error) {
+      return "";
+    }
+  }
+
+  function registerPageViewSession() {
+    const session = ensureAnalyticsSession();
+    const previousPath = session.lastPath || null;
+    const nextPath = getAnalyticsPath();
+
+    session.pageCount = Number(session.pageCount || 0) + 1;
+    session.lastPath = nextPath;
+    session.lastActivityAt = Date.now();
+    writeAnalyticsSession(session);
+
+    return {
+      id: session.id,
+      startedAt: session.startedAt,
+      landingPath: session.landingPath,
+      previousPath,
+      pageIndex: session.pageCount
+    };
+  }
+
+  function touchAnalyticsSession() {
+    const session = ensureAnalyticsSession();
+    session.lastActivityAt = Date.now();
+    writeAnalyticsSession(session);
+
+    return {
+      id: session.id,
+      startedAt: session.startedAt,
+      landingPath: session.landingPath,
+      previousPath: session.lastPath || null,
+      pageIndex: Number(session.pageCount || 0)
+    };
+  }
+
+  function ensureAnalyticsSession() {
+    const now = Date.now();
+    const currentPath = getAnalyticsPath();
+    const existing = readAnalyticsSession();
+
+    if (!existing || !existing.id || !existing.startedAt || now - Number(existing.lastActivityAt || 0) > sessionTimeoutMs) {
+      const freshSession = {
+        id: createAnalyticsSessionId(),
+        startedAt: now,
+        lastActivityAt: now,
+        landingPath: currentPath,
+        lastPath: null,
+        pageCount: 0
+      };
+
+      writeAnalyticsSession(freshSession);
+      return freshSession;
+    }
+
+    return existing;
+  }
+
+  function readAnalyticsSession() {
+    try {
+      const raw = window.localStorage.getItem(sessionStorageKey);
+      return raw ? JSON.parse(raw) : null;
+    } catch (_error) {
+      return null;
+    }
+  }
+
+  function writeAnalyticsSession(session) {
+    try {
+      window.localStorage.setItem(sessionStorageKey, JSON.stringify(session));
+    } catch (_error) {
+      // Ignore storage errors and keep analytics non-blocking.
+    }
+  }
+
+  function createAnalyticsSessionId() {
+    return `cxs_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+  }
+
+  function toIsoString(value) {
+    if (!value) {
+      return null;
+    }
+
+    try {
+      return new Date(value).toISOString();
+    } catch (_error) {
+      return null;
+    }
+  }
+
+  function sanitizeAnalyticsText(value) {
+    return typeof value === "string" ? value.trim().slice(0, 400) || null : null;
+  }
 }
 
 tabButtons.forEach((button) => {
@@ -383,6 +840,15 @@ async function submitInquiry(supabase, form) {
     console.warn("CoreXformer inquiry submission failed.", error);
     return;
   }
+
+  await window.COREXFORMER_ANALYTICS?.trackFormSuccess("inquiry", {
+    formContext: payload.source_page,
+    metadata: {
+      audienceType: payload.audience_type || null,
+      interest: interestValue || null,
+      objective: objectiveValue || null
+    }
+  });
 
   form.reset();
   window.location.href = form.getAttribute("action") || "thank-you.html";

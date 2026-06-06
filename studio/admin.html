@@ -62,6 +62,7 @@
 
         <div class="workspace-tab-bar admin-module-tabs" role="tablist" aria-label="Admin modules">
           <button id="adminModuleFacilitator" type="button" class="workspace-tab is-active" data-admin-module="facilitator" role="tab" aria-selected="true">To Be Facilitator</button>
+          <button id="adminModuleInsights" type="button" class="workspace-tab" data-admin-module="insights" role="tab" aria-selected="false">Website Insights</button>
           <button id="adminModuleLeadMap" type="button" class="workspace-tab" data-admin-module="lead-map" data-owner-only="true" role="tab" aria-selected="false">Lead Map</button>
           <button type="button" class="workspace-tab is-disabled" data-admin-module="products" role="tab" aria-selected="false" disabled>Products <span class="tab-soon">Soon</span></button>
           <button type="button" class="workspace-tab is-disabled" data-admin-module="feedback" role="tab" aria-selected="false" disabled>Feedback <span class="tab-soon">Soon</span></button>
@@ -249,6 +250,169 @@
             <li><a href="/products.html">Review the products page for facilitator-product relationship context</a></li>
             <li><a href="https://github.com/vinaygiri-ins/coreXformer" target="_blank" rel="noreferrer">Open the GitHub source</a></li>
           </ul>
+        </article>
+      </section>
+
+      <section class="panel admin-module-shell hidden" data-admin-module-panel="insights">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Website Insights</p>
+            <h2>Observe how the public website is being discovered and used</h2>
+          </div>
+          <span class="status-pill">Admin module</span>
+        </div>
+
+        <div class="workspace-tab-bar admin-view-tabs" role="tablist" aria-label="Website insights views">
+          <button type="button" class="workspace-tab" data-admin-view="insights-overview" role="tab" aria-selected="false">Overview</button>
+          <button type="button" class="workspace-tab" data-admin-view="insights-pages" role="tab" aria-selected="false">Pages</button>
+          <button type="button" class="workspace-tab" data-admin-view="insights-sources" role="tab" aria-selected="false">Sources</button>
+          <button type="button" class="workspace-tab" data-admin-view="insights-journeys" role="tab" aria-selected="false">Journeys</button>
+          <button type="button" class="workspace-tab" data-admin-view="insights-forms" role="tab" aria-selected="false">Forms</button>
+        </div>
+
+        <div class="website-insights-toolbar">
+          <div class="workspace-tab-bar website-insights-range-tabs" role="tablist" aria-label="Website insights time range">
+            <button type="button" class="workspace-tab" data-insights-range="7" aria-selected="false">Last 7 days</button>
+            <button type="button" class="workspace-tab is-active" data-insights-range="30" aria-selected="true">Last 30 days</button>
+            <button type="button" class="workspace-tab" data-insights-range="90" aria-selected="false">Last 90 days</button>
+            <button type="button" class="workspace-tab" data-insights-range="all" aria-selected="false">All tracked</button>
+          </div>
+          <p id="websiteInsightsScope" class="lead-map-area-summary">Website insights will appear here once an admin session and tracking data are available.</p>
+        </div>
+
+        <div id="websiteInsightsMessage" class="message-banner hidden"></div>
+
+        <div class="notice-box">
+          <h3>Important boundary</h3>
+          <p>
+            This module is built as first-party anonymous insight tracking. It can show pages, sessions, entry sources,
+            visible search terms, and successful form movement, but it should not pretend to identify exact people.
+          </p>
+        </div>
+      </section>
+
+      <section class="studio-grid admin-view-panel hidden" data-admin-view-panel="insights-overview">
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Overview</p>
+              <h2>What is happening across the public site right now</h2>
+            </div>
+            <span class="status-pill">Anonymous signals</span>
+          </div>
+
+          <div id="websiteInsightsSummaryCards" class="pipeline-grid website-insights-summary-grid"></div>
+          <div id="websiteInsightsHighlights" class="path-grid website-insights-highlight-grid"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Recent activity</p>
+              <h2>Latest observed public page movement</h2>
+            </div>
+          </div>
+
+          <div id="websiteInsightsRecentList" class="collaboration-list website-insight-list"></div>
+        </article>
+      </section>
+
+      <section class="studio-grid admin-view-panel hidden" data-admin-view-panel="insights-pages">
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Pages</p>
+              <h2>Which public pages are being visited most</h2>
+            </div>
+          </div>
+
+          <div id="websiteInsightsPagesList" class="collaboration-list website-insight-list"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Landing pages</p>
+              <h2>Where public sessions begin most often</h2>
+            </div>
+          </div>
+
+          <div id="websiteInsightsLandingList" class="collaboration-list website-insight-list"></div>
+        </article>
+      </section>
+
+      <section class="studio-grid admin-view-panel hidden" data-admin-view-panel="insights-sources">
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Sources</p>
+              <h2>How people are reaching the website</h2>
+            </div>
+          </div>
+
+          <div id="websiteInsightsSourcesList" class="collaboration-list website-insight-list"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Search and locale signals</p>
+              <h2>Visible search terms and browser timezones</h2>
+            </div>
+          </div>
+
+          <div class="website-insights-stack">
+            <div id="websiteInsightsSearchList" class="collaboration-list website-insight-list"></div>
+            <div id="websiteInsightsTimezoneList" class="collaboration-list website-insight-list"></div>
+          </div>
+        </article>
+      </section>
+
+      <section class="studio-grid admin-view-panel hidden" data-admin-view-panel="insights-journeys">
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Common paths</p>
+              <h2>Repeated page journeys across sessions</h2>
+            </div>
+          </div>
+
+          <div id="websiteInsightsJourneysList" class="collaboration-list website-insight-list"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Recent sessions</p>
+              <h2>Latest anonymous session paths</h2>
+            </div>
+          </div>
+
+          <div id="websiteInsightsRecentSessionsList" class="collaboration-list website-insight-list"></div>
+        </article>
+      </section>
+
+      <section class="studio-grid admin-view-panel hidden" data-admin-view-panel="insights-forms">
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Successful forms</p>
+              <h2>What public forms are completing successfully</h2>
+            </div>
+          </div>
+
+          <div id="websiteInsightsFormsList" class="collaboration-list website-insight-list"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Conversion clues</p>
+              <h2>Which entry pages and sources are helping forms happen</h2>
+            </div>
+          </div>
+
+          <div id="websiteInsightsConversionList" class="collaboration-list website-insight-list"></div>
         </article>
       </section>
 
@@ -594,6 +758,7 @@
   <script src="config.js"></script>
   <script src="admin.js"></script>
   <script src="applications.js"></script>
+  <script src="website-insights.js"></script>
   <script src="lead-map.js"></script>
 </body>
 </html>

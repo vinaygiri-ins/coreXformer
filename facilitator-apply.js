@@ -88,6 +88,15 @@ async function submitFacilitatorApplication(form) {
     return;
   }
 
+  await window.COREXFORMER_ANALYTICS?.trackFormSuccess("facilitator_application", {
+    formContext: payload.source_page,
+    metadata: {
+      entryPath: normalizeValue(formData.get("entry_path")) || null,
+      audienceInterestCount: payload.audience_interest.length,
+      productInterestCount: payload.product_interest.length
+    }
+  });
+
   form.reset();
   showApplicationMessage(
     messageElement,

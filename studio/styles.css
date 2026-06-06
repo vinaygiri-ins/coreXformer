@@ -672,6 +672,55 @@ button:disabled {
   font-family: "Fraunces", serif;
 }
 
+.website-insights-toolbar,
+.website-insights-stack,
+.website-insight-list {
+  display: grid;
+  gap: 16px;
+}
+
+.website-insights-toolbar {
+  gap: 12px;
+}
+
+.website-insights-range-tabs {
+  margin-bottom: 0;
+}
+
+.website-insights-summary-grid {
+  margin-bottom: 18px;
+}
+
+.website-insight-summary-card strong {
+  font-size: clamp(1.45rem, 2vw, 2.2rem);
+  line-height: 1.1;
+}
+
+.website-insight-card {
+  gap: 8px;
+}
+
+.website-insight-card h3 {
+  margin-bottom: 6px;
+}
+
+.website-insight-card p {
+  margin: 0;
+}
+
+.website-insight-list-card {
+  display: grid;
+  gap: 10px;
+}
+
+.website-insight-list-card .thread-card-head {
+  margin-bottom: 0;
+}
+
+.website-insight-empty {
+  margin-top: 0;
+}
+
 .product-stats-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   margin-bottom: 20px;
@@ -1874,6 +1923,10 @@ button:disabled {
   }
 
   .pipeline-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .website-insights-summary-grid {
     grid-template-columns: 1fr;
   }
 

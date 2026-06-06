@@ -257,6 +257,10 @@ function setActiveModule(moduleKey) {
     adminState.activeView = "facilitator-overview";
   }
 
+  if (moduleKey === "insights" && !adminState.activeView.startsWith("insights-")) {
+    adminState.activeView = "insights-overview";
+  }
+
   if (moduleKey === "lead-map" && !adminState.activeView.startsWith("lead-map-")) {
     adminState.activeView = "lead-map-overview";
   }
@@ -315,6 +319,10 @@ function enforceAdminModuleAccess() {
 
   if (adminState.activeModule === "facilitator" && !adminState.activeView.startsWith("facilitator-")) {
     adminState.activeView = "facilitator-overview";
+  }
+
+  if (adminState.activeModule === "insights" && !adminState.activeView.startsWith("insights-")) {
+    adminState.activeView = "insights-overview";
   }
 
   if (adminState.activeModule === "lead-map" && !adminState.activeView.startsWith("lead-map-")) {
