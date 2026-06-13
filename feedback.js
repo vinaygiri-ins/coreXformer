@@ -66,57 +66,57 @@ function initCoreXformerFeedback() {
 const FEEDBACK_AUDIENCE_LIBRARY = {
   school: {
     label: "Schools",
-    title: "What school participants carried forward.",
+    title: "Reflections from school sessions.",
     summary:
-      "Use this view to see what school groups have felt, noticed, and carried forward after CoreXformer sessions.",
+      "Responses shared by school participants after CoreXformer sessions.",
     pageHref: "products-schools.html",
     pageLabel: "Explore school experiences"
   },
   college: {
     label: "Colleges",
-    title: "What college participants carried forward.",
+    title: "Reflections from college sessions.",
     summary:
-      "This space gathers publicly shared lines from college sessions where students reflected on belonging, behavior, goals, and group life.",
+      "Responses shared by college participants around belonging, behavior, goals, and group life.",
     pageHref: "products-colleges.html",
     pageLabel: "Explore college experiences"
   },
   corporate: {
     label: "Corporates",
-    title: "What corporate participants carried forward.",
+    title: "Reflections from corporate sessions.",
     summary:
-      "This view gathers reflections from workplace sessions around communication, ownership, feedback, collaboration, and leadership presence.",
+      "Responses shared by workplace teams around communication, ownership, collaboration, and leadership.",
     pageHref: "products-corporates.html",
     pageLabel: "Explore corporate experiences"
   },
   teacher: {
     label: "Teachers",
-    title: "What teacher groups carried forward.",
+    title: "Reflections from teacher groups.",
     summary:
-      "Teacher-focused reflections can help future schools understand what supported clarity, honesty, and shared educational purpose in the room.",
+      "Responses shared by teacher groups around classroom presence, connection, and shared educational purpose.",
     pageHref: "products-teachers.html",
     pageLabel: "Explore teacher experiences"
   },
   community: {
     label: "Communities",
-    title: "What community participants carried forward.",
+    title: "Reflections from community sessions.",
     summary:
-      "Community reflections surface how shared experiences shaped trust, dialogue, belonging, and everyday human connection.",
+      "Responses shared by community groups around trust, dialogue, belonging, and participation.",
     pageHref: "products-communities.html",
     pageLabel: "Explore community experiences"
   },
   government: {
     label: "Government",
-    title: "What government teams carried forward.",
+    title: "Reflections from government teams.",
     summary:
-      "This view is for future public-sector reflections around collaboration, human response, responsibility, and group movement inside institutions.",
+      "Responses shared by public teams around collaboration, responsibility, coordination, and human response inside institutions.",
     pageHref: "products-government.html",
     pageLabel: "Explore government experiences"
   },
   all: {
     label: "All reflections",
-    title: "Voices across different CoreXformer audiences.",
+    title: "Reflections across CoreXformer audiences.",
     summary:
-      "This combined wall shows publicly shared reflections from across schools, colleges, corporates, community groups, teachers, and other audiences.",
+      "Responses shared across schools, colleges, corporates, teachers, communities, and government teams.",
     pageHref: "",
     pageLabel: ""
   }
@@ -306,11 +306,7 @@ async function submitFeedback(supabase, feedbackForm, feedbackContext, feedbackS
 
   showFeedbackMessage(messageElement, "Saving your feedback...", "info");
 
-  const { error, usedLegacyFallback } = await insertFeedbackWithCompatibility(
-    supabase,
-    enhancedPayload,
-    basePayload
-  );
+  const { error } = await insertFeedbackWithCompatibility(supabase, enhancedPayload, basePayload);
 
   if (submitButton) {
     submitButton.disabled = false;
@@ -341,14 +337,12 @@ async function submitFeedback(supabase, feedbackForm, feedbackContext, feedbackS
   setupFeedbackAudienceHint();
 
   const successMessage = feedbackContext.productName
-    ? `Thank you. Your reflection for ${feedbackContext.productName} has been received and will help shape future sessions with more truth and care.`
-    : "Thank you. Your reflection has been received and will help shape future CoreXformer sessions with more care.";
+    ? `Thank you. Your reflection for ${feedbackContext.productName} has been received.`
+    : "Thank you. Your reflection has been received.";
 
   showFeedbackMessage(
     messageElement,
-    usedLegacyFallback
-      ? `${successMessage} The upgraded facilitator-impact fields are part of this preview and will be fully stored once the new feedback backend is switched on.`
-      : successMessage,
+    successMessage,
     "success"
   );
 
@@ -412,6 +406,8 @@ function renderFeedbackLibrary(feedbackState) {
   const config = FEEDBACK_AUDIENCE_LIBRARY[audienceKey] || FEEDBACK_AUDIENCE_LIBRARY.all;
   const allAudienceRows = filterRowsByAudience(feedbackState.rows, audienceKey);
   const publicRows = allAudienceRows.filter((row) => row.share_publicly);
+  const audiencePhrase =
+    audienceKey === "all" ? "across CoreXformer audiences" : `for ${config.label.toLowerCase()}`;
 
   const total = allAudienceRows.length;
   const safeAverage = average(allAudienceRows.map((row) => row.safe_space_rating));
@@ -428,9 +424,13 @@ function renderFeedbackLibrary(feedbackState) {
 
   const publicSummary = document.querySelector("[data-feedback-public-summary]");
   if (publicSummary) {
-    publicSummary.textContent = total
-      ? `${publicRows.length} publicly shareable reflection${publicRows.length === 1 ? "" : "s"} currently visible out of ${total} total reflection${total === 1 ? "" : "s"} for ${config.label.toLowerCase()}.`
-      : `No reflections have been received for ${config.label.toLowerCase()} yet. The first audience-specific voices will appear here once sessions are completed.`;
+    if (publicRows.length) {
+      publicSummary.textContent = `${publicRows.length} reflection${publicRows.length === 1 ? "" : "s"} shared publicly ${audiencePhrase}.`;
+    } else if (total) {
+      publicSummary.textContent = `Reflections have been received ${audiencePhrase}. Public entries will appear here when participants choose to share them.`;
+    } else {
+      publicSummary.textContent = `Public reflections ${audiencePhrase} will appear here as responses are received.`;
+    }
   }
 
   const audienceLink = document.querySelector("[data-feedback-audience-link]");
@@ -459,10 +459,11 @@ function renderFeedbackCards(rows, config, totalCount) {
   if (!rows.length) {
     const emptyCard = document.createElement("article");
     emptyCard.className = "reflection-card reflection-card-empty reflection-card-audience-empty";
+    const isAllAudience = config.label === "All reflections";
     emptyCard.innerHTML = `
       <p class="eyebrow">${escapeHtml(config.label)}</p>
-      <h3>${totalCount ? "Reflections exist for this audience, but none have been allowed for public sharing yet." : `The first ${escapeHtml(config.label.toLowerCase())} reflections will appear here.`}</h3>
-      <p>${totalCount ? "As soon as a participant allows a short line to be shared publicly, this audience wall will begin carrying those voices forward." : "Once sessions are completed and participants allow a short part of their reflection to appear publicly, this wall will begin filling up."}</p>
+      <h3>${totalCount ? "Reflections have been received for this audience." : isAllAudience ? "Public reflections will appear here." : `Public reflections for ${escapeHtml(config.label.toLowerCase())} will appear here.`}</h3>
+      <p>${totalCount ? "Public entries will appear here when participants choose to share them." : "Responses shared after sessions will appear here as they are received."}</p>
     `;
     grid.appendChild(emptyCard);
     return;
