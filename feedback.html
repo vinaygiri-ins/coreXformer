@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CoreXformer | Share Feedback</title>
+  <title>CoreXformer | Feedback and Session Reflections</title>
   <meta
     name="description"
-    content="Share your reflection after a CoreXformer session. Your feedback helps future participants, strengthens the process, and keeps the learning alive."
+    content="Browse audience-specific CoreXformer reflections and share feedback after a session through a richer reflection form."
   >
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=feedback-20260613">
 </head>
 <body data-page-slug="feedback">
   <header class="site-header">
@@ -38,13 +38,14 @@
         <a href="how-it-works.html">How It Works</a>
         <a href="why-it-matters.html">Why It Matters</a>
         <a href="feedback.html" class="is-current">Feedback</a>
+        <a href="studio/">Studio</a>
         <a href="index.html#contact" class="button button-small">Request a Call</a>
       </nav>
     </div>
   </header>
 
   <main>
-    <section class="page-hero" data-section-slug="page-hero">
+    <section class="page-hero" data-section-slug="feedback-hero">
       <div class="container page-hero-grid">
         <div class="page-intro">
           <div class="breadcrumb">
@@ -52,157 +53,345 @@
             <span>/</span>
             <span>Feedback</span>
           </div>
-          <p class="eyebrow">Post-session reflection</p>
-          <h1>Share what stayed with you after the session.</h1>
+          <p class="eyebrow">Session reflections and audience voices</p>
+          <h1>See what different groups carried forward, or add your own reflection after a session.</h1>
           <p class="hero-text">
-            If you recently joined a CoreXformer experience, this page is for you. A few honest reflections help us
-            understand what felt meaningful, what became visible, and what may continue to travel with you after the
-            session ends.
+            This page now does two things together. It helps institutions and future participants understand what has
+            stayed with schools, colleges, corporates, and other groups after a CoreXformer session, and it gives
+            recent participants a more thoughtful way to share what became visible for them.
           </p>
+          <div class="section-link-row">
+            <a class="button" href="#feedback-workspace">Browse reflections</a>
+            <a class="button button-ghost" href="#give-feedback">Give feedback after a session</a>
+          </div>
         </div>
 
         <aside class="quote-card">
           <blockquote>
-            “The activity may end in the moment. Reflection lets the learning keep moving.”
+            “The activity ends in the room. Reflection shows what kept moving afterward.”
           </blockquote>
-          <p>Your words help deepen the next session and keep this work grounded in lived experience.</p>
+          <p>
+            CoreXformer feedback is meant to capture both meaning and movement: what felt safe, what the facilitator
+            helped unlock, what the group saw more clearly, and what may continue into future behavior.
+          </p>
         </aside>
       </div>
     </section>
 
-    <section class="section">
-      <div class="container split-section feedback-entry-grid">
-        <article class="prose-card" data-section-slug="why-feedback-matters">
-          <p class="eyebrow">Why This Matters</p>
-          <h3>Feedback is part of the learning, not only a formality after it.</h3>
-          <p>
-            CoreXformer is built around noticing what becomes visible in a shared experience. Post-session reflection
-            helps that noticing continue. It tells us what felt alive, what supported safety, and what stayed with
-            participants after the session came to a close.
-          </p>
-          <div class="feedback-use-card">
-            <h4>How your response is used</h4>
-            <ul class="batch-points contact-points">
-              <li>It helps improve future sessions with more clarity and care.</li>
-              <li>It helps facilitators and school partners understand what stayed with the group.</li>
-              <li>Your words are only shown publicly if you explicitly allow it.</li>
-              <li>You do not need to share contact details to submit feedback here.</li>
-            </ul>
-          </div>
-        </article>
-
-        <article class="feedback-form-card">
-          <div class="panel-head feedback-form-head">
+    <section class="section section-tinted" id="feedback-workspace">
+      <div class="container">
+        <div class="feedback-module-shell">
+          <div class="feedback-module-head">
             <div>
-              <p class="eyebrow">Participant feedback form</p>
-              <h2>Six reflection questions and one sharing choice.</h2>
+              <p class="eyebrow">Feedback workspace</p>
+              <h2>Choose between a common feedback form and audience-specific reflection walls.</h2>
+              <p>
+                The form is shared by everyone, but it captures session context in a way that still distinguishes
+                whether the experience happened with a school, college, corporate team, community group, or another
+                audience.
+              </p>
             </div>
-            <span class="status-pill">6-7 minutes</span>
+            <div class="feedback-tab-strip" role="tablist" aria-label="Feedback page views">
+              <button type="button" class="feedback-view-tab" data-feedback-view-tab data-feedback-view="submit" data-feedback-audience="submit" aria-selected="false">Give feedback</button>
+              <button type="button" class="feedback-view-tab" data-feedback-view-tab data-feedback-view="library" data-feedback-audience="school" aria-selected="false">Schools</button>
+              <button type="button" class="feedback-view-tab" data-feedback-view-tab data-feedback-view="library" data-feedback-audience="college" aria-selected="false">Colleges</button>
+              <button type="button" class="feedback-view-tab" data-feedback-view-tab data-feedback-view="library" data-feedback-audience="corporate" aria-selected="false">Corporates</button>
+              <button type="button" class="feedback-view-tab" data-feedback-view-tab data-feedback-view="library" data-feedback-audience="teacher" aria-selected="false">Teachers</button>
+              <button type="button" class="feedback-view-tab" data-feedback-view-tab data-feedback-view="library" data-feedback-audience="community" aria-selected="false">Communities</button>
+              <button type="button" class="feedback-view-tab" data-feedback-view-tab data-feedback-view="library" data-feedback-audience="government" aria-selected="false">Government</button>
+              <button type="button" class="feedback-view-tab" data-feedback-view-tab data-feedback-view="library" data-feedback-audience="all" aria-selected="false">All reflections</button>
+            </div>
           </div>
 
-          <div class="feedback-context-banner hidden" data-feedback-context-banner>
-            <p class="eyebrow">Feedback context</p>
-            <h3 data-feedback-context-title>This reflection is linked to a specific CoreXformer product.</h3>
-            <p data-feedback-context-body></p>
-          </div>
+          <section class="feedback-view-panel" data-feedback-panel="submit" id="give-feedback">
+            <div class="feedback-submit-grid">
+              <article class="feedback-form-card">
+                <div class="panel-head feedback-form-head">
+                  <div>
+                    <p class="eyebrow">Session feedback form</p>
+                    <h2>Capture both felt experience and meaningful insight.</h2>
+                  </div>
+                  <span class="status-pill">7-9 minutes</span>
+                </div>
 
-          <form class="feedback-form" data-feedback-form>
-            <div class="feedback-context-grid">
-              <label>
-                <span>Organization or group</span>
-                <input type="text" name="organizationName" placeholder="School, college, team, or group name (optional)">
-              </label>
-              <label>
-                <span>Audience type</span>
-                    <select name="audienceType">
-                      <option value="">Choose if relevant (optional)</option>
-                      <option value="school">School</option>
-                      <option value="teacher">Teacher</option>
-                      <option value="college">College</option>
-                      <option value="corporate">Corporate</option>
-                      <option value="community">Community</option>
-                      <option value="government">Government organization</option>
-                  <option value="mixed">Mixed group</option>
-                </select>
-              </label>
+                <div class="feedback-context-banner hidden" data-feedback-context-banner>
+                  <p class="eyebrow">Feedback context</p>
+                  <h3 data-feedback-context-title>This reflection is linked to a specific CoreXformer session or product.</h3>
+                  <p data-feedback-context-body></p>
+                </div>
+
+                <form class="feedback-form" data-feedback-form>
+                  <section class="feedback-fieldset">
+                    <div class="feedback-fieldset-head">
+                      <div>
+                        <p class="eyebrow">Session details</p>
+                        <h3>Anchor the reflection in the session that actually happened.</h3>
+                      </div>
+                    </div>
+
+                    <div class="feedback-context-grid feedback-context-grid-wide">
+                      <label>
+                        <span>Audience type</span>
+                        <select name="audienceType" required>
+                          <option value="">Choose the audience</option>
+                          <option value="school">School</option>
+                          <option value="teacher">Teacher group</option>
+                          <option value="college">College</option>
+                          <option value="corporate">Corporate team</option>
+                          <option value="community">Community group</option>
+                          <option value="government">Government organization</option>
+                          <option value="mixed">Mixed group</option>
+                        </select>
+                      </label>
+
+                      <label>
+                        <span>Organization, institution, or team</span>
+                        <input type="text" name="organizationName" placeholder="School, college, company, department, or group name" required>
+                      </label>
+
+                      <label>
+                        <span>Session or product name <small>(optional)</small></span>
+                        <input type="text" name="sessionTitle" placeholder="Orientation session, Belong &amp; Connect, team workshop...">
+                      </label>
+
+                      <label>
+                        <span>Participant name or identifier</span>
+                        <input type="text" name="participantName" placeholder="Optional: first name, initials, or role">
+                      </label>
+
+                      <label>
+                        <span>Participant role</span>
+                        <select name="participantRole">
+                          <option value="">Choose if relevant</option>
+                          <option value="student">Student</option>
+                          <option value="teacher">Teacher</option>
+                          <option value="faculty">Faculty</option>
+                          <option value="employee">Employee</option>
+                          <option value="manager">Manager</option>
+                          <option value="leader">Leader or coordinator</option>
+                          <option value="community-member">Community participant</option>
+                          <option value="other">Other</option>
+                        </select>
+                      </label>
+
+                      <label>
+                        <span>Facilitator name</span>
+                        <input type="text" name="facilitatorName" placeholder="Optional if you know the facilitator’s name">
+                      </label>
+
+                      <label>
+                        <span>Session date</span>
+                        <input type="date" name="sessionDate">
+                      </label>
+                    </div>
+
+                    <p class="feedback-audience-hint" data-feedback-audience-hint>
+                      Choose the audience first. The form will still stay common, but the page will interpret the
+                      reflection through the right context.
+                    </p>
+                  </section>
+
+                  <section class="feedback-fieldset">
+                    <div class="feedback-fieldset-head">
+                      <div>
+                        <p class="eyebrow">Rate the experience</p>
+                        <h3>Use the 1 to 5 scale to show what the session felt like.</h3>
+                      </div>
+                      <p class="feedback-rating-scale">1 = Poor · 2 = Fair · 3 = Good · 4 = Very good · 5 = Excellent</p>
+                    </div>
+
+                    <div class="feedback-rating-stack">
+                      <div class="feedback-question">
+                        <label class="feedback-label">
+                          <span>1. How would you rate the overall session experience?</span>
+                          <small>From poor to excellent.</small>
+                        </label>
+                        <div class="rating-group" role="radiogroup" aria-label="How would you rate the overall session experience?">
+                          <label class="rating-chip"><input type="radio" name="overallExperienceRating" value="1" required><span>1</span></label>
+                          <label class="rating-chip"><input type="radio" name="overallExperienceRating" value="2"><span>2</span></label>
+                          <label class="rating-chip"><input type="radio" name="overallExperienceRating" value="3"><span>3</span></label>
+                          <label class="rating-chip"><input type="radio" name="overallExperienceRating" value="4"><span>4</span></label>
+                          <label class="rating-chip"><input type="radio" name="overallExperienceRating" value="5"><span>5</span></label>
+                        </div>
+                      </div>
+
+                      <div class="feedback-question">
+                        <label class="feedback-label">
+                          <span>2. How welcomed and safe did the space feel as the session began?</span>
+                          <small>This helps us understand emotional entry and openness.</small>
+                        </label>
+                        <div class="rating-group" role="radiogroup" aria-label="How welcomed and safe did the space feel as the session began?">
+                          <label class="rating-chip"><input type="radio" name="safeSpaceRating" value="1" required><span>1</span></label>
+                          <label class="rating-chip"><input type="radio" name="safeSpaceRating" value="2"><span>2</span></label>
+                          <label class="rating-chip"><input type="radio" name="safeSpaceRating" value="3"><span>3</span></label>
+                          <label class="rating-chip"><input type="radio" name="safeSpaceRating" value="4"><span>4</span></label>
+                          <label class="rating-chip"><input type="radio" name="safeSpaceRating" value="5"><span>5</span></label>
+                        </div>
+                      </div>
+
+                      <div class="feedback-question">
+                        <label class="feedback-label">
+                          <span>3. How meaningful did the activities feel for your learning or growth?</span>
+                          <small>This captures relevance, not only engagement.</small>
+                        </label>
+                        <div class="rating-group" role="radiogroup" aria-label="How meaningful did the activities feel for your learning or growth?">
+                          <label class="rating-chip"><input type="radio" name="activityMeaningRating" value="1" required><span>1</span></label>
+                          <label class="rating-chip"><input type="radio" name="activityMeaningRating" value="2"><span>2</span></label>
+                          <label class="rating-chip"><input type="radio" name="activityMeaningRating" value="3"><span>3</span></label>
+                          <label class="rating-chip"><input type="radio" name="activityMeaningRating" value="4"><span>4</span></label>
+                          <label class="rating-chip"><input type="radio" name="activityMeaningRating" value="5"><span>5</span></label>
+                        </div>
+                      </div>
+
+                      <div class="feedback-question">
+                        <label class="feedback-label">
+                          <span>4. How much did the facilitator’s presence, guidance, or holding of the room help the session?</span>
+                          <small>This is about facilitator impact, not only the activity itself.</small>
+                        </label>
+                        <div class="rating-group" role="radiogroup" aria-label="How much did the facilitator's presence, guidance, or holding of the room help the session?">
+                          <label class="rating-chip"><input type="radio" name="facilitatorImpactRating" value="1" required><span>1</span></label>
+                          <label class="rating-chip"><input type="radio" name="facilitatorImpactRating" value="2"><span>2</span></label>
+                          <label class="rating-chip"><input type="radio" name="facilitatorImpactRating" value="3"><span>3</span></label>
+                          <label class="rating-chip"><input type="radio" name="facilitatorImpactRating" value="4"><span>4</span></label>
+                          <label class="rating-chip"><input type="radio" name="facilitatorImpactRating" value="5"><span>5</span></label>
+                        </div>
+                      </div>
+
+                      <div class="feedback-question">
+                        <label class="feedback-label">
+                          <span>5. How valuable was the reflection or debrief space after the activity?</span>
+                          <small>This captures whether the learning deepened after the experience.</small>
+                        </label>
+                        <div class="rating-group" role="radiogroup" aria-label="How valuable was the reflection or debrief space after the activity?">
+                          <label class="rating-chip"><input type="radio" name="reflectionValueRating" value="1" required><span>1</span></label>
+                          <label class="rating-chip"><input type="radio" name="reflectionValueRating" value="2"><span>2</span></label>
+                          <label class="rating-chip"><input type="radio" name="reflectionValueRating" value="3"><span>3</span></label>
+                          <label class="rating-chip"><input type="radio" name="reflectionValueRating" value="4"><span>4</span></label>
+                          <label class="rating-chip"><input type="radio" name="reflectionValueRating" value="5"><span>5</span></label>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section class="feedback-fieldset">
+                    <div class="feedback-fieldset-head">
+                      <div>
+                        <p class="eyebrow">Write what stayed</p>
+                        <h3>Capture the insight, the facilitator’s impact, and the behavior that may continue.</h3>
+                      </div>
+                    </div>
+
+                    <div class="feedback-writing-grid">
+                      <label class="feedback-question">
+                        <span class="feedback-label">1. What moment, realization, or emotional shift stayed with you most?</span>
+                        <textarea name="lastingMoment" rows="4" placeholder="Describe the moment or realization that kept moving with you after the session." required></textarea>
+                      </label>
+
+                      <label class="feedback-question">
+                        <span class="feedback-label">2. What did this session help you see about your goals, behavior, or the way people work together?</span>
+                        <textarea name="teamworkInsight" rows="4" placeholder="This can be about yourself, the group, or the way certain behaviors help or block shared goals." required></textarea>
+                      </label>
+
+                      <label class="feedback-question">
+                        <span class="feedback-label">3. How did the facilitator influence the energy, safety, or learning in the room?</span>
+                        <textarea name="facilitatorImpactNote" rows="4" placeholder="You can describe tone, clarity, presence, challenge, care, or anything else that mattered." required></textarea>
+                      </label>
+
+                      <label class="feedback-question">
+                        <span class="feedback-label">4. What is one behavior, action, or practice you want to carry forward from this session?</span>
+                        <textarea name="futureTakeaway" rows="4" placeholder="It can be a small change, a reminder, or a new way you want to respond in future situations." required></textarea>
+                      </label>
+
+                      <label class="feedback-question">
+                        <span class="feedback-label">5. What would make a future session stronger for your group?</span>
+                        <textarea name="improvementNote" rows="4" placeholder="Optional: anything that would improve relevance, depth, pacing, or participation."></textarea>
+                      </label>
+                    </div>
+                  </section>
+
+                  <section class="feedback-fieldset">
+                    <div class="feedback-fieldset-head">
+                      <div>
+                        <p class="eyebrow">Sharing choice</p>
+                        <h3>Decide whether a short part of your reflection may appear publicly.</h3>
+                      </div>
+                    </div>
+
+                    <div class="feedback-question">
+                      <label class="checkbox-row">
+                        <input type="checkbox" name="sharePublicly" data-share-toggle>
+                        <span>You may share a short line from my reflection on the website.</span>
+                      </label>
+                      <p class="feedback-sharing-note">
+                        If you leave the participant name blank, we can still share the reflection anonymously as
+                        “Participant reflection.”
+                      </p>
+                    </div>
+                  </section>
+
+                  <button class="button" type="submit" data-feedback-submit>Share feedback</button>
+                  <p class="form-note">
+                    This form is for post-session reflection only. It does not ask for unnecessary contact details.
+                    Read our <a href="privacy.html">Privacy and Trust note</a>.
+                  </p>
+                  <div class="feedback-message hidden" data-feedback-message></div>
+                </form>
+              </article>
             </div>
+          </section>
 
-            <div class="feedback-question">
-              <label class="feedback-label">
-                <span>1. How welcomed and safe did the space feel as the session began?</span>
-                <small>1 means not much. 5 means deeply.</small>
-              </label>
-              <div class="rating-group" role="radiogroup" aria-label="How welcomed and safe did the space feel as the session began?">
-                <label class="rating-chip"><input type="radio" name="safeSpaceRating" value="1" required><span>1</span></label>
-                <label class="rating-chip"><input type="radio" name="safeSpaceRating" value="2"><span>2</span></label>
-                <label class="rating-chip"><input type="radio" name="safeSpaceRating" value="3"><span>3</span></label>
-                <label class="rating-chip"><input type="radio" name="safeSpaceRating" value="4"><span>4</span></label>
-                <label class="rating-chip"><input type="radio" name="safeSpaceRating" value="5"><span>5</span></label>
+          <section class="feedback-view-panel hidden" data-feedback-panel="library">
+            <div class="feedback-library-shell">
+              <div class="feedback-library-head">
+                <div>
+                  <p class="eyebrow" data-feedback-library-kicker>Audience reflections</p>
+                  <h2 data-feedback-library-title>What participants carried forward.</h2>
+                  <p data-feedback-library-summary>
+                    This view changes by audience and only shows reflections that participants explicitly allowed to be
+                    shared publicly.
+                  </p>
+                </div>
+                <div class="feedback-library-actions">
+                  <a class="button button-ghost" href="#give-feedback" data-feedback-jump-submit>Give feedback for this audience</a>
+                  <a class="button button-ghost hidden" href="#" data-feedback-audience-link>Explore the relevant audience page</a>
+                </div>
               </div>
-            </div>
 
-            <div class="feedback-question">
-              <label class="feedback-label">
-                <span>2. How meaningful did the activities feel in helping you notice yourself and others?</span>
-                <small>1 means very little. 5 means very meaningful.</small>
-              </label>
-              <div class="rating-group" role="radiogroup" aria-label="How meaningful did the activities feel in helping you notice yourself and others?">
-                <label class="rating-chip"><input type="radio" name="activityMeaningRating" value="1" required><span>1</span></label>
-                <label class="rating-chip"><input type="radio" name="activityMeaningRating" value="2"><span>2</span></label>
-                <label class="rating-chip"><input type="radio" name="activityMeaningRating" value="3"><span>3</span></label>
-                <label class="rating-chip"><input type="radio" name="activityMeaningRating" value="4"><span>4</span></label>
-                <label class="rating-chip"><input type="radio" name="activityMeaningRating" value="5"><span>5</span></label>
+              <div class="feedback-library-stats">
+                <article class="feedback-stat-card">
+                  <span>Reflections received</span>
+                  <strong data-feedback-total>0</strong>
+                  <p>Submitted for this audience overall.</p>
+                </article>
+                <article class="feedback-stat-card">
+                  <span>Safe and welcomed</span>
+                  <strong data-feedback-safe>—</strong>
+                  <p>Average sense of emotional entry.</p>
+                </article>
+                <article class="feedback-stat-card">
+                  <span>Activity meaning</span>
+                  <strong data-feedback-activity>—</strong>
+                  <p>How meaningful the activities felt.</p>
+                </article>
+                <article class="feedback-stat-card">
+                  <span>Reflection value</span>
+                  <strong data-feedback-reflection>—</strong>
+                  <p>How valuable the debrief felt.</p>
+                </article>
               </div>
-            </div>
 
-            <div class="feedback-question">
-              <label class="feedback-label">
-                <span>3. How valuable was the reflection space after the activity?</span>
-                <small>1 means not very valuable. 5 means deeply valuable.</small>
-              </label>
-              <div class="rating-group" role="radiogroup" aria-label="How valuable was the reflection space after the activity?">
-                <label class="rating-chip"><input type="radio" name="reflectionValueRating" value="1" required><span>1</span></label>
-                <label class="rating-chip"><input type="radio" name="reflectionValueRating" value="2"><span>2</span></label>
-                <label class="rating-chip"><input type="radio" name="reflectionValueRating" value="3"><span>3</span></label>
-                <label class="rating-chip"><input type="radio" name="reflectionValueRating" value="4"><span>4</span></label>
-                <label class="rating-chip"><input type="radio" name="reflectionValueRating" value="5"><span>5</span></label>
+              <div class="feedback-library-note">
+                <p data-feedback-public-summary>
+                  The cards below only show reflections that participants allowed to be shared publicly.
+                </p>
               </div>
+
+              <div class="quote-wall feedback-library-grid" data-feedback-library-grid></div>
             </div>
-
-            <label class="feedback-question">
-              <span class="feedback-label">4. What moment, emotion, or realization stayed with you most?</span>
-              <textarea name="lastingMoment" rows="4" placeholder="You can describe a moment, an emotion, or a realization that stayed with you." required></textarea>
-            </label>
-
-            <label class="feedback-question">
-              <span class="feedback-label">5. What did this session help you see about teamwork, behavior, or shared objectives?</span>
-              <textarea name="teamworkInsight" rows="4" placeholder="Share any insight about yourself, others, or the way groups move together." required></textarea>
-            </label>
-
-            <label class="feedback-question">
-              <span class="feedback-label">6. What is one takeaway you want to carry into future situations?</span>
-              <textarea name="futureTakeaway" rows="4" placeholder="It can be a small shift, a reminder, a practice, or a way you want to respond differently." required></textarea>
-            </label>
-
-            <div class="feedback-question">
-              <label class="checkbox-row">
-                <input type="checkbox" name="sharePublicly" data-share-toggle>
-                <span>7. You may share a short line from my reflection on the website.</span>
-              </label>
-              <label class="share-name-field hidden" data-share-name-wrap>
-                <span>If yes, how should we refer to you?</span>
-                <input type="text" name="displayName" placeholder="First name, initials, or participant">
-              </label>
-            </div>
-
-            <button class="button" type="submit" data-feedback-submit>Share Reflection</button>
-            <p class="form-note">This form does not ask for private contact details. It is meant only for post-session reflection. Read our <a href="privacy.html">Privacy and Trust note</a>.</p>
-            <div class="feedback-message hidden" data-feedback-message></div>
-          </form>
-        </article>
+          </section>
+        </div>
       </div>
     </section>
-
   </main>
 
   <footer class="site-footer">
@@ -226,7 +415,7 @@
   <script src="config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="content-loader.js"></script>
-  <script src="feedback.js"></script>
-  <script src="script.js"></script>
+  <script src="feedback.js?v=feedback-20260613"></script>
+  <script src="script.js?v=feedback-20260613"></script>
 </body>
 </html>

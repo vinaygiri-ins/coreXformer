@@ -1,58 +1,246 @@
-(function initCoreXformerFeedback() {
+function initCoreXformerFeedback() {
   const config = window.COREXFORMER_PUBLIC_CONFIG;
   const supabaseLib = window.supabase;
-
-  if (!config?.supabaseUrl || !config?.supabaseAnonKey || !supabaseLib?.createClient) {
-    return;
-  }
-
-  const supabase = supabaseLib.createClient(config.supabaseUrl, config.supabaseAnonKey, {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-      detectSessionInUrl: false
-    }
-  });
+  const supabase =
+    config?.supabaseUrl && config?.supabaseAnonKey && supabaseLib?.createClient
+      ? supabaseLib.createClient(config.supabaseUrl, config.supabaseAnonKey, {
+          auth: {
+            persistSession: false,
+            autoRefreshToken: false,
+            detectSessionInUrl: false
+          }
+        })
+      : null;
 
   const feedbackContext = getFeedbackContext();
+  const feedbackState = {
+    rows: [],
+    activeView: "library",
+    activeAudience: feedbackContext.audienceValue || "school",
+    loaded: false
+  };
+
   applyFeedbackContext(feedbackContext);
+  setupFeedbackAudienceHint();
+  setupShareToggle();
+  setupFeedbackViewTabs(feedbackState, feedbackContext);
+  setupLibraryJumpToSubmit(feedbackState);
 
   const feedbackForm = document.querySelector("[data-feedback-form]");
-  const shareToggle = document.querySelector("[data-share-toggle]");
-  const shareNameWrap = document.querySelector("[data-share-name-wrap]");
-
-  if (shareToggle && shareNameWrap) {
-    shareToggle.addEventListener("change", () => {
-      shareNameWrap.classList.toggle("hidden", !shareToggle.checked);
-    });
-  }
 
   if (feedbackForm) {
     feedbackForm.addEventListener("submit", (event) => {
       event.preventDefault();
-      void submitFeedback(supabase, feedbackForm, feedbackContext);
+      if (!supabase) {
+        showFeedbackMessage(
+          feedbackForm.querySelector("[data-feedback-message]"),
+          "The feedback service is not available right now. Please try again in a moment.",
+          "error"
+        );
+        return;
+      }
+
+      void submitFeedback(supabase, feedbackForm, feedbackContext, feedbackState);
     });
   }
 
-  if (document.querySelector("[data-feedback-total], [data-feedback-quote-grid]")) {
-    void loadFeedbackInsights(supabase, feedbackContext);
-  }
-})();
+  const hasLibrary = Boolean(document.querySelector("[data-feedback-library-grid]"));
 
-async function submitFeedback(supabase, feedbackForm, feedbackContext) {
+  if (hasLibrary) {
+    if (isLocalPreviewHost()) {
+      feedbackState.rows = getLocalPreviewRows();
+      feedbackState.loaded = true;
+      renderFeedbackLibrary(feedbackState);
+    }
+
+    if (supabase) {
+      void loadFeedbackInsights(supabase, feedbackState);
+    } else {
+      feedbackState.rows = getLocalPreviewRows();
+      feedbackState.loaded = true;
+      renderFeedbackLibrary(feedbackState);
+    }
+  }
+}
+
+const FEEDBACK_AUDIENCE_LIBRARY = {
+  school: {
+    label: "Schools",
+    title: "What school participants carried forward.",
+    summary:
+      "Use this view to see what school groups have felt, noticed, and carried forward after CoreXformer sessions.",
+    pageHref: "products-schools.html",
+    pageLabel: "Explore school experiences"
+  },
+  college: {
+    label: "Colleges",
+    title: "What college participants carried forward.",
+    summary:
+      "This space gathers publicly shared lines from college sessions where students reflected on belonging, behavior, goals, and group life.",
+    pageHref: "products-colleges.html",
+    pageLabel: "Explore college experiences"
+  },
+  corporate: {
+    label: "Corporates",
+    title: "What corporate participants carried forward.",
+    summary:
+      "This view gathers reflections from workplace sessions around communication, ownership, feedback, collaboration, and leadership presence.",
+    pageHref: "products-corporates.html",
+    pageLabel: "Explore corporate experiences"
+  },
+  teacher: {
+    label: "Teachers",
+    title: "What teacher groups carried forward.",
+    summary:
+      "Teacher-focused reflections can help future schools understand what supported clarity, honesty, and shared educational purpose in the room.",
+    pageHref: "products-teachers.html",
+    pageLabel: "Explore teacher experiences"
+  },
+  community: {
+    label: "Communities",
+    title: "What community participants carried forward.",
+    summary:
+      "Community reflections surface how shared experiences shaped trust, dialogue, belonging, and everyday human connection.",
+    pageHref: "products-communities.html",
+    pageLabel: "Explore community experiences"
+  },
+  government: {
+    label: "Government",
+    title: "What government teams carried forward.",
+    summary:
+      "This view is for future public-sector reflections around collaboration, human response, responsibility, and group movement inside institutions.",
+    pageHref: "products-government.html",
+    pageLabel: "Explore government experiences"
+  },
+  all: {
+    label: "All reflections",
+    title: "Voices across different CoreXformer audiences.",
+    summary:
+      "This combined wall shows publicly shared reflections from across schools, colleges, corporates, community groups, teachers, and other audiences.",
+    pageHref: "",
+    pageLabel: ""
+  }
+};
+
+const FEEDBACK_SELECT_FIELDS_BASE = [
+  "id",
+  "organization_name",
+  "audience_type",
+  "product_slug",
+  "product_name",
+  "session_title",
+  "facilitator_name",
+  "safe_space_rating",
+  "activity_meaning_rating",
+  "reflection_value_rating",
+  "lasting_moment",
+  "teamwork_insight",
+  "future_takeaway",
+  "share_publicly",
+  "display_name",
+  "created_at"
+];
+
+const FEEDBACK_SELECT_FIELDS_V2 = FEEDBACK_SELECT_FIELDS_BASE.concat([
+  "session_experience_rating",
+  "facilitator_impact_rating",
+  "participant_role",
+  "facilitator_impact_note",
+  "improvement_note",
+  "session_date"
+]);
+
+const LOCAL_PREVIEW_FEEDBACK_ROWS = [
+  {
+    id: "preview-school-public",
+    organization_name: "",
+    audience_type: "school",
+    product_slug: "belong-connect",
+    product_name: "Belong & Connect",
+    session_title: null,
+    facilitator_name: null,
+    safe_space_rating: 5,
+    activity_meaning_rating: 5,
+    reflection_value_rating: 5,
+    lasting_moment: "test",
+    teamwork_insight: "test2",
+    future_takeaway: "test3",
+    share_publicly: true,
+    display_name: "this product was excellent",
+    created_at: "2026-05-11T14:07:12.325798+00:00"
+  },
+  {
+    id: "preview-school-private",
+    organization_name: "APS",
+    audience_type: "school",
+    product_slug: "belong-connect",
+    product_name: "Belong & Connect",
+    session_title: null,
+    facilitator_name: null,
+    safe_space_rating: 5,
+    activity_meaning_rating: 5,
+    reflection_value_rating: 5,
+    lasting_moment: "test",
+    teamwork_insight: "test2",
+    future_takeaway: "test3",
+    share_publicly: false,
+    display_name: null,
+    created_at: "2026-05-11T14:05:36.713246+00:00"
+  },
+  {
+    id: "preview-corporate-public",
+    organization_name: "JPMC",
+    audience_type: "corporate",
+    product_slug: null,
+    product_name: null,
+    session_title: null,
+    facilitator_name: null,
+    safe_space_rating: 5,
+    activity_meaning_rating: 5,
+    reflection_value_rating: 5,
+    lasting_moment: "this is test",
+    teamwork_insight: "this is test",
+    future_takeaway: "this is test",
+    share_publicly: true,
+    display_name: "excellent",
+    created_at: "2026-05-06T07:31:14.043184+00:00"
+  },
+  {
+    id: "preview-teacher-private",
+    organization_name: "CoreXformer Smoke Test School",
+    audience_type: "teacher",
+    product_slug: "belong-connect",
+    product_name: "Belong & Connect",
+    session_title: "Smoke Test Session",
+    facilitator_name: "Codex Smoke Test",
+    safe_space_rating: 5,
+    activity_meaning_rating: 4,
+    reflection_value_rating: 5,
+    lasting_moment: "Smoke test reflection about how quickly people opened up.",
+    teamwork_insight: "Smoke test note that reflection helped reveal how small signals affect the whole group.",
+    future_takeaway: "Smoke test takeaway to pause and notice group energy earlier.",
+    share_publicly: false,
+    display_name: null,
+    created_at: "2026-05-26T04:09:59.090333+00:00"
+  }
+];
+
+initCoreXformerFeedback();
+
+async function submitFeedback(supabase, feedbackForm, feedbackContext, feedbackState) {
   const submitButton = feedbackForm.querySelector("[data-feedback-submit]");
   const messageElement = feedbackForm.querySelector("[data-feedback-message]");
   const shareToggle = feedbackForm.querySelector("[data-share-toggle]");
-  const shareNameField = feedbackForm.querySelector('[name="displayName"]');
   const formData = new FormData(feedbackForm);
 
-  const payload = {
+  const participantName = normalizeValue(formData.get("participantName"));
+  const basePayload = {
     organization_name: normalizeValue(formData.get("organizationName")),
     audience_type: normalizeValue(formData.get("audienceType")) || feedbackContext.audienceValue || null,
     product_slug: feedbackContext.productSlug || null,
     product_name: feedbackContext.productName || null,
-    session_title: feedbackContext.sessionTitle || null,
-    facilitator_name: feedbackContext.facilitatorName || null,
+    session_title: normalizeValue(formData.get("sessionTitle")) || feedbackContext.sessionTitle || feedbackContext.productName || null,
+    facilitator_name: normalizeValue(formData.get("facilitatorName")) || feedbackContext.facilitatorName || null,
     safe_space_rating: Number(formData.get("safeSpaceRating")),
     activity_meaning_rating: Number(formData.get("activityMeaningRating")),
     reflection_value_rating: Number(formData.get("reflectionValueRating")),
@@ -60,47 +248,79 @@ async function submitFeedback(supabase, feedbackForm, feedbackContext) {
     teamwork_insight: normalizeValue(formData.get("teamworkInsight")),
     future_takeaway: normalizeValue(formData.get("futureTakeaway")),
     share_publicly: Boolean(shareToggle?.checked),
-    display_name: shareToggle?.checked ? normalizeValue(formData.get("displayName")) : null
+    display_name: participantName || null
   };
 
-  if (!payload.safe_space_rating || !payload.activity_meaning_rating || !payload.reflection_value_rating) {
-    showFeedbackMessage(messageElement, "Please complete the three reflection ratings before submitting.", "error");
+  const enhancedPayload = {
+    ...basePayload,
+    session_experience_rating: Number(formData.get("overallExperienceRating")),
+    facilitator_impact_rating: Number(formData.get("facilitatorImpactRating")),
+    participant_role: normalizeValue(formData.get("participantRole")) || null,
+    facilitator_impact_note: normalizeValue(formData.get("facilitatorImpactNote")),
+    improvement_note: normalizeValue(formData.get("improvementNote")) || null,
+    session_date: normalizeDateValue(formData.get("sessionDate"))
+  };
+
+  if (!basePayload.audience_type || !basePayload.organization_name) {
+    showFeedbackMessage(
+      messageElement,
+      "Please complete the audience and organization details before submitting.",
+      "error"
+    );
     return;
   }
 
-  if (!payload.lasting_moment || !payload.teamwork_insight || !payload.future_takeaway) {
-    showFeedbackMessage(messageElement, "Please answer the three written reflection questions before submitting.", "error");
+  if (
+    !enhancedPayload.session_experience_rating ||
+    !basePayload.safe_space_rating ||
+    !basePayload.activity_meaning_rating ||
+    !enhancedPayload.facilitator_impact_rating ||
+    !basePayload.reflection_value_rating
+  ) {
+    showFeedbackMessage(
+      messageElement,
+      "Please complete all five rating questions before submitting.",
+      "error"
+    );
     return;
   }
 
-  if (payload.share_publicly && !payload.display_name) {
-    showFeedbackMessage(messageElement, "If you would like your words to appear on the site, add a name or a simple identifier.", "error");
-    if (shareNameField) {
-      shareNameField.focus();
-    }
+  if (
+    !basePayload.lasting_moment ||
+    !basePayload.teamwork_insight ||
+    !enhancedPayload.facilitator_impact_note ||
+    !basePayload.future_takeaway
+  ) {
+    showFeedbackMessage(
+      messageElement,
+      "Please complete the main written reflection questions before submitting.",
+      "error"
+    );
     return;
   }
 
   if (submitButton) {
     submitButton.disabled = true;
-    submitButton.textContent = "Sharing reflection...";
+    submitButton.textContent = "Sharing feedback...";
   }
 
-  showFeedbackMessage(messageElement, "Saving your reflection...", "info");
+  showFeedbackMessage(messageElement, "Saving your feedback...", "info");
 
-  const { error } = await supabase
-    .from("session_feedback")
-    .insert([payload]);
+  const { error, usedLegacyFallback } = await insertFeedbackWithCompatibility(
+    supabase,
+    enhancedPayload,
+    basePayload
+  );
 
   if (submitButton) {
     submitButton.disabled = false;
-    submitButton.textContent = "Share Reflection";
+    submitButton.textContent = "Share feedback";
   }
 
   if (error) {
     showFeedbackMessage(
       messageElement,
-      "Your reflection could not be saved yet. Please try once more in a moment.",
+      "Your feedback could not be saved yet. Please try once more in a moment.",
       "error"
     );
     console.warn("CoreXformer feedback submission failed.", error);
@@ -108,144 +328,387 @@ async function submitFeedback(supabase, feedbackForm, feedbackContext) {
   }
 
   await window.COREXFORMER_ANALYTICS?.trackFormSuccess("session_feedback", {
-    formContext: payload.product_slug || payload.product_name || "feedback",
+    formContext: basePayload.product_slug || basePayload.product_name || basePayload.session_title || "feedback",
     metadata: {
-      audienceType: payload.audience_type || null,
-      productSlug: payload.product_slug || null,
-      sharePublicly: payload.share_publicly
+      audienceType: basePayload.audience_type || null,
+      productSlug: basePayload.product_slug || null,
+      sharePublicly: basePayload.share_publicly
     }
   });
 
   feedbackForm.reset();
+  applyFeedbackContext(feedbackContext);
+  setupFeedbackAudienceHint();
 
-  const shareNameWrap = feedbackForm.querySelector("[data-share-name-wrap]");
-
-  if (shareNameWrap) {
-    shareNameWrap.classList.add("hidden");
-  }
+  const successMessage = feedbackContext.productName
+    ? `Thank you. Your reflection for ${feedbackContext.productName} has been received and will help shape future sessions with more truth and care.`
+    : "Thank you. Your reflection has been received and will help shape future CoreXformer sessions with more care.";
 
   showFeedbackMessage(
     messageElement,
-    feedbackContext.productName
-      ? `Thank you. Your reflection for ${feedbackContext.productName} has been received and will help shape this product with more truth and care.`
-      : "Thank you. Your reflection has been received and will help shape the evolving story of this work.",
+    usedLegacyFallback
+      ? `${successMessage} The upgraded facilitator-impact fields are part of this preview and will be fully stored once the new feedback backend is switched on.`
+      : successMessage,
     "success"
   );
 
-  await loadFeedbackInsights(supabase, feedbackContext);
+  await loadFeedbackInsights(supabase, feedbackState);
 }
 
-async function loadFeedbackInsights(supabase, feedbackContext) {
-  let query = supabase
-    .from("session_feedback")
-    .select([
-      "product_slug",
-      "product_name",
-      "audience_type",
-      "safe_space_rating",
-      "activity_meaning_rating",
-      "reflection_value_rating",
-      "lasting_moment",
-      "teamwork_insight",
-      "future_takeaway",
-      "share_publicly",
-      "display_name",
-      "created_at"
-    ].join(","))
-    .order("created_at", { ascending: false })
-    .limit(120);
+async function insertFeedbackWithCompatibility(supabase, enhancedPayload, legacyPayload) {
+  let { error } = await supabase.from("session_feedback").insert([enhancedPayload]);
 
-  if (feedbackContext.productSlug) {
-    query = query.eq("product_slug", feedbackContext.productSlug);
+  if (!error) {
+    return { error: null, usedLegacyFallback: false };
   }
 
-  const { data, error } = await query;
-
-  if (error) {
-    console.warn("CoreXformer feedback insights could not be loaded.", error);
-    renderFeedbackFallback();
-    return;
+  if (!isSchemaCompatibilityError(error)) {
+    return { error, usedLegacyFallback: false };
   }
 
-  const rows = Array.isArray(data) ? data : [];
-  renderFeedbackStats(rows);
-  renderFeedbackQuotes(rows, feedbackContext);
-}
-
-function renderFeedbackStats(rows) {
-  const total = rows.length;
-  const safeAverage = average(rows.map((row) => row.safe_space_rating));
-  const activityAverage = average(rows.map((row) => row.activity_meaning_rating));
-  const reflectionAverage = average(rows.map((row) => row.reflection_value_rating));
-
-  setTextForAll("[data-feedback-total]", total ? String(total) : "0");
-  setTextForAll("[data-feedback-safe]", total ? `${safeAverage.toFixed(1)} / 5` : "—");
-  setTextForAll("[data-feedback-activity]", total ? `${activityAverage.toFixed(1)} / 5` : "—");
-  setTextForAll("[data-feedback-reflection]", total ? `${reflectionAverage.toFixed(1)} / 5` : "—");
-}
-
-function renderFeedbackQuotes(rows, feedbackContext) {
-  const quotes = rows
-    .filter((row) => row.share_publicly)
-    .map((row) => buildQuotePayload(row))
-    .filter(Boolean);
-
-  document.querySelectorAll("[data-feedback-quote-grid]").forEach((grid) => {
-    const limit = Number(grid.dataset.feedbackQuoteLimit || 3);
-    const selectedQuotes = quotes.slice(0, limit);
-
-    grid.innerHTML = "";
-
-    if (!selectedQuotes.length) {
-      const emptyCard = document.createElement("article");
-      emptyCard.className = "reflection-card reflection-card-empty";
-      emptyCard.innerHTML = `
-        <p class="eyebrow">Participant reflections</p>
-        <h3>${feedbackContext.productName ? `The first ${escapeHtml(feedbackContext.productName)} reflections will appear here.` : "The first public reflections will appear here."}</h3>
-        <p>${feedbackContext.productName ? `Once participants allow a short line to be shared, this space will begin carrying their words forward for ${escapeHtml(feedbackContext.productName)} specifically.` : "Once participants allow a short line to be shared, this space will begin carrying their words forward."}</p>
-      `;
-      grid.appendChild(emptyCard);
-      return;
-    }
-
-    selectedQuotes.forEach((quote) => {
-      const article = document.createElement("article");
-      article.className = "reflection-card";
-      article.innerHTML = `
-        <p class="eyebrow">${escapeHtml(quote.label)}</p>
-        <blockquote>${escapeHtml(quote.text)}</blockquote>
-        <p class="reflection-credit">${escapeHtml(quote.name)}</p>
-      `;
-      grid.appendChild(article);
-    });
-  });
-}
-
-function buildQuotePayload(row) {
-  const candidates = [
-    { label: "Carrying forward", text: normalizeValue(row.future_takeaway) },
-    { label: "Team insight", text: normalizeValue(row.teamwork_insight) },
-    { label: "What stayed", text: normalizeValue(row.lasting_moment) }
-  ];
-
-  const selected = candidates.find((candidate) => candidate.text);
-
-  if (!selected) {
-    return null;
-  }
+  const legacyInsert = await supabase.from("session_feedback").insert([legacyPayload]);
 
   return {
-    label: selected.label,
-    text: selected.text,
-    name: normalizeValue(row.display_name) || "Participant reflection"
+    error: legacyInsert.error || null,
+    usedLegacyFallback: !legacyInsert.error
   };
 }
 
-function renderFeedbackFallback() {
-  setTextForAll("[data-feedback-total]", "0");
-  setTextForAll("[data-feedback-safe]", "—");
-  setTextForAll("[data-feedback-activity]", "—");
-  setTextForAll("[data-feedback-reflection]", "—");
+async function loadFeedbackInsights(supabase, feedbackState) {
+  const rows = await fetchFeedbackRows(supabase);
+
+  feedbackState.rows = rows.length > 0 || !isLocalPreviewHost() ? rows : getLocalPreviewRows();
+  feedbackState.loaded = true;
+  renderFeedbackLibrary(feedbackState);
+}
+
+async function fetchFeedbackRows(supabase) {
+  let query = supabase
+    .from("session_feedback")
+    .select(FEEDBACK_SELECT_FIELDS_V2.join(","))
+    .order("created_at", { ascending: false })
+    .limit(180);
+
+  let result = await query;
+
+  if (result.error && isSchemaCompatibilityError(result.error)) {
+    result = await supabase
+      .from("session_feedback")
+      .select(FEEDBACK_SELECT_FIELDS_BASE.join(","))
+      .order("created_at", { ascending: false })
+      .limit(180);
+  }
+
+  if (result.error) {
+    console.warn("CoreXformer feedback insights could not be loaded.", result.error);
+    return [];
+  }
+
+  return Array.isArray(result.data) ? result.data : [];
+}
+
+function renderFeedbackLibrary(feedbackState) {
+  const audienceKey = normalizeAudienceKey(feedbackState.activeAudience || "all");
+  const config = FEEDBACK_AUDIENCE_LIBRARY[audienceKey] || FEEDBACK_AUDIENCE_LIBRARY.all;
+  const allAudienceRows = filterRowsByAudience(feedbackState.rows, audienceKey);
+  const publicRows = allAudienceRows.filter((row) => row.share_publicly);
+
+  const total = allAudienceRows.length;
+  const safeAverage = average(allAudienceRows.map((row) => row.safe_space_rating));
+  const activityAverage = average(allAudienceRows.map((row) => row.activity_meaning_rating));
+  const reflectionAverage = average(allAudienceRows.map((row) => row.reflection_value_rating));
+
+  setElementText("[data-feedback-library-kicker]", config.label);
+  setElementText("[data-feedback-library-title]", config.title);
+  setElementText("[data-feedback-library-summary]", config.summary);
+  setElementText("[data-feedback-total]", total ? String(total) : "0");
+  setElementText("[data-feedback-safe]", total ? `${safeAverage.toFixed(1)} / 5` : "—");
+  setElementText("[data-feedback-activity]", total ? `${activityAverage.toFixed(1)} / 5` : "—");
+  setElementText("[data-feedback-reflection]", total ? `${reflectionAverage.toFixed(1)} / 5` : "—");
+
+  const publicSummary = document.querySelector("[data-feedback-public-summary]");
+  if (publicSummary) {
+    publicSummary.textContent = total
+      ? `${publicRows.length} publicly shareable reflection${publicRows.length === 1 ? "" : "s"} currently visible out of ${total} total reflection${total === 1 ? "" : "s"} for ${config.label.toLowerCase()}.`
+      : `No reflections have been received for ${config.label.toLowerCase()} yet. The first audience-specific voices will appear here once sessions are completed.`;
+  }
+
+  const audienceLink = document.querySelector("[data-feedback-audience-link]");
+  if (audienceLink) {
+    if (config.pageHref) {
+      audienceLink.href = config.pageHref;
+      audienceLink.textContent = config.pageLabel;
+      audienceLink.classList.remove("hidden");
+    } else {
+      audienceLink.classList.add("hidden");
+    }
+  }
+
+  renderFeedbackCards(publicRows, config, total);
+}
+
+function renderFeedbackCards(rows, config, totalCount) {
+  const grid = document.querySelector("[data-feedback-library-grid]");
+
+  if (!grid) {
+    return;
+  }
+
+  grid.innerHTML = "";
+
+  if (!rows.length) {
+    const emptyCard = document.createElement("article");
+    emptyCard.className = "reflection-card reflection-card-empty reflection-card-audience-empty";
+    emptyCard.innerHTML = `
+      <p class="eyebrow">${escapeHtml(config.label)}</p>
+      <h3>${totalCount ? "Reflections exist for this audience, but none have been allowed for public sharing yet." : `The first ${escapeHtml(config.label.toLowerCase())} reflections will appear here.`}</h3>
+      <p>${totalCount ? "As soon as a participant allows a short line to be shared publicly, this audience wall will begin carrying those voices forward." : "Once sessions are completed and participants allow a short part of their reflection to appear publicly, this wall will begin filling up."}</p>
+    `;
+    grid.appendChild(emptyCard);
+    return;
+  }
+
+  rows.forEach((row) => {
+    const article = document.createElement("article");
+    article.className = "reflection-card reflection-card-detailed";
+
+    const stripMarkup = buildPublicStripMarkup(row);
+    const sessionLabel = [
+      normalizeValue(row.organization_name),
+      normalizeValue(row.session_title || row.product_name),
+      normalizeValue(row.facilitator_name) ? `Facilitator: ${normalizeValue(row.facilitator_name)}` : ""
+    ]
+      .filter(Boolean)
+      .join(" · ");
+
+    article.innerHTML = `
+      <p class="eyebrow">${escapeHtml(`${formatAudienceLabel(row.audience_type)} · ${normalizeValue(row.organization_name) || "CoreXformer session"}`)}</p>
+      <div class="reflection-strip-stack">
+        <article class="reflection-strip reflection-strip-primary">
+          <div class="reflection-strip-copy">
+            <h3>${escapeHtml(normalizeValue(row.session_title || row.product_name) || "Participant reflection")}</h3>
+            <p class="reflection-meta">${escapeHtml(sessionLabel || "Shared after a CoreXformer session")}</p>
+          </div>
+        </article>
+        <article class="reflection-strip reflection-strip-ratings">
+          <div class="reflection-rating-row">
+            <span class="reflection-rating-pill">Safe: ${escapeHtml(formatRating(row.safe_space_rating))}</span>
+            <span class="reflection-rating-pill">Meaning: ${escapeHtml(formatRating(row.activity_meaning_rating))}</span>
+            <span class="reflection-rating-pill">Reflect: ${escapeHtml(formatRating(row.reflection_value_rating))}</span>
+          </div>
+        </article>
+        ${stripMarkup}
+      </div>
+      <p class="reflection-credit">${escapeHtml(normalizeValue(row.display_name) || "Participant reflection")}</p>
+    `;
+
+    grid.appendChild(article);
+  });
+}
+
+function buildPublicStripMarkup(row) {
+  const segments = [
+    { label: "What stayed", value: normalizeValue(row.lasting_moment) },
+    { label: "What it revealed", value: normalizeValue(row.teamwork_insight) },
+    { label: "What moved forward", value: normalizeValue(row.future_takeaway) }
+  ];
+
+  if (normalizeValue(row.facilitator_impact_note)) {
+    segments.push({ label: "Facilitator impact", value: normalizeValue(row.facilitator_impact_note) });
+  }
+
+  return segments
+    .filter((segment) => segment.value)
+    .map(
+      (segment) => `
+        <article class="reflection-strip">
+          <span>${escapeHtml(segment.label)}</span>
+          <p>${escapeHtml(segment.value)}</p>
+        </article>
+      `
+    )
+    .join("");
+}
+
+function setupFeedbackViewTabs(feedbackState, feedbackContext) {
+  const buttons = document.querySelectorAll("[data-feedback-view-tab]");
+
+  if (!buttons.length) {
+    return;
+  }
+
+  const requestedView =
+    feedbackContext.viewValue === "submit" || feedbackContext.viewValue === "library"
+      ? feedbackContext.viewValue
+      : "";
+  const defaultView =
+    requestedView ||
+    (feedbackContext.productName || feedbackContext.sessionTitle || feedbackContext.audienceValue
+      ? "submit"
+      : "library");
+  const defaultAudience = feedbackContext.audienceValue || "school";
+
+  buttons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const view = button.dataset.feedbackView || "library";
+      const audience =
+        view === "submit"
+          ? feedbackState.activeAudience || defaultAudience
+          : normalizeAudienceKey(button.dataset.feedbackAudience || defaultAudience);
+
+      activateFeedbackView(buttons, feedbackState, view, audience);
+    });
+  });
+
+  activateFeedbackView(buttons, feedbackState, defaultView, defaultAudience);
+}
+
+function activateFeedbackView(buttons, feedbackState, view, audience) {
+  const normalizedAudience = normalizeAudienceKey(audience || "school");
+  const submitPanel = document.querySelector('[data-feedback-panel="submit"]');
+  const libraryPanel = document.querySelector('[data-feedback-panel="library"]');
+
+  feedbackState.activeView = view;
+  feedbackState.activeAudience = normalizedAudience;
+
+  buttons.forEach((button) => {
+    const isActive =
+      view === "submit"
+        ? button.dataset.feedbackView === "submit"
+        : button.dataset.feedbackView === "library" &&
+          normalizeAudienceKey(button.dataset.feedbackAudience) === normalizedAudience;
+
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-selected", String(isActive));
+  });
+
+  if (submitPanel) {
+    submitPanel.classList.toggle("hidden", view !== "submit");
+  }
+
+  if (libraryPanel) {
+    libraryPanel.classList.toggle("hidden", view !== "library");
+  }
+
+  if (view === "submit") {
+    const audienceField = document.querySelector('[name="audienceType"]');
+    if (audienceField && normalizedAudience !== "all" && !audienceField.value) {
+      audienceField.value = normalizedAudience;
+      setupFeedbackAudienceHint();
+    }
+    return;
+  }
+
+  renderFeedbackLibrary(feedbackState);
+}
+
+function setupLibraryJumpToSubmit(feedbackState) {
+  const jumpButton = document.querySelector("[data-feedback-jump-submit]");
+
+  if (!jumpButton) {
+    return;
+  }
+
+  jumpButton.addEventListener("click", (event) => {
+    event.preventDefault();
+    const buttons = document.querySelectorAll("[data-feedback-view-tab]");
+    const audienceField = document.querySelector('[name="audienceType"]');
+
+    if (audienceField && feedbackState.activeAudience && feedbackState.activeAudience !== "all") {
+      audienceField.value = feedbackState.activeAudience;
+      setupFeedbackAudienceHint();
+    }
+
+    activateFeedbackView(buttons, feedbackState, "submit", feedbackState.activeAudience || "school");
+    document.getElementById("give-feedback")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+}
+
+function setupShareToggle() {
+  const shareToggle = document.querySelector("[data-share-toggle]");
+  const participantField = document.querySelector('[name="participantName"]');
+
+  if (!shareToggle || !participantField) {
+    return;
+  }
+
+  shareToggle.addEventListener("change", () => {
+    participantField.placeholder = shareToggle.checked
+      ? "Optional: first name, initials, or how you would like the reflection credited"
+      : "Optional: first name, initials, or role";
+  });
+}
+
+function setupFeedbackAudienceHint() {
+  const audienceField = document.querySelector('[name="audienceType"]');
+  const hint = document.querySelector("[data-feedback-audience-hint]");
+
+  if (!audienceField || !hint) {
+    return;
+  }
+
+  const renderHint = () => {
+    const config = FEEDBACK_AUDIENCE_LIBRARY[normalizeAudienceKey(audienceField.value)] || null;
+
+    if (!config) {
+      hint.textContent =
+        "Choose the audience first. The form will still stay common, but the page will interpret the reflection through the right context.";
+      return;
+    }
+
+    hint.textContent = `This feedback will be understood in the context of ${config.label.toLowerCase()}. The public reflection wall for this audience will only show your words if you explicitly allow sharing.`;
+  };
+
+  renderHint();
+  audienceField.addEventListener("change", renderHint);
+}
+
+function applyFeedbackContext(feedbackContext) {
+  const banner = document.querySelector("[data-feedback-context-banner]");
+  const titleElement = document.querySelector("[data-feedback-context-title]");
+  const bodyElement = document.querySelector("[data-feedback-context-body]");
+  const audienceField = document.querySelector('[name="audienceType"]');
+  const sessionTitleField = document.querySelector('[name="sessionTitle"]');
+  const facilitatorField = document.querySelector('[name="facilitatorName"]');
+
+  if (audienceField && feedbackContext.audienceValue && !audienceField.value) {
+    audienceField.value = feedbackContext.audienceValue;
+  }
+
+  if (sessionTitleField && (feedbackContext.sessionTitle || feedbackContext.productName) && !sessionTitleField.value) {
+    sessionTitleField.value = feedbackContext.sessionTitle || feedbackContext.productName;
+  }
+
+  if (facilitatorField && feedbackContext.facilitatorName && !facilitatorField.value) {
+    facilitatorField.value = feedbackContext.facilitatorName;
+  }
+
+  if (!banner || !titleElement || !bodyElement || !(feedbackContext.productName || feedbackContext.sessionTitle)) {
+    return;
+  }
+
+  const contextBits = [];
+
+  if (feedbackContext.audienceValue) {
+    contextBits.push(`audience: ${formatAudienceLabel(feedbackContext.audienceValue)}`);
+  }
+
+  if (feedbackContext.facilitatorName) {
+    contextBits.push(`facilitator: ${feedbackContext.facilitatorName}`);
+  }
+
+  titleElement.textContent = feedbackContext.productName
+    ? `Feedback for ${feedbackContext.productName}`
+    : `Feedback for ${feedbackContext.sessionTitle}`;
+
+  bodyElement.textContent = contextBits.length
+    ? `You arrived here from a specific CoreXformer route. This reflection is already linked to ${feedbackContext.productName || feedbackContext.sessionTitle} (${contextBits.join(" · ")}).`
+    : `You arrived here from a specific CoreXformer route. This reflection is already linked to ${feedbackContext.productName || feedbackContext.sessionTitle}.`;
+
+  banner.classList.remove("hidden");
+  document.title = feedbackContext.productName
+    ? `CoreXformer | Feedback for ${feedbackContext.productName}`
+    : `CoreXformer | Feedback`;
 }
 
 function getFeedbackContext() {
@@ -253,11 +716,13 @@ function getFeedbackContext() {
   const body = document.body;
   const rawAudience = normalizeValue(params.get("audience") || body?.dataset.feedbackAudience).toLowerCase();
   const audienceMap = {
+    all: "all",
     schools: "school",
     school: "school",
+    teachers: "teacher",
+    teacher: "teacher",
     colleges: "college",
     college: "college",
-    teachers: "school",
     corporates: "corporate",
     corporate: "corporate",
     government: "government",
@@ -271,41 +736,79 @@ function getFeedbackContext() {
     productName: normalizeValue(params.get("productName") || body?.dataset.feedbackProductName),
     sessionTitle: normalizeValue(params.get("sessionTitle") || body?.dataset.feedbackSessionTitle),
     facilitatorName: normalizeValue(params.get("facilitatorName") || body?.dataset.feedbackFacilitatorName),
+    viewValue: normalizeValue(params.get("view")).toLowerCase(),
     rawAudience,
     audienceValue: audienceMap[rawAudience] || ""
   };
 }
 
-function applyFeedbackContext(feedbackContext) {
-  const banner = document.querySelector("[data-feedback-context-banner]");
-  const titleElement = document.querySelector("[data-feedback-context-title]");
-  const bodyElement = document.querySelector("[data-feedback-context-body]");
-  const audienceField = document.querySelector('[name="audienceType"]');
-
-  if (audienceField && feedbackContext.audienceValue && !audienceField.value) {
-    audienceField.value = feedbackContext.audienceValue;
+function filterRowsByAudience(rows, audienceKey) {
+  if (audienceKey === "all") {
+    return Array.isArray(rows) ? rows : [];
   }
 
-  if (!banner || !titleElement || !bodyElement || !feedbackContext.productName) {
-    return;
+  return (Array.isArray(rows) ? rows : []).filter((row) => normalizeAudienceKey(row.audience_type) === audienceKey);
+}
+
+function normalizeAudienceKey(value) {
+  const normalized = normalizeValue(value).toLowerCase();
+
+  switch (normalized) {
+    case "schools":
+    case "school":
+      return "school";
+    case "teachers":
+    case "teacher":
+      return "teacher";
+    case "colleges":
+    case "college":
+      return "college";
+    case "corporates":
+    case "corporate":
+      return "corporate";
+    case "communities":
+    case "community":
+      return "community";
+    case "government":
+      return "government";
+    case "all":
+      return "all";
+    default:
+      return normalized || "all";
   }
+}
 
-  const contextBits = [];
+function formatAudienceLabel(value) {
+  const key = normalizeAudienceKey(value);
+  return FEEDBACK_AUDIENCE_LIBRARY[key]?.label || "Mixed group";
+}
 
-  if (feedbackContext.sessionTitle) {
-    contextBits.push(`session: ${feedbackContext.sessionTitle}`);
-  }
+function isSchemaCompatibilityError(error) {
+  const message = `${error?.message || ""} ${error?.details || ""} ${error?.hint || ""}`.toLowerCase();
 
-  if (feedbackContext.audienceValue) {
-    contextBits.push(`audience: ${feedbackContext.audienceValue}`);
-  }
+  return (
+    error?.code === "PGRST204" ||
+    message.includes("session_experience_rating") ||
+    message.includes("facilitator_impact_rating") ||
+    message.includes("participant_role") ||
+    message.includes("facilitator_impact_note") ||
+    message.includes("improvement_note") ||
+    message.includes("session_date")
+  );
+}
 
-  titleElement.textContent = `Feedback for ${feedbackContext.productName}`;
-  bodyElement.textContent = contextBits.length
-    ? `You arrived here from a specific CoreXformer product. This reflection is being written for ${feedbackContext.productName} (${contextBits.join(" · ")}). Approved reflections from this flow can now stay attached to that product directly.`
-    : `You arrived here from a specific CoreXformer product. This reflection is being written for ${feedbackContext.productName}. Approved reflections from this flow can now stay attached to that product directly.`;
-  banner.classList.remove("hidden");
-  document.title = `CoreXformer | Feedback for ${feedbackContext.productName}`;
+function getLocalPreviewRows() {
+  return isLocalPreviewHost() ? LOCAL_PREVIEW_FEEDBACK_ROWS.slice() : [];
+}
+
+function isLocalPreviewHost() {
+  const host = window.location.hostname;
+  return host === "127.0.0.1" || host === "localhost";
+}
+
+function normalizeDateValue(value) {
+  const normalized = normalizeValue(value);
+  return normalized || null;
 }
 
 function showFeedbackMessage(element, text, tone) {
@@ -316,12 +819,6 @@ function showFeedbackMessage(element, text, tone) {
   element.textContent = text;
   element.classList.remove("hidden", "is-error", "is-success", "is-info");
   element.classList.add(`is-${tone || "info"}`);
-}
-
-function setTextForAll(selector, value) {
-  document.querySelectorAll(selector).forEach((element) => {
-    element.textContent = value;
-  });
 }
 
 function average(values) {
@@ -335,6 +832,19 @@ function average(values) {
 
   const total = numericValues.reduce((sum, value) => sum + value, 0);
   return total / numericValues.length;
+}
+
+function setElementText(selector, value) {
+  const element = document.querySelector(selector);
+
+  if (element) {
+    element.textContent = value;
+  }
+}
+
+function formatRating(value) {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) && numeric > 0 ? `${numeric}/5` : "—";
 }
 
 function normalizeValue(value) {
