@@ -17,6 +17,11 @@
   --radius-lg: 20px;
   --radius-md: 14px;
   --container: min(1120px, calc(100vw - 2rem));
+  --measure-copy: 64ch;
+  --measure-copy-wide: 70ch;
+  --measure-heading-xl: 14ch;
+  --measure-heading-lg: 18ch;
+  --measure-heading-md: 24ch;
 }
 
 * {
@@ -403,7 +408,7 @@ body[data-page-slug="home"] .container {
   scroll-snap-stop: always;
   min-height: auto;
   min-width: 0;
-  padding: 1.7rem 1.8rem;
+  padding: clamp(1.75rem, 2.35vw, 2.4rem);
   border-radius: calc(var(--radius-xl) + 4px);
   background:
     radial-gradient(circle at top right, rgba(217, 150, 68, 0.18), transparent 20rem),
@@ -415,7 +420,7 @@ body[data-page-slug="home"] .container {
 .home-story-card-body {
   display: grid;
   grid-template-columns: minmax(0, 0.98fr) minmax(0, 1.02fr);
-  gap: 1.25rem;
+  gap: clamp(1.2rem, 2vw, 1.7rem);
   align-items: stretch;
   height: 100%;
   min-width: 0;
@@ -424,19 +429,26 @@ body[data-page-slug="home"] .container {
 .home-story-primary {
   display: grid;
   align-content: start;
+  gap: 0.35rem;
   height: 100%;
   min-width: 0;
 }
 
 .home-story-primary h2 {
-  max-width: 11ch;
-  font-size: clamp(2.45rem, 3.3vw, 4rem);
-  line-height: 0.94;
-  overflow-wrap: break-word;
+  max-width: 15ch;
+  font-size: clamp(2.05rem, 2.78vw, 3.35rem);
+  line-height: 0.99;
+  margin-bottom: 0.75rem;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
 }
 
 .home-story-primary > p:not(.eyebrow) {
-  max-width: none;
+  max-width: 56ch;
+  margin-inline: auto;
+  font-size: 1.04rem;
+  line-height: 1.74;
 }
 
 .home-story-card .eyebrow,
@@ -464,7 +476,16 @@ body[data-page-slug="home"] .container {
 .contact-card p,
 .contact-card li {
   max-width: none;
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
+  word-break: normal;
+  text-wrap: pretty;
+  hyphens: auto;
+}
+
+.home-story-card h3 {
+  max-width: 18ch;
+  font-size: clamp(1.22rem, 1.65vw, 1.62rem);
+  line-height: 1.14;
 }
 
 .home-story-support,
@@ -563,31 +584,40 @@ h2,
 h3 {
   margin: 0 0 1rem;
   font-family: "Fraunces", serif;
-  line-height: 1.05;
+  line-height: 1.08;
+  text-wrap: balance;
+  overflow-wrap: normal;
+  word-break: normal;
 }
 
 h1 {
-  font-size: clamp(2.8rem, 5vw, 5.4rem);
-  max-width: 11ch;
+  font-size: clamp(2.8rem, 4.7vw, 5.2rem);
+  max-width: var(--measure-heading-xl);
+  line-height: 1.01;
 }
 
 h2 {
-  font-size: clamp(2rem, 3vw, 3.2rem);
-  max-width: 15ch;
+  font-size: clamp(2rem, 2.85vw, 3.1rem);
+  max-width: var(--measure-heading-lg);
 }
 
 h3 {
-  font-size: 1.4rem;
+  font-size: clamp(1.22rem, 1.45vw, 1.46rem);
+  max-width: var(--measure-heading-md);
+  line-height: 1.16;
 }
 
 p {
   margin: 0 0 1rem;
   color: var(--muted);
-  line-height: 1.72;
+  line-height: 1.74;
+  text-wrap: pretty;
+  overflow-wrap: normal;
+  word-break: normal;
 }
 
 .hero-text {
-  max-width: 60ch;
+  max-width: var(--measure-copy);
 }
 
 .hero-actions {
@@ -721,7 +751,8 @@ p {
   margin: 0;
   padding-left: 1.1rem;
   color: var(--muted);
-  line-height: 1.8;
+  line-height: 1.76;
+  text-wrap: pretty;
 }
 
 .section {
@@ -1253,7 +1284,7 @@ p {
 }
 
 .section-heading {
-  max-width: 56rem;
+  max-width: 60rem;
 }
 
 .section-heading-left {
@@ -1371,7 +1402,7 @@ p {
   display: flex;
   justify-content: center;
   margin-top: auto;
-  padding-top: 1.5rem;
+  padding-top: 1.35rem;
   width: 100%;
 }
 
@@ -1419,12 +1450,12 @@ p {
 }
 
 .journey-map-head h2 {
-  max-width: 14ch;
+  max-width: 17ch;
 }
 
 .journey-map-note {
   margin: 0;
-  max-width: 58ch;
+  max-width: var(--measure-copy);
 }
 
 .journey-map-grid {
@@ -1809,7 +1840,7 @@ a.journey-map-card:focus-visible {
 }
 
 .page-intro {
-  max-width: 62ch;
+  max-width: var(--measure-copy-wide);
 }
 
 .quote-card {
@@ -1826,6 +1857,7 @@ a.journey-map-card:focus-visible {
   font-size: clamp(1.4rem, 2vw, 2rem);
   line-height: 1.3;
   color: var(--ink);
+  text-wrap: balance;
 }
 
 .quote-card p {
@@ -1846,7 +1878,7 @@ a.journey-map-card:focus-visible {
 }
 
 .prose-card h3 {
-  max-width: 18ch;
+  max-width: 24ch;
 }
 
 .product-grid {
@@ -2061,7 +2093,7 @@ a.journey-map-card:focus-visible {
 
 .feedback-fieldset-head h3 {
   margin-bottom: 0;
-  max-width: 20ch;
+  max-width: 24ch;
 }
 
 .feedback-rating-scale,
@@ -2241,7 +2273,7 @@ a.journey-map-card:focus-visible {
 }
 
 .feedback-library-head h2 {
-  max-width: 16ch;
+  max-width: 22ch;
 }
 
 .feedback-library-actions {
@@ -2546,11 +2578,11 @@ a.journey-map-card:focus-visible {
   }
 
   h1 {
-    max-width: 13ch;
+    max-width: 15ch;
   }
 
   h2 {
-    max-width: 18ch;
+    max-width: 20ch;
   }
 }
 
@@ -2694,8 +2726,8 @@ a.journey-map-card:focus-visible {
   }
 
   .home-story-card p {
-    font-size: 0.98rem;
-    line-height: 1.58;
+    font-size: 1rem;
+    line-height: 1.66;
   }
 
   .home-story-grid,
@@ -2729,9 +2761,9 @@ a.journey-map-card:focus-visible {
   }
 
   .home-story-primary h2 {
-    font-size: clamp(1.78rem, 8.8vw, 2.42rem);
-    line-height: 0.98;
-    max-width: 8.4ch;
+    font-size: clamp(1.82rem, 6.8vw, 2.3rem);
+    line-height: 1.04;
+    max-width: 13ch;
   }
 
   .home-story-card,
@@ -2770,7 +2802,9 @@ a.journey-map-card:focus-visible {
   }
 
   .home-story-card h3 {
-    overflow-wrap: anywhere;
+    max-width: 20ch;
+    font-size: 1.16rem;
+    line-height: 1.18;
   }
 
   .home-story-progress {
