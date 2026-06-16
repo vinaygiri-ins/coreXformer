@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /studio
+Disallow: /studio/
+Disallow: /thank-you.html
+
+Sitemap: https://corexformer.pages.dev/sitemap.xml
