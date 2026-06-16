@@ -287,6 +287,10 @@ body[data-page-slug="home"] .container {
   border-color: transparent;
 }
 
+.home-story-mobile-cue {
+  display: none;
+}
+
 .home-story-stage {
   position: relative;
   width: 100%;
@@ -2543,17 +2547,57 @@ a.journey-map-card:focus-visible {
 
   .home-story-tabs {
     display: flex;
-    padding-inline: 0.15rem;
+    gap: 0.65rem;
+    padding: 0.05rem 0.35rem 0.15rem;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: 0.35rem;
+    mask-image: linear-gradient(90deg, transparent 0, #000 4%, #000 96%, transparent 100%);
   }
 
-  .home-story-tabs {
-    gap: 0.65rem;
-    padding-bottom: 0.2rem;
+  .home-story-mobile-cue {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    padding: 0 0.45rem 0.3rem;
+    color: var(--muted);
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.92;
+    transition: opacity 180ms ease, transform 180ms ease, max-height 220ms ease, padding 220ms ease;
+  }
+
+  .home-story.has-interacted .home-story-mobile-cue {
+    opacity: 0;
+    transform: translateY(-0.2rem);
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .home-story-mobile-cue-arrows {
+    display: inline-flex;
+    gap: 0.35rem;
+    color: var(--forest);
+    font-size: 0.9rem;
   }
 
   .home-story-tab {
+    flex: 0 0 auto;
+    min-width: 8.25rem;
     min-height: 2.65rem;
-    padding: 0.62rem 0.9rem;
+    padding: 0.62rem 1rem;
+    text-align: center;
+    scroll-snap-align: center;
+  }
+
+  .home-story-tab.is-active {
+    box-shadow: 0 12px 24px rgba(47, 90, 67, 0.16);
   }
 
   .home-story-arrow {
@@ -2588,7 +2632,8 @@ a.journey-map-card:focus-visible {
     -webkit-overflow-scrolling: touch;
     scroll-snap-type: x mandatory;
     touch-action: pan-x pan-y;
-    padding-bottom: 0.15rem;
+    padding: 0 0 0.15rem;
+    scroll-padding-inline: 0;
   }
 
   .home-story-card-body {
@@ -2601,9 +2646,9 @@ a.journey-map-card:focus-visible {
   }
 
   .home-story-primary h2 {
-    font-size: clamp(1.9rem, 10vw, 2.65rem);
-    line-height: 0.96;
-    max-width: none;
+    font-size: clamp(1.78rem, 8.8vw, 2.42rem);
+    line-height: 0.98;
+    max-width: 8.4ch;
   }
 
   .home-story-card,
@@ -2638,6 +2683,10 @@ a.journey-map-card:focus-visible {
   .home-story .hero-highlights {
     display: grid;
     grid-template-columns: 1fr;
+  }
+
+  .home-story-card h3 {
+    overflow-wrap: anywhere;
   }
 
   .home-story-progress {

@@ -65,6 +65,16 @@ function initHomeStoryRail() {
   const panelIds = panels.map((panel) => panel.dataset.homeRailPanel || panel.id).filter(Boolean);
   let activeIndex = 0;
   let scrollFrame = 0;
+  let hasDismissedMobileCue = false;
+
+  function dismissMobileCue() {
+    if (hasDismissedMobileCue) {
+      return;
+    }
+
+    hasDismissedMobileCue = true;
+    shell.classList.add("has-interacted");
+  }
 
   function setActiveState(nextIndex) {
     const clampedIndex = Math.max(0, Math.min(nextIndex, panels.length - 1));
@@ -139,21 +149,31 @@ function initHomeStoryRail() {
 
   tabs.forEach((tab, index) => {
     tab.addEventListener("click", () => {
+      dismissMobileCue();
       goToPanel(index);
     });
   });
 
   previousButton?.addEventListener("click", () => {
+    dismissMobileCue();
     goToPanel(activeIndex - 1);
   });
 
   nextButton?.addEventListener("click", () => {
+    dismissMobileCue();
     goToPanel(activeIndex + 1);
   });
+
+  rail.addEventListener("pointerdown", dismissMobileCue, { passive: true });
+  rail.addEventListener("touchstart", dismissMobileCue, { passive: true });
 
   rail.addEventListener("scroll", () => {
     window.cancelAnimationFrame(scrollFrame);
     scrollFrame = window.requestAnimationFrame(() => {
+      if (Math.abs(rail.scrollLeft - panels[activeIndex].offsetLeft) > 14) {
+        dismissMobileCue();
+      }
+
       const nearestIndex = getNearestIndex();
 
       if (nearestIndex !== activeIndex) {
