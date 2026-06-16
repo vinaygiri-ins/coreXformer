@@ -176,7 +176,7 @@ body[data-page-slug="home"] .container {
 }
 
 .home-story-tabs {
-  display: flex;
+  display: none;
   gap: 0.8rem;
   overflow-x: auto;
   padding: 0.15rem 0 0.45rem;
@@ -2441,6 +2441,10 @@ a.journey-map-card:focus-visible {
 
   .home-story {
     padding: 1rem 0 2rem;
+  }
+
+  .home-story-tabs {
+    display: flex;
   }
 
   .home-story-tabs {
