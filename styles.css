@@ -362,10 +362,20 @@ body[data-page-slug="home"] .container {
   right: -1rem;
 }
 
+.home-story-stage:hover .home-story-arrow:not(:disabled),
+.home-story-stage:focus-within .home-story-arrow:not(:disabled) {
+  color: #3f6fae;
+  background: rgba(91, 141, 214, 0.14);
+  border-color: rgba(91, 141, 214, 0.22);
+  box-shadow: 0 16px 34px rgba(63, 111, 174, 0.16);
+}
+
 .home-story-arrow:hover,
 .home-story-arrow:focus-visible {
   transform: translateY(calc(-50% - 2px));
-  background: rgba(255, 255, 255, 0.9);
+  color: #2f67ad;
+  background: rgba(91, 141, 214, 0.22);
+  border-color: rgba(91, 141, 214, 0.3);
 }
 
 .home-story-arrow:disabled {
