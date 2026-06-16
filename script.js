@@ -72,6 +72,7 @@ function initHomeStoryRail() {
   let activeIndex = 0;
   let scrollFrame = 0;
   let hasDismissedMobileCue = false;
+  const compactViewport = window.matchMedia("(max-width: 900px)");
 
   function dismissMobileCue() {
     if (hasDismissedMobileCue) {
@@ -97,7 +98,11 @@ function initHomeStoryRail() {
       tab.setAttribute("aria-selected", String(isActive));
 
       if (isActive) {
-        tab.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+        tab.scrollIntoView({
+          behavior: compactViewport.matches ? "auto" : "smooth",
+          inline: "center",
+          block: "nearest"
+        });
       }
     });
 
