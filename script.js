@@ -69,6 +69,8 @@ function initHomeStoryRail() {
   function setActiveState(nextIndex) {
     const clampedIndex = Math.max(0, Math.min(nextIndex, panels.length - 1));
     activeIndex = clampedIndex;
+    const activePanelId = panelIds[clampedIndex] || "intro";
+    shell.dataset.homeRailTheme = activePanelId;
 
     tabs.forEach((tab, index) => {
       const isActive = index === clampedIndex;
@@ -200,6 +202,23 @@ function initHomeStoryRail() {
       goToPanel(activeIndex, "auto");
     });
   });
+
+  if ("IntersectionObserver" in window) {
+    const storyObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          shell.classList.toggle("is-awake", entry.isIntersecting);
+        });
+      },
+      {
+        threshold: 0.35
+      }
+    );
+
+    storyObserver.observe(shell);
+  } else {
+    shell.classList.add("is-awake");
+  }
 
   const initialHash = window.location.hash || "";
 

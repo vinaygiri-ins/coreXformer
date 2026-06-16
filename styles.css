@@ -166,10 +166,87 @@ body[data-page-slug="home"] .container {
 }
 
 .home-story {
+  position: relative;
   padding: 2rem 0 3.25rem;
+  --home-glow-a: rgba(217, 150, 68, 0.22);
+  --home-glow-b: rgba(47, 90, 67, 0.18);
+}
+
+.home-story::before,
+.home-story::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 320ms ease, transform 420ms ease, filter 420ms ease;
+}
+
+.home-story::before {
+  left: 4%;
+  top: 2.25rem;
+  width: min(32rem, 34vw);
+  height: min(32rem, 34vw);
+  border-radius: 999px;
+  background: radial-gradient(circle, var(--home-glow-a), transparent 70%);
+  transform: translateY(1rem) scale(0.94);
+  filter: blur(22px);
+}
+
+.home-story::after {
+  right: 2%;
+  bottom: 2.25rem;
+  width: min(28rem, 30vw);
+  height: min(28rem, 30vw);
+  border-radius: 999px;
+  background: radial-gradient(circle, var(--home-glow-b), transparent 72%);
+  transform: translateY(0.85rem) scale(0.96);
+  filter: blur(26px);
+}
+
+.home-story.is-awake::before,
+.home-story.is-awake::after {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.home-story[data-home-rail-theme="intro"] {
+  --home-glow-a: rgba(217, 150, 68, 0.22);
+  --home-glow-b: rgba(47, 90, 67, 0.18);
+}
+
+.home-story[data-home-rail-theme="concept"] {
+  --home-glow-a: rgba(47, 90, 67, 0.22);
+  --home-glow-b: rgba(134, 173, 141, 0.18);
+}
+
+.home-story[data-home-rail-theme="approach"] {
+  --home-glow-a: rgba(154, 99, 61, 0.2);
+  --home-glow-b: rgba(217, 150, 68, 0.18);
+}
+
+.home-story[data-home-rail-theme="products"] {
+  --home-glow-a: rgba(103, 139, 113, 0.22);
+  --home-glow-b: rgba(217, 150, 68, 0.16);
+}
+
+.home-story[data-home-rail-theme="audiences"] {
+  --home-glow-a: rgba(69, 103, 84, 0.2);
+  --home-glow-b: rgba(144, 185, 154, 0.18);
+}
+
+.home-story[data-home-rail-theme="journey"] {
+  --home-glow-a: rgba(217, 150, 68, 0.18);
+  --home-glow-b: rgba(110, 149, 122, 0.2);
+}
+
+.home-story[data-home-rail-theme="difference"] {
+  --home-glow-a: rgba(99, 137, 109, 0.2);
+  --home-glow-b: rgba(154, 99, 61, 0.16);
 }
 
 .home-story-shell {
+  position: relative;
+  z-index: 1;
   display: grid;
   gap: 0.95rem;
   min-width: 0;
@@ -214,6 +291,27 @@ body[data-page-slug="home"] .container {
   position: relative;
   width: 100%;
   min-width: 0;
+  isolation: isolate;
+}
+
+.home-story-stage::before {
+  content: "";
+  position: absolute;
+  inset: 1.1rem 1rem;
+  z-index: -1;
+  border-radius: calc(var(--radius-xl) + 14px);
+  background:
+    radial-gradient(circle at 16% 22%, var(--home-glow-a), transparent 36%),
+    radial-gradient(circle at 82% 76%, var(--home-glow-b), transparent 34%),
+    linear-gradient(140deg, rgba(255, 250, 241, 0.78), rgba(225, 237, 229, 0.52));
+  opacity: 0;
+  transform: scale(0.985);
+  transition: opacity 320ms ease, transform 360ms ease, background 220ms ease;
+}
+
+.home-story.is-awake .home-story-stage::before {
+  opacity: 1;
+  transform: scale(1);
 }
 
 .home-story-arrow {
@@ -2389,8 +2487,8 @@ a.journey-map-card:focus-visible {
 
 @media (max-width: 760px) {
   body[data-page-slug="home"] .container {
-    width: auto;
-    margin: 0 0.5rem;
+    width: min(calc(100vw - 1rem), 100%);
+    margin: 0 auto;
   }
 
   .site-nav {
@@ -2445,6 +2543,7 @@ a.journey-map-card:focus-visible {
 
   .home-story-tabs {
     display: flex;
+    padding-inline: 0.15rem;
   }
 
   .home-story-tabs {
@@ -2462,6 +2561,7 @@ a.journey-map-card:focus-visible {
   }
 
   .home-story-card {
+    display: block;
     padding: 1rem;
     border-radius: 1.5rem;
     overflow: hidden;
@@ -2478,19 +2578,22 @@ a.journey-map-card:focus-visible {
   }
 
   .home-story-viewport {
-    display: block;
+    display: flex;
+    gap: 0.75rem;
     width: 100%;
     max-width: 100%;
-    overflow: visible;
-    scroll-snap-type: none;
+    overflow-x: auto;
+    overflow-y: visible;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    touch-action: pan-x pan-y;
+    padding-bottom: 0.15rem;
   }
 
   .home-story-card-body {
     gap: 0.9rem;
-  }
-
-  .home-story-card {
-    display: none;
+    min-width: 0;
   }
 
   .home-story-card.is-active {
@@ -2498,18 +2601,26 @@ a.journey-map-card:focus-visible {
   }
 
   .home-story-primary h2 {
-    font-size: clamp(1.95rem, 8vw, 2.75rem);
+    font-size: clamp(1.9rem, 10vw, 2.65rem);
+    line-height: 0.96;
     max-width: none;
   }
 
   .home-story-card,
   .home-story-card-body,
   .home-story-primary,
+  .home-story-support,
   .home-story-primary h2,
   .home-story-primary > p:not(.eyebrow),
   .home-story .hero-actions,
   .home-story .hero-highlights {
     width: 100%;
+    max-width: 100%;
+  }
+
+  .home-story-card {
+    flex: 0 0 100%;
+    min-width: 100%;
     max-width: 100%;
   }
 
@@ -2530,7 +2641,10 @@ a.journey-map-card:focus-visible {
   }
 
   .home-story-progress {
-    display: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 0.2rem;
   }
 
   .hero {
