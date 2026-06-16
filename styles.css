@@ -157,6 +157,193 @@ textarea {
   padding: 5rem 0 3rem;
 }
 
+.home-story {
+  padding: 2rem 0 3.25rem;
+}
+
+.home-story-shell {
+  display: grid;
+  gap: 1rem;
+}
+
+.home-story-tabs {
+  display: flex;
+  gap: 0.8rem;
+  overflow-x: auto;
+  padding: 0.15rem 0 0.45rem;
+  scrollbar-width: none;
+}
+
+.home-story-tabs::-webkit-scrollbar,
+.home-story-viewport::-webkit-scrollbar {
+  display: none;
+}
+
+.home-story-tab {
+  min-height: 2.9rem;
+  padding: 0.72rem 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(39, 55, 42, 0.12);
+  background: rgba(255, 255, 255, 0.68);
+  color: var(--ink);
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 160ms ease, background 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.home-story-tab:hover,
+.home-story-tab:focus-visible,
+.home-story-tab.is-active {
+  transform: translateY(-1px);
+  color: #fff;
+  background: linear-gradient(135deg, var(--forest), #6a8f79);
+  border-color: transparent;
+}
+
+.home-story-stage {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.75rem;
+  align-items: stretch;
+}
+
+.home-story-arrow {
+  align-self: center;
+  width: 3.3rem;
+  min-height: 14rem;
+  border-radius: 1.8rem;
+  border: 1px solid rgba(39, 55, 42, 0.1);
+  background: rgba(255, 255, 255, 0.58);
+  color: var(--forest);
+  box-shadow: 0 14px 36px rgba(66, 43, 22, 0.08);
+  cursor: pointer;
+  transition: transform 160ms ease, background 160ms ease, color 160ms ease, opacity 160ms ease;
+}
+
+.home-story-arrow span {
+  display: block;
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.home-story-arrow:hover,
+.home-story-arrow:focus-visible {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.home-story-arrow:disabled {
+  opacity: 0.35;
+  cursor: default;
+  transform: none;
+}
+
+.home-story-viewport {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 100%;
+  gap: 1rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  touch-action: pan-x;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+}
+
+.home-story-card {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  min-height: clamp(30rem, 72vh, 40rem);
+  padding: 2rem;
+  border-radius: calc(var(--radius-xl) + 4px);
+  background:
+    radial-gradient(circle at top right, rgba(217, 150, 68, 0.18), transparent 20rem),
+    linear-gradient(145deg, rgba(255, 250, 241, 0.92), rgba(224, 236, 227, 0.8));
+  border: 1px solid rgba(255, 255, 255, 0.76);
+  box-shadow: var(--shadow);
+}
+
+.home-story-card-body {
+  display: grid;
+  grid-template-columns: 0.92fr 1.08fr;
+  gap: 1.5rem;
+  align-items: start;
+  height: 100%;
+}
+
+.home-story-primary {
+  display: grid;
+  align-content: start;
+}
+
+.home-story-primary h2 {
+  max-width: 13ch;
+}
+
+.home-story-support,
+.home-story-grid,
+.home-story-flow {
+  display: grid;
+  gap: 1rem;
+}
+
+.home-story-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.home-story-grid-tight {
+  grid-template-columns: 1fr;
+}
+
+.home-story-grid-steps {
+  align-content: start;
+}
+
+.home-story-flow {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+}
+
+.home-story-card .feature-card,
+.home-story-card .timeline-card,
+.home-story-card .sensor-card,
+.home-story-card .checklist-card,
+.home-story-card .contact-card,
+.home-story-card .panel-card {
+  height: 100%;
+}
+
+.home-story-progress {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.home-story-progress-label {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.home-story-dots {
+  display: flex;
+  gap: 0.45rem;
+}
+
+.home-story-dots span {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 999px;
+  background: rgba(39, 55, 42, 0.16);
+  transition: transform 160ms ease, background 160ms ease;
+}
+
+.home-story-dots span.is-active {
+  background: var(--forest);
+  transform: scale(1.1);
+}
+
 .hero-grid,
 .split-section,
 .dashboard-grid,
@@ -2105,6 +2292,19 @@ a.journey-map-card:focus-visible {
     grid-template-columns: 1fr;
   }
 
+  .home-story-head,
+  .home-story-card-body {
+    grid-template-columns: 1fr;
+  }
+
+  .home-story-primary h2 {
+    max-width: none;
+  }
+
+  .home-story-card {
+    min-height: auto;
+  }
+
   .timeline-grid,
   .feature-grid,
   .module-card-grid,
@@ -2196,6 +2396,49 @@ a.journey-map-card:focus-visible {
 
   .reflection-rating-row {
     gap: 0.45rem;
+  }
+
+  .home-story {
+    padding: 1.4rem 0 2.6rem;
+  }
+
+  .home-story-stage {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+  }
+
+  .home-story-arrow {
+    width: 100%;
+    min-height: 2.9rem;
+    border-radius: 999px;
+  }
+
+  .home-story-arrow-prev {
+    order: 2;
+  }
+
+  .home-story-viewport {
+    order: 1;
+    grid-column: 1 / -1;
+  }
+
+  .home-story-arrow-next {
+    order: 3;
+  }
+
+  .home-story-card {
+    padding: 1.25rem;
+  }
+
+  .home-story-grid,
+  .home-story-flow {
+    grid-template-columns: 1fr;
+  }
+
+  .home-story-progress {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.55rem;
   }
 
   .hero {
