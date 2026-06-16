@@ -63,6 +63,12 @@ function initHomeStoryRail() {
   }
 
   const panelIds = panels.map((panel) => panel.dataset.homeRailPanel || panel.id).filter(Boolean);
+  const headerRailLinks = siteNav
+    ? [...siteNav.querySelectorAll('a[href^="#"]')].filter((link) => {
+        const href = link.getAttribute("href") || "";
+        return panelIds.includes(href.replace(/^#/, ""));
+      })
+    : [];
   let activeIndex = 0;
   let scrollFrame = 0;
   let hasDismissedMobileCue = false;
@@ -81,6 +87,9 @@ function initHomeStoryRail() {
     activeIndex = clampedIndex;
     const activePanelId = panelIds[clampedIndex] || "intro";
     shell.dataset.homeRailTheme = activePanelId;
+    headerRailLinks.forEach((link) => {
+      link.classList.toggle("is-current", link.getAttribute("href") === `#${activePanelId}`);
+    });
 
     tabs.forEach((tab, index) => {
       const isActive = index === clampedIndex;
