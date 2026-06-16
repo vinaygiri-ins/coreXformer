@@ -2615,6 +2615,12 @@ a.journey-map-card:focus-visible {
     gap: 0.65rem;
     padding: 0.05rem 0.35rem 0.15rem;
     overflow-x: auto;
+    position: sticky;
+    top: 4.7rem;
+    z-index: 7;
+    background: rgba(248, 242, 230, 0.92);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(39, 55, 42, 0.06);
     scroll-snap-type: x proximity;
     scroll-padding-inline: 0.35rem;
     mask-image: linear-gradient(90deg, transparent 0, #000 4%, #000 96%, transparent 100%);
@@ -2757,7 +2763,8 @@ a.journey-map-card:focus-visible {
   .home-story-progress {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
+    gap: 0.7rem;
     padding: 0 0.2rem;
   }
 
