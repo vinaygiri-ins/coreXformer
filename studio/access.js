@@ -373,6 +373,16 @@ async function sendPasswordReset() {
   setBusy(false);
 
   if (error) {
+    if (isPasswordResetRateLimited(error)) {
+      showMessage(
+        dom.accessAuthMessage,
+        "Too many password reset emails were requested recently. Use the newest reset email you already received, or wait a little before requesting another one.",
+        "error"
+      );
+      setAuthState("Password reset email is temporarily paused because too many requests were sent.");
+      return;
+    }
+
     showMessage(dom.accessAuthMessage, error.message, "error");
     setAuthState("Password reset email could not be sent.");
     return;
@@ -923,6 +933,14 @@ function isEmailNotConfirmedError(error) {
   }
 
   return error.code === "email_not_confirmed" || /email not confirmed/i.test(error.message || "");
+}
+
+function isPasswordResetRateLimited(error) {
+  if (!error) {
+    return false;
+  }
+
+  return error.status === 429 || /rate limit/i.test(error.message || "");
 }
 
 function getSessionSide() {
