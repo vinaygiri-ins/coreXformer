@@ -115,13 +115,15 @@ async function initWorkspace() {
     return;
   }
 
-  state.supabase = supabaseLib.createClient(config.supabaseUrl, config.supabaseAnonKey, {
+  state.supabase = window.COREXFORMER_STUDIO_AUTH?.createClient(config) || supabaseLib.createClient(config.supabaseUrl, config.supabaseAnonKey, {
     auth: {
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true
     }
   });
+
+  await window.COREXFORMER_STUDIO_AUTH?.prepareSession(state.supabase);
 
   setAuthState("Connecting to Supabase...");
 
@@ -249,6 +251,7 @@ async function waitForProfile(userId, attempts = 6) {
 }
 
 async function signOut() {
+  window.COREXFORMER_STUDIO_AUTH?.clearSessionArtifacts();
   const { error } = await state.supabase.auth.signOut();
 
   if (error) {

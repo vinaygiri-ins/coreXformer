@@ -37,6 +37,7 @@
         <h2 id="accessHeading">Admin sign in</h2>
         <p id="accessNote" class="card-note">
           Sign in with your private CoreXformer credentials. If this is the first time, create the first owner account here and the profile will become the master admin for the studio.
+          For privacy, studio access now ends after inactivity or when the browser tab is closed, so password entry is required again.
         </p>
         <form id="accessLoginForm" class="login-form">
           <label id="accessFullNameRow">
@@ -72,6 +73,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
+  <script src="session-auth.js"></script>
   <script src="access.js"></script>
 </body>
 </html>

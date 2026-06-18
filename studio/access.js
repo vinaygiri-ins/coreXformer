@@ -4,7 +4,7 @@ const ACCESS_COPY = {
   admin: {
     label: "Admin access",
     heading: "Admin sign in",
-    note: "Sign in with your private CoreXformer credentials. If this is the first time, create the first owner account here and the profile will become the master admin for the studio.",
+    note: "Sign in with your private CoreXformer credentials. If this is the first time, create the first owner account here and the profile will become the master admin for the studio. For privacy, studio access now ends after inactivity or when the browser tab is closed, so password entry is required again.",
     emailPlaceholder: "admin@corexformer.com",
     state: "Signed out. Use your email and password to enter the private studio.",
     progress: "Signing you into the admin workspace...",
@@ -17,7 +17,7 @@ const ACCESS_COPY = {
     sign_in: {
       label: "Facilitator access",
       heading: "Facilitator sign in",
-      note: "Sign in with your facilitator credentials to enter the private workspace for onboarding, assigned products, sessions, and collaboration.",
+      note: "Sign in with your facilitator credentials to enter the private workspace for onboarding, assigned products, sessions, and collaboration. For privacy, studio access now ends after inactivity or when the browser tab is closed, so password entry is required again.",
       emailPlaceholder: "facilitator@corexformer.com",
       state: "Signed out. Use your email and password to enter the private studio.",
       progress: "Signing you into the facilitator workspace...",
@@ -30,7 +30,7 @@ const ACCESS_COPY = {
     activate: {
       label: "Facilitator onboarding access",
       heading: "Activate your invited account",
-      note: "Use this only after CoreXformer has reviewed your application and invited you into onboarding. This step creates your candidate-side login for the private facilitator workspace.",
+      note: "Use this only after CoreXformer has reviewed your application and invited you into onboarding. This step creates your candidate-side login for the private facilitator workspace. For privacy, studio access now ends after inactivity or when the browser tab is closed, so password entry is required again.",
       emailPlaceholder: "invited.facilitator@corexformer.com",
       state: "Waiting for an invited facilitator to activate access.",
       progress: "Activating your invited facilitator access...",
@@ -86,6 +86,7 @@ async function initAccess() {
 
   const config = window.COREXFORMER_STUDIO_CONFIG;
   const supabaseLib = window.supabase;
+  const studioAuth = window.COREXFORMER_STUDIO_AUTH;
 
   if (!config?.supabaseUrl || !config?.supabaseAnonKey || !supabaseLib?.createClient) {
     showMessage(dom.accessAuthMessage, "Supabase configuration is missing. Add your project URL and publishable key to studio/config.js.", "error");
@@ -93,13 +94,15 @@ async function initAccess() {
     return;
   }
 
-  state.supabase = supabaseLib.createClient(config.supabaseUrl, config.supabaseAnonKey, {
+  state.supabase = studioAuth?.createClient(config) || supabaseLib.createClient(config.supabaseUrl, config.supabaseAnonKey, {
     auth: {
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true
     }
   });
+
+  await studioAuth?.prepareSession(state.supabase);
 
   setAuthState(getActiveCopy().checking);
 
@@ -113,9 +116,14 @@ async function initAccess() {
     return;
   }
 
+  const accessNotice = studioAuth?.consumeNotice();
+
   if (session) {
     await handleExistingSession(session);
   } else {
+    if (accessNotice) {
+      showMessage(dom.accessAuthMessage, accessNotice, "info");
+    }
     setAuthState(getActiveCopy().state);
   }
 
@@ -127,7 +135,12 @@ async function initAccess() {
 
     state.session = null;
     state.sessionProfile = null;
-    clearMessage(dom.accessAuthMessage);
+    const notice = studioAuth?.consumeNotice();
+    if (notice) {
+      showMessage(dom.accessAuthMessage, notice, "info");
+    } else {
+      clearMessage(dom.accessAuthMessage);
+    }
     setAuthState(getActiveCopy().state);
     renderSessionActionButton();
   });
@@ -252,6 +265,7 @@ async function signIn() {
   setAuthState(getActiveCopy().authing);
 
   if (state.session) {
+    window.COREXFORMER_STUDIO_AUTH?.clearSessionArtifacts();
     await state.supabase.auth.signOut();
     state.session = null;
     state.sessionProfile = null;
@@ -303,6 +317,7 @@ async function signUpOwner() {
   setAuthState("Creating the admin account...");
 
   if (state.session) {
+    window.COREXFORMER_STUDIO_AUTH?.clearSessionArtifacts();
     await state.supabase.auth.signOut();
     state.session = null;
     state.sessionProfile = null;
@@ -362,6 +377,7 @@ async function activateFacilitatorAccount() {
   setAuthState(ACCESS_COPY.facilitator.activate.authing);
 
   if (state.session) {
+    window.COREXFORMER_STUDIO_AUTH?.clearSessionArtifacts();
     await state.supabase.auth.signOut();
     state.session = null;
     state.sessionProfile = null;
@@ -629,6 +645,7 @@ async function signOutCurrentSession() {
   }
 
   setBusy(true);
+  window.COREXFORMER_STUDIO_AUTH?.clearSessionArtifacts();
   const { error } = await state.supabase.auth.signOut();
   setBusy(false);
 
@@ -647,6 +664,7 @@ async function signOutCurrentSession() {
 
 async function resolveRoleMismatch(correctSide) {
   if (state.session) {
+    window.COREXFORMER_STUDIO_AUTH?.clearSessionArtifacts();
     await state.supabase.auth.signOut();
   }
 

@@ -33,17 +33,20 @@ async function initApplicationReview() {
     return;
   }
 
-  applicationState.supabase = window.supabase.createClient(
-    window.COREXFORMER_STUDIO_CONFIG.supabaseUrl,
-    window.COREXFORMER_STUDIO_CONFIG.supabaseAnonKey,
-    {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true
+  applicationState.supabase = window.COREXFORMER_STUDIO_AUTH?.createClient(window.COREXFORMER_STUDIO_CONFIG)
+    || window.supabase.createClient(
+      window.COREXFORMER_STUDIO_CONFIG.supabaseUrl,
+      window.COREXFORMER_STUDIO_CONFIG.supabaseAnonKey,
+      {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true
+        }
       }
-    }
-  );
+    );
+
+  await window.COREXFORMER_STUDIO_AUTH?.prepareSession(applicationState.supabase);
 
   bindApplicationEvents();
 

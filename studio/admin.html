@@ -34,6 +34,7 @@
         <p class="card-note">
           This route should only open for an authenticated admin session. If you are signed out, the studio returns you
           to the shared access page and then brings you back here after admin sign in succeeds.
+          For privacy, this private session now asks for the password again after inactivity or when the browser tab closes.
         </p>
         <div class="access-secondary">
           <a class="button access-link-button" href="/studio/?mode=admin">Go to studio access</a>
@@ -756,6 +757,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="config.js"></script>
+  <script src="session-auth.js"></script>
   <script src="admin.js"></script>
   <script src="applications.js"></script>
   <script src="website-insights.js"></script>

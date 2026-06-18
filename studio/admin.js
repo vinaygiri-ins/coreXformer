@@ -33,17 +33,20 @@ async function initAdminWorkspace() {
     return;
   }
 
-  adminState.supabase = window.supabase.createClient(
-    window.COREXFORMER_STUDIO_CONFIG.supabaseUrl,
-    window.COREXFORMER_STUDIO_CONFIG.supabaseAnonKey,
-    {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true
+  adminState.supabase = window.COREXFORMER_STUDIO_AUTH?.createClient(window.COREXFORMER_STUDIO_CONFIG)
+    || window.supabase.createClient(
+      window.COREXFORMER_STUDIO_CONFIG.supabaseUrl,
+      window.COREXFORMER_STUDIO_CONFIG.supabaseAnonKey,
+      {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true
+        }
       }
-    }
-  );
+    );
+
+  await window.COREXFORMER_STUDIO_AUTH?.prepareSession(adminState.supabase);
 
   bindAdminEvents();
 
@@ -67,6 +70,7 @@ function bindAdminEvents() {
     adminDom.signOutButton.disabled = true;
     setAdminMessage("Signing out of the admin workspace...", "info");
 
+    window.COREXFORMER_STUDIO_AUTH?.clearSessionArtifacts();
     await adminState.supabase.auth.signOut();
     window.location.replace("/studio/?mode=admin");
   });
