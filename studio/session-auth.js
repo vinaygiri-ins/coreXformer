@@ -191,6 +191,7 @@
     createClient: createStudioSupabaseClient,
     prepareSession: prepareStudioSession,
     consumeNotice,
+    setNotice,
     clearSessionArtifacts: clearStudioSessionArtifacts,
     markActivity,
     idleMinutes: Math.round(MAX_IDLE_MS / 60000)

@@ -40,11 +40,22 @@ const ACCESS_COPY = {
       mismatch: "These credentials already belong to the admin side. Redirecting to the admin workspace...",
       primaryButton: "Activate access"
     }
+  },
+  recovery: {
+    label: "Password recovery",
+    heading: "Set a new password",
+    note: "Open the secure recovery link from your email, then create a new password for this private studio account. When the password is updated, you will return to sign in with the new one.",
+    state: "Recovery link ready. Enter a new password to continue.",
+    progress: "Saving your new password...",
+    success: "Password updated. Redirecting you to studio sign in...",
+    invalid: "This recovery link is missing or has expired. Request a fresh password reset email below.",
+    primaryButton: "Save new password"
   }
 };
 
 const dom = {
   accessLoginForm: document.getElementById("accessLoginForm"),
+  accessPrimaryModeSwitch: document.getElementById("accessPrimaryModeSwitch"),
   adminModeButton: document.getElementById("adminModeButton"),
   facilitatorModeButton: document.getElementById("facilitatorModeButton"),
   facilitatorActionSwitch: document.getElementById("facilitatorActionSwitch"),
@@ -55,12 +66,16 @@ const dom = {
   accessNote: document.getElementById("accessNote"),
   accessFullNameRow: document.getElementById("accessFullNameRow"),
   accessFullNameInput: document.getElementById("accessFullNameInput"),
+  accessEmailRow: document.getElementById("accessEmailRow"),
   accessEmailInput: document.getElementById("accessEmailInput"),
+  accessPasswordRow: document.getElementById("accessPasswordRow"),
   accessPasswordInput: document.getElementById("accessPasswordInput"),
   accessConfirmPasswordRow: document.getElementById("accessConfirmPasswordRow"),
   accessConfirmPasswordInput: document.getElementById("accessConfirmPasswordInput"),
   accessSignInButton: document.getElementById("accessSignInButton"),
   accessSignUpButton: document.getElementById("accessSignUpButton"),
+  accessForgotPasswordButton: document.getElementById("accessForgotPasswordButton"),
+  accessCancelRecoveryButton: document.getElementById("accessCancelRecoveryButton"),
   accessAuthMessage: document.getElementById("accessAuthMessage"),
   accessAuthState: document.getElementById("accessAuthState"),
   accessSessionActionButton: document.getElementById("accessSessionActionButton")
@@ -71,6 +86,8 @@ const state = {
   busy: false,
   mode: "admin",
   facilitatorAction: "sign_in",
+  recoveryRequested: false,
+  recoveryMode: false,
   session: null,
   sessionProfile: null
 };
@@ -102,6 +119,31 @@ async function initAccess() {
     }
   });
 
+  state.supabase.auth.onAuthStateChange((event, sessionUpdate) => {
+    if (event === "PASSWORD_RECOVERY" || (state.recoveryRequested && sessionUpdate)) {
+      void enterRecoveryMode(sessionUpdate);
+      return;
+    }
+
+    if (sessionUpdate) {
+      state.session = sessionUpdate;
+      return;
+    }
+
+    state.session = null;
+    state.sessionProfile = null;
+    if (!state.recoveryMode) {
+      const notice = studioAuth?.consumeNotice();
+      if (notice) {
+        showMessage(dom.accessAuthMessage, notice, "info");
+      } else {
+        clearMessage(dom.accessAuthMessage);
+      }
+      setAuthState(getActiveCopy().state);
+    }
+    renderSessionActionButton();
+  });
+
   await studioAuth?.prepareSession(state.supabase);
 
   setAuthState(getActiveCopy().checking);
@@ -118,32 +160,21 @@ async function initAccess() {
 
   const accessNotice = studioAuth?.consumeNotice();
 
-  if (session) {
+  if (session && state.recoveryRequested) {
+    await enterRecoveryMode(session);
+  } else if (session) {
     await handleExistingSession(session);
   } else {
     if (accessNotice) {
       showMessage(dom.accessAuthMessage, accessNotice, "info");
     }
+    if (state.recoveryRequested) {
+      showMessage(dom.accessAuthMessage, ACCESS_COPY.recovery.invalid, "error");
+      state.recoveryRequested = false;
+      clearRecoveryFlagFromUrl();
+    }
     setAuthState(getActiveCopy().state);
   }
-
-  state.supabase.auth.onAuthStateChange((_event, sessionUpdate) => {
-    if (sessionUpdate) {
-      state.session = sessionUpdate;
-      return;
-    }
-
-    state.session = null;
-    state.sessionProfile = null;
-    const notice = studioAuth?.consumeNotice();
-    if (notice) {
-      showMessage(dom.accessAuthMessage, notice, "info");
-    } else {
-      clearMessage(dom.accessAuthMessage);
-    }
-    setAuthState(getActiveCopy().state);
-    renderSessionActionButton();
-  });
 }
 
 function bindEvents() {
@@ -172,13 +203,21 @@ function bindEvents() {
     void signUpOwner();
   });
 
+  dom.accessForgotPasswordButton?.addEventListener("click", () => {
+    void sendPasswordReset();
+  });
+
+  dom.accessCancelRecoveryButton?.addEventListener("click", () => {
+    void exitRecoveryMode();
+  });
+
   dom.accessSessionActionButton?.addEventListener("click", () => {
     void signOutCurrentSession();
   });
 }
 
 function setMode(mode) {
-  if (!ACCESS_COPY[mode] || state.mode === mode) {
+  if (!["admin", "facilitator"].includes(mode) || state.mode === mode || state.recoveryMode) {
     return;
   }
 
@@ -195,7 +234,7 @@ function setMode(mode) {
 }
 
 function setFacilitatorAction(action) {
-  if (state.mode !== "facilitator" || !["sign_in", "activate"].includes(action) || state.facilitatorAction === action) {
+  if (state.mode !== "facilitator" || !["sign_in", "activate"].includes(action) || state.facilitatorAction === action || state.recoveryMode) {
     return;
   }
 
@@ -212,15 +251,25 @@ function applyMode() {
   const copy = getActiveCopy();
   const isAdmin = state.mode === "admin";
   const isFacilitatorActivation = state.mode === "facilitator" && state.facilitatorAction === "activate";
+  const isRecoveryMode = state.recoveryMode;
+  const shouldShowFullName = !isRecoveryMode && (isAdmin || isFacilitatorActivation);
+  const shouldShowConfirmPassword = isRecoveryMode || isFacilitatorActivation;
 
   dom.accessCardLabel.textContent = copy.label;
   dom.accessHeading.textContent = copy.heading;
   dom.accessNote.textContent = copy.note;
-  dom.accessEmailInput.placeholder = copy.emailPlaceholder;
-  dom.accessFullNameRow.classList.toggle("hidden", !(isAdmin || isFacilitatorActivation));
-  dom.accessConfirmPasswordRow.classList.toggle("hidden", !isFacilitatorActivation);
-  dom.facilitatorActionSwitch.classList.toggle("hidden", state.mode !== "facilitator");
-  dom.accessSignUpButton.classList.toggle("hidden", !isAdmin);
+  dom.accessEmailInput.placeholder = copy.emailPlaceholder || "name@corexformer.com";
+  dom.accessPrimaryModeSwitch?.classList.toggle("hidden", isRecoveryMode);
+  dom.accessFullNameRow.classList.toggle("hidden", !shouldShowFullName);
+  dom.accessPasswordRow.classList.toggle("hidden", false);
+  dom.accessConfirmPasswordRow.classList.toggle("hidden", !shouldShowConfirmPassword);
+  dom.facilitatorActionSwitch.classList.toggle("hidden", isRecoveryMode || state.mode !== "facilitator");
+  dom.accessSignUpButton.classList.toggle("hidden", !isAdmin || isRecoveryMode);
+  dom.accessForgotPasswordButton.classList.toggle(
+    "hidden",
+    isRecoveryMode || isFacilitatorActivation || Boolean(state.session && state.sessionProfile)
+  );
+  dom.accessCancelRecoveryButton.classList.toggle("hidden", !isRecoveryMode);
   dom.accessSignInButton.textContent = copy.primaryButton || "Sign in";
 
   dom.adminModeButton.classList.toggle("is-active", isAdmin);
@@ -233,7 +282,9 @@ function applyMode() {
   dom.facilitatorActivateModeButton?.setAttribute("aria-pressed", String(state.facilitatorAction === "activate"));
 
   if (!state.busy) {
-    if (hasRoleMismatchSession()) {
+    if (isRecoveryMode) {
+      setAuthState(copy.state);
+    } else if (hasRoleMismatchSession()) {
       setAuthState(buildSessionMismatchState());
     } else if (state.session && state.sessionProfile) {
       setAuthState(buildSignedInState());
@@ -242,10 +293,16 @@ function applyMode() {
     }
   }
 
+  setBusy(state.busy);
   renderSessionActionButton();
 }
 
 async function signIn() {
+  if (state.recoveryMode) {
+    await completePasswordRecovery();
+    return;
+  }
+
   if (state.mode === "facilitator" && state.facilitatorAction === "activate") {
     await activateFacilitatorAccount();
     return;
@@ -294,6 +351,142 @@ async function signIn() {
   }
 
   await routeByCredential(data.session, state.mode, state.mode);
+}
+
+async function sendPasswordReset() {
+  const email = dom.accessEmailInput.value.trim().toLowerCase();
+
+  if (!email) {
+    showMessage(dom.accessAuthMessage, "Enter the studio email first, then use Forgot password.", "error");
+    setAuthState("Waiting for the email address needed for password recovery.");
+    return;
+  }
+
+  setBusy(true);
+  showMessage(dom.accessAuthMessage, "Sending a secure password reset email...");
+  setAuthState("Preparing your password reset link...");
+
+  const { error } = await state.supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: buildRecoveryRedirectUrl()
+  });
+
+  setBusy(false);
+
+  if (error) {
+    showMessage(dom.accessAuthMessage, error.message, "error");
+    setAuthState("Password reset email could not be sent.");
+    return;
+  }
+
+  showMessage(
+    dom.accessAuthMessage,
+    `If ${email} is approved for studio access, a secure password reset link has been sent there. Open the email and return through that link to set a new password.`,
+    "success"
+  );
+  setAuthState("Password reset email sent. Open the secure link from your inbox.");
+}
+
+async function enterRecoveryMode(session) {
+  state.recoveryRequested = true;
+  state.recoveryMode = true;
+  state.session = session || null;
+  state.sessionProfile = null;
+
+  if (session?.user?.email) {
+    dom.accessEmailInput.value = session.user.email;
+  }
+
+  dom.accessFullNameInput.value = "";
+  dom.accessPasswordInput.value = "";
+  dom.accessConfirmPasswordInput.value = "";
+
+  applyMode();
+  clearMessage(dom.accessAuthMessage);
+  showMessage(
+    dom.accessAuthMessage,
+    "Recovery link confirmed. Enter a new password below, then save it and sign in again.",
+    "success"
+  );
+  setAuthState(ACCESS_COPY.recovery.state);
+  renderSessionActionButton();
+}
+
+async function exitRecoveryMode() {
+  state.recoveryRequested = false;
+  state.recoveryMode = false;
+  clearRecoveryFlagFromUrl();
+
+  if (state.session) {
+    window.COREXFORMER_STUDIO_AUTH?.clearSessionArtifacts();
+    await state.supabase.auth.signOut({ scope: "local" });
+  }
+
+  state.session = null;
+  state.sessionProfile = null;
+  dom.accessPasswordInput.value = "";
+  dom.accessConfirmPasswordInput.value = "";
+  clearMessage(dom.accessAuthMessage);
+  applyRequestedMode();
+  applyMode();
+  setAuthState(getActiveCopy().state);
+}
+
+async function completePasswordRecovery() {
+  const password = dom.accessPasswordInput.value;
+  const confirmPassword = dom.accessConfirmPasswordInput.value;
+
+  if (!state.session) {
+    showMessage(dom.accessAuthMessage, ACCESS_COPY.recovery.invalid, "error");
+    setAuthState("Recovery session is no longer active. Request a fresh password reset email.");
+    return;
+  }
+
+  if (!password || !confirmPassword) {
+    showMessage(dom.accessAuthMessage, "Enter and confirm the new password before saving it.", "error");
+    setAuthState("Waiting for the new password and confirmation.");
+    return;
+  }
+
+  if (password.length < 8) {
+    showMessage(dom.accessAuthMessage, "Use a password with at least 8 characters.", "error");
+    setAuthState("The new password needs at least 8 characters.");
+    return;
+  }
+
+  if (password !== confirmPassword) {
+    showMessage(dom.accessAuthMessage, "The password confirmation does not match yet.", "error");
+    setAuthState("The new password and confirmation need to match.");
+    return;
+  }
+
+  setBusy(true);
+  showMessage(dom.accessAuthMessage, ACCESS_COPY.recovery.progress);
+  setAuthState("Saving the new password...");
+
+  const { error } = await state.supabase.auth.updateUser({
+    password
+  });
+
+  setBusy(false);
+
+  if (error) {
+    showMessage(dom.accessAuthMessage, error.message, "error");
+    setAuthState("The new password could not be saved yet.");
+    return;
+  }
+
+  window.COREXFORMER_STUDIO_AUTH?.setNotice?.("Password updated. Sign in with your new password.");
+  window.COREXFORMER_STUDIO_AUTH?.clearSessionArtifacts();
+
+  try {
+    await state.supabase.auth.signOut({ scope: "local" });
+  } catch (_error) {
+    // Redirecting back to sign-in is still safe even if local sign-out throws.
+  }
+
+  state.recoveryRequested = false;
+  state.recoveryMode = false;
+  window.location.replace(buildPostRecoveryUrl());
 }
 
 async function signUpOwner() {
@@ -526,6 +719,10 @@ async function routeByCredential(session, source, attemptedMode = state.mode) {
 }
 
 function getActiveCopy() {
+  if (state.recoveryMode) {
+    return ACCESS_COPY.recovery;
+  }
+
   if (state.mode === "facilitator") {
     return getFacilitatorCopy();
   }
@@ -541,6 +738,8 @@ function applyRequestedMode() {
   const params = new URLSearchParams(window.location.search);
   const requestedMode = params.get("mode");
   const requestedAction = params.get("action");
+  state.recoveryRequested = params.get("recovery") === "1";
+  state.recoveryMode = false;
 
   if (requestedMode === "facilitator") {
     state.mode = "facilitator";
@@ -612,12 +811,14 @@ function setBusy(isBusy) {
   dom.facilitatorModeButton.disabled = isBusy;
   dom.facilitatorSignInModeButton.disabled = isBusy;
   dom.facilitatorActivateModeButton.disabled = isBusy;
-  dom.accessFullNameInput.disabled = isBusy;
-  dom.accessEmailInput.disabled = isBusy;
+  dom.accessFullNameInput.disabled = isBusy || state.recoveryMode;
+  dom.accessEmailInput.disabled = isBusy || state.recoveryMode;
   dom.accessPasswordInput.disabled = isBusy;
-  dom.accessConfirmPasswordInput.disabled = isBusy;
+  dom.accessConfirmPasswordInput.disabled = isBusy || dom.accessConfirmPasswordRow.classList.contains("hidden");
   dom.accessSignInButton.disabled = isBusy;
-  dom.accessSignUpButton.disabled = isBusy || state.mode !== "admin";
+  dom.accessSignUpButton.disabled = isBusy || state.mode !== "admin" || state.recoveryMode;
+  dom.accessForgotPasswordButton.disabled = isBusy;
+  dom.accessCancelRecoveryButton.disabled = isBusy;
   dom.accessSessionActionButton.disabled = isBusy;
 }
 
@@ -656,8 +857,14 @@ async function signOutCurrentSession() {
 
   state.session = null;
   state.sessionProfile = null;
+  state.recoveryMode = false;
+  state.recoveryRequested = false;
   dom.accessPasswordInput.value = "";
+  dom.accessConfirmPasswordInput.value = "";
+  clearRecoveryFlagFromUrl();
   clearMessage(dom.accessAuthMessage);
+  applyRequestedMode();
+  applyMode();
   setAuthState(getActiveCopy().state);
   renderSessionActionButton();
 }
@@ -759,8 +966,59 @@ function humanizeSessionSide(side) {
 }
 
 function renderSessionActionButton() {
-  const hasSession = Boolean(state.session && state.sessionProfile);
+  const hasSession = Boolean(state.session && state.sessionProfile) && !state.recoveryMode;
   dom.accessSessionActionButton.classList.toggle("hidden", !hasSession);
+}
+
+function buildRecoveryRedirectUrl() {
+  const config = window.COREXFORMER_STUDIO_CONFIG || {};
+  const publicOrigin = resolvePublicStudioOrigin(config.publicSiteUrl);
+  const studioPath = config.studioAccessPath || "/studio/";
+  const url = new URL(studioPath, ensureTrailingSlash(publicOrigin));
+  url.searchParams.set("mode", state.mode);
+  url.searchParams.set("recovery", "1");
+  return url.toString();
+}
+
+function buildPostRecoveryUrl() {
+  const config = window.COREXFORMER_STUDIO_CONFIG || {};
+  const studioPath = config.studioAccessPath || "/studio/";
+  const requestedMode = state.mode === "facilitator" ? "facilitator" : "admin";
+  return `${studioPath}?mode=${requestedMode}`;
+}
+
+function clearRecoveryFlagFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  if (!params.has("recovery")) {
+    return;
+  }
+
+  params.delete("recovery");
+  const nextSearch = params.toString();
+  const nextUrl = `${window.location.pathname}${nextSearch ? `?${nextSearch}` : ""}`;
+  window.history.replaceState({}, "", nextUrl);
+}
+
+function resolvePublicStudioOrigin(configuredOrigin) {
+  const currentOrigin = window.location.origin;
+
+  if (currentOrigin && currentOrigin !== "null" && !isLocalPreviewOrigin(currentOrigin)) {
+    return currentOrigin;
+  }
+
+  if (configuredOrigin) {
+    return configuredOrigin;
+  }
+
+  return "https://corexformer.pages.dev";
+}
+
+function ensureTrailingSlash(value) {
+  return value.endsWith("/") ? value : `${value}/`;
+}
+
+function isLocalPreviewOrigin(origin) {
+  return /\/\/(127\.0\.0\.1|localhost)(:\d+)?$/i.test(origin);
 }
 
 function clearMessage(element) {

@@ -25,7 +25,7 @@
 
     <section class="access-single">
       <article class="login-card access-card">
-        <div class="access-mode-switch" role="tablist" aria-label="Choose private studio access type">
+        <div id="accessPrimaryModeSwitch" class="access-mode-switch" role="tablist" aria-label="Choose private studio access type">
           <button id="adminModeButton" type="button" class="access-mode-button is-active" aria-pressed="true">Admin</button>
           <button id="facilitatorModeButton" type="button" class="access-mode-button" aria-pressed="false">Facilitator</button>
         </div>
@@ -44,11 +44,11 @@
             <span>Full name</span>
             <input id="accessFullNameInput" type="text" placeholder="Vinay Giri">
           </label>
-          <label>
+          <label id="accessEmailRow">
             <span>Email</span>
             <input id="accessEmailInput" type="email" placeholder="admin@corexformer.com" required>
           </label>
-          <label>
+          <label id="accessPasswordRow">
             <span>Password</span>
             <input id="accessPasswordInput" type="password" placeholder="••••••••" required>
           </label>
@@ -59,6 +59,10 @@
           <div class="login-actions">
             <button id="accessSignInButton" type="submit" class="button">Sign in</button>
             <button id="accessSignUpButton" type="button" class="button button-ghost">Create first owner account</button>
+          </div>
+          <div class="access-secondary">
+            <button id="accessForgotPasswordButton" type="button" class="button button-ghost">Forgot password?</button>
+            <button id="accessCancelRecoveryButton" type="button" class="button button-muted hidden">Back to sign in</button>
           </div>
         </form>
         <div id="accessAuthMessage" class="message-banner hidden"></div>
