@@ -748,7 +748,7 @@ function applyRequestedMode() {
   const params = new URLSearchParams(window.location.search);
   const requestedMode = params.get("mode");
   const requestedAction = params.get("action");
-  state.recoveryRequested = params.get("recovery") === "1";
+  state.recoveryRequested = isRecoveryRequestFromUrl();
   state.recoveryMode = false;
 
   if (requestedMode === "facilitator") {
@@ -991,8 +991,7 @@ function renderSessionActionButton() {
 function buildRecoveryRedirectUrl() {
   const config = window.COREXFORMER_STUDIO_CONFIG || {};
   const publicOrigin = resolvePublicStudioOrigin(config.publicSiteUrl);
-  const studioPath = config.studioAccessPath || "/studio/";
-  const url = new URL(studioPath, ensureTrailingSlash(publicOrigin));
+  const url = new URL(resolveStudioAccessEntryPath(config.studioAccessPath), ensureTrailingSlash(publicOrigin));
   url.searchParams.set("mode", state.mode);
   url.searchParams.set("recovery", "1");
   return url.toString();
@@ -1000,9 +999,11 @@ function buildRecoveryRedirectUrl() {
 
 function buildPostRecoveryUrl() {
   const config = window.COREXFORMER_STUDIO_CONFIG || {};
-  const studioPath = config.studioAccessPath || "/studio/";
   const requestedMode = state.mode === "facilitator" ? "facilitator" : "admin";
-  return `${studioPath}?mode=${requestedMode}`;
+  const publicOrigin = resolvePublicStudioOrigin(config.publicSiteUrl);
+  const url = new URL(resolveStudioAccessEntryPath(config.studioAccessPath), ensureTrailingSlash(publicOrigin));
+  url.searchParams.set("mode", requestedMode);
+  return url.toString();
 }
 
 function clearRecoveryFlagFromUrl() {
@@ -1029,6 +1030,25 @@ function resolvePublicStudioOrigin(configuredOrigin) {
   }
 
   return "https://corexformer.pages.dev";
+}
+
+function resolveStudioAccessEntryPath(studioAccessPath) {
+  const normalizedPath = studioAccessPath || "/studio/";
+
+  if (/index\.html(?:$|\?)/i.test(normalizedPath)) {
+    return normalizedPath;
+  }
+
+  return normalizedPath.endsWith("/") ? `${normalizedPath}index.html` : normalizedPath;
+}
+
+function isRecoveryRequestFromUrl() {
+  const searchParams = new URLSearchParams(window.location.search);
+  const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+
+  return searchParams.get("recovery") === "1"
+    || searchParams.get("type") === "recovery"
+    || hashParams.get("type") === "recovery";
 }
 
 function ensureTrailingSlash(value) {
