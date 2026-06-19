@@ -695,7 +695,7 @@ async function routeByCredential(session, source, attemptedMode = state.mode) {
       ACCESS_COPY.admin.success
     );
     setAuthState("Admin access confirmed.");
-    window.location.replace(
+    redirectToWorkspace(
       buildWorkspaceRedirectUrl(
         config.adminWorkspacePath || "/studio/admin.html",
         getRequestedAdminWorkspaceParams()
@@ -730,7 +730,7 @@ async function routeByCredential(session, source, attemptedMode = state.mode) {
     getFacilitatorCopy().success
   );
   setAuthState("Facilitator access confirmed.");
-  window.location.replace(buildWorkspaceRedirectUrl(config.facilitatorWorkspacePath || "/studio/facilitator.html"));
+  redirectToWorkspace(buildWorkspaceRedirectUrl(config.facilitatorWorkspacePath || "/studio/facilitator.html"));
 }
 
 function getActiveCopy() {
@@ -1078,6 +1078,66 @@ function buildWorkspaceRedirectUrl(workspacePath, extraParams = null) {
   }
 
   return url.toString();
+}
+
+function redirectToWorkspace(url) {
+  const targetUrl = String(url || "");
+
+  if (!targetUrl) {
+    return;
+  }
+
+  const attemptNavigation = (method = "replace") => {
+    try {
+      if (method === "assign" && typeof window.location.assign === "function") {
+        window.location.assign(targetUrl);
+        return true;
+      }
+
+      if (method === "open" && typeof window.open === "function") {
+        window.open(targetUrl, "_self");
+        return true;
+      }
+
+      if (typeof window.location.replace === "function") {
+        window.location.replace(targetUrl);
+        return true;
+      }
+    } catch (_error) {
+      return false;
+    }
+
+    return false;
+  };
+
+  const stillOnStudioAccess = () => {
+    try {
+      const currentUrl = new URL(window.location.href);
+      const target = new URL(targetUrl);
+
+      if (currentUrl.href === target.href) {
+        return false;
+      }
+
+      return /^\/studio\/?(?:index\.html)?$/i.test(currentUrl.pathname);
+    } catch (_error) {
+      return false;
+    }
+  };
+
+  attemptNavigation("replace");
+
+  window.setTimeout(() => {
+    if (stillOnStudioAccess()) {
+      attemptNavigation("assign");
+    }
+  }, 180);
+
+  window.setTimeout(() => {
+    if (stillOnStudioAccess()) {
+      attemptNavigation("open");
+    }
+  }, 700);
 }
 
 function resolveRuntimeStudioOrigin(configuredOrigin) {
