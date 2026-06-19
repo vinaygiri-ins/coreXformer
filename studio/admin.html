@@ -66,7 +66,7 @@
           <button id="adminModuleInsights" type="button" class="workspace-tab" data-admin-module="insights" role="tab" aria-selected="false">Website Insights</button>
           <button id="adminModuleLeadMap" type="button" class="workspace-tab" data-admin-module="lead-map" data-owner-only="true" role="tab" aria-selected="false">Lead Map</button>
           <button type="button" class="workspace-tab is-disabled" data-admin-module="products" role="tab" aria-selected="false" disabled>Products <span class="tab-soon">Soon</span></button>
-          <button type="button" class="workspace-tab is-disabled" data-admin-module="feedback" role="tab" aria-selected="false" disabled>Feedback <span class="tab-soon">Soon</span></button>
+          <button type="button" class="workspace-tab" data-admin-module="feedback" role="tab" aria-selected="false">Feedback</button>
           <button type="button" class="workspace-tab is-disabled" data-admin-module="public-pages" role="tab" aria-selected="false" disabled>Public Pages <span class="tab-soon">Soon</span></button>
           <button type="button" class="workspace-tab is-disabled" data-admin-module="operations" role="tab" aria-selected="false" disabled>Operations <span class="tab-soon">Soon</span></button>
         </div>
@@ -417,6 +417,127 @@
         </article>
       </section>
 
+      <section class="panel admin-module-shell hidden" data-admin-module-panel="feedback">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Feedback</p>
+            <h2>Review session reflections and export one PDF per batch</h2>
+          </div>
+          <span class="status-pill">Admin module</span>
+        </div>
+
+        <div class="workspace-tab-bar admin-view-tabs" role="tablist" aria-label="Feedback admin views">
+          <button type="button" class="workspace-tab" data-admin-view="feedback-overview" role="tab" aria-selected="false">Overview</button>
+          <button type="button" class="workspace-tab" data-admin-view="feedback-sessions" role="tab" aria-selected="false">Session exports</button>
+        </div>
+
+        <div id="feedbackAdminMessage" class="message-banner hidden"></div>
+
+        <div class="notice-box">
+          <h3>How this module should help</h3>
+          <p>
+            This space should help CoreXformer treat feedback as a real session record. Reflections can be grouped by
+            session or batch, reviewed in full, and exported into one clean PDF file that can be shared privately after delivery.
+          </p>
+        </div>
+
+        <div class="notice-box feedback-admin-window-bar">
+          <div class="panel-head feedback-admin-window-head">
+            <div>
+              <p class="eyebrow">Received window</p>
+              <h3>Choose the date and time range you want to review</h3>
+            </div>
+            <div class="inline-action-group">
+              <button id="feedbackAdminDownloadWindowPdfButton" type="button" class="button">Download window PDF</button>
+              <button id="feedbackAdminClearWindowButton" type="button" class="button button-ghost">Show all time</button>
+            </div>
+          </div>
+
+          <div class="feedback-admin-window-grid">
+            <label>
+              <span>Received from</span>
+              <input id="feedbackAdminReceivedFrom" type="datetime-local">
+            </label>
+
+            <label>
+              <span>Received until</span>
+              <input id="feedbackAdminReceivedTo" type="datetime-local">
+            </label>
+          </div>
+
+          <p id="feedbackAdminWindowSummary" class="lead-map-area-summary">Currently showing all feedback received so far.</p>
+        </div>
+      </section>
+
+      <section class="studio-grid admin-view-panel hidden" data-admin-view-panel="feedback-overview">
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Overview</p>
+              <h2>What is being captured across feedback responses</h2>
+            </div>
+          </div>
+
+          <div id="feedbackAdminSummaryCards" class="pipeline-grid"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">What this export includes</p>
+              <h2>Everything captured in the feedback form for a session</h2>
+            </div>
+          </div>
+
+          <div id="feedbackAdminHighlights" class="collaboration-list"></div>
+        </article>
+      </section>
+
+      <section class="studio-grid admin-view-panel hidden" data-admin-view-panel="feedback-sessions">
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Session groups</p>
+              <h2>Choose the batch or session you want to export</h2>
+            </div>
+          </div>
+
+          <label>
+            <span>Find a session or batch</span>
+            <input id="feedbackAdminFilterInput" type="text" placeholder="Search by organization, session title, facilitator, or product">
+          </label>
+
+          <p id="feedbackAdminScope" class="lead-map-area-summary">Feedback groups will appear here once the private feedback records are loaded.</p>
+
+          <div id="feedbackAdminGroupList" class="collaboration-list"></div>
+
+          <div id="feedbackAdminGroupEmptyState" class="empty-state hidden">
+            <h3>No matching feedback sessions</h3>
+            <p>Once feedback responses are received, they will gather here into session or batch groups for review and export.</p>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Session detail</p>
+              <h2>Full reflections and private export</h2>
+            </div>
+            <div class="inline-action-group feedback-admin-action-bar">
+              <button id="feedbackAdminCopyLinkButton" type="button" class="button button-ghost">Copy feedback link</button>
+              <button id="feedbackAdminDownloadPdfButton" type="button" class="button">Download PDF</button>
+            </div>
+          </div>
+
+          <div id="feedbackAdminSessionDetail" class="feedback-admin-session-detail"></div>
+
+          <div id="feedbackAdminSessionEmptyState" class="empty-state">
+            <h3>Select a session group</h3>
+            <p>The full participant reflections, ratings, and PDF export controls will appear here for the chosen batch.</p>
+          </div>
+        </article>
+      </section>
+
       <section class="panel admin-module-shell hidden" data-admin-module-panel="lead-map">
         <div class="panel-head">
           <div>
@@ -761,6 +882,7 @@
   <script src="admin.js"></script>
   <script src="applications.js"></script>
   <script src="website-insights.js"></script>
+  <script src="feedback-admin.js"></script>
   <script src="lead-map.js"></script>
 </body>
 </html>

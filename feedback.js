@@ -235,7 +235,7 @@ async function submitFeedback(supabase, feedbackForm, feedbackContext, feedbackS
 
   const participantName = normalizeValue(formData.get("participantName"));
   const basePayload = {
-    organization_name: normalizeValue(formData.get("organizationName")),
+    organization_name: normalizeValue(formData.get("organizationName")) || feedbackContext.organizationName || null,
     audience_type: normalizeValue(formData.get("audienceType")) || feedbackContext.audienceValue || null,
     product_slug: feedbackContext.productSlug || null,
     product_name: feedbackContext.productName || null,
@@ -253,12 +253,13 @@ async function submitFeedback(supabase, feedbackForm, feedbackContext, feedbackS
 
   const enhancedPayload = {
     ...basePayload,
+    session_run_id: feedbackContext.sessionRunId || null,
     session_experience_rating: Number(formData.get("overallExperienceRating")),
     facilitator_impact_rating: Number(formData.get("facilitatorImpactRating")),
     participant_role: normalizeValue(formData.get("participantRole")) || null,
     facilitator_impact_note: normalizeValue(formData.get("facilitatorImpactNote")),
     improvement_note: normalizeValue(formData.get("improvementNote")) || null,
-    session_date: normalizeDateValue(formData.get("sessionDate"))
+    session_date: normalizeDateValue(formData.get("sessionDate")) || feedbackContext.sessionDate || null
   };
 
   if (!basePayload.audience_type || !basePayload.organization_name) {
@@ -669,11 +670,17 @@ function applyFeedbackContext(feedbackContext) {
   const titleElement = document.querySelector("[data-feedback-context-title]");
   const bodyElement = document.querySelector("[data-feedback-context-body]");
   const audienceField = document.querySelector('[name="audienceType"]');
+  const organizationField = document.querySelector('[name="organizationName"]');
   const sessionTitleField = document.querySelector('[name="sessionTitle"]');
   const facilitatorField = document.querySelector('[name="facilitatorName"]');
+  const sessionDateField = document.querySelector('[name="sessionDate"]');
 
   if (audienceField && feedbackContext.audienceValue && !audienceField.value) {
     audienceField.value = feedbackContext.audienceValue;
+  }
+
+  if (organizationField && feedbackContext.organizationName && !organizationField.value) {
+    organizationField.value = feedbackContext.organizationName;
   }
 
   if (sessionTitleField && (feedbackContext.sessionTitle || feedbackContext.productName) && !sessionTitleField.value) {
@@ -682,6 +689,10 @@ function applyFeedbackContext(feedbackContext) {
 
   if (facilitatorField && feedbackContext.facilitatorName && !facilitatorField.value) {
     facilitatorField.value = feedbackContext.facilitatorName;
+  }
+
+  if (sessionDateField && feedbackContext.sessionDate && !sessionDateField.value) {
+    sessionDateField.value = feedbackContext.sessionDate;
   }
 
   if (!banner || !titleElement || !bodyElement || !(feedbackContext.productName || feedbackContext.sessionTitle)) {
@@ -696,6 +707,14 @@ function applyFeedbackContext(feedbackContext) {
 
   if (feedbackContext.facilitatorName) {
     contextBits.push(`facilitator: ${feedbackContext.facilitatorName}`);
+  }
+
+  if (feedbackContext.organizationName) {
+    contextBits.push(`organization: ${feedbackContext.organizationName}`);
+  }
+
+  if (feedbackContext.sessionDate) {
+    contextBits.push(`date: ${formatFeedbackContextDate(feedbackContext.sessionDate)}`);
   }
 
   titleElement.textContent = feedbackContext.productName
@@ -733,10 +752,13 @@ function getFeedbackContext() {
   };
 
   return {
+    sessionRunId: normalizeValue(params.get("sessionRunId") || body?.dataset.feedbackSessionRunId),
     productSlug: normalizeValue(params.get("productSlug") || body?.dataset.feedbackProductSlug),
     productName: normalizeValue(params.get("productName") || body?.dataset.feedbackProductName),
     sessionTitle: normalizeValue(params.get("sessionTitle") || body?.dataset.feedbackSessionTitle),
+    organizationName: normalizeValue(params.get("organizationName") || body?.dataset.feedbackOrganizationName),
     facilitatorName: normalizeValue(params.get("facilitatorName") || body?.dataset.feedbackFacilitatorName),
+    sessionDate: normalizeDateValue(params.get("sessionDate") || body?.dataset.feedbackSessionDate),
     viewValue: normalizeValue(params.get("view")).toLowerCase(),
     rawAudience,
     audienceValue: audienceMap[rawAudience] || ""
@@ -789,6 +811,7 @@ function isSchemaCompatibilityError(error) {
 
   return (
     error?.code === "PGRST204" ||
+    message.includes("session_run_id") ||
     message.includes("session_experience_rating") ||
     message.includes("facilitator_impact_rating") ||
     message.includes("participant_role") ||
@@ -810,6 +833,26 @@ function isLocalPreviewHost() {
 function normalizeDateValue(value) {
   const normalized = normalizeValue(value);
   return normalized || null;
+}
+
+function formatFeedbackContextDate(value) {
+  const normalized = normalizeDateValue(value);
+
+  if (!normalized) {
+    return "";
+  }
+
+  const date = new Date(normalized);
+
+  if (Number.isNaN(date.getTime())) {
+    return normalized;
+  }
+
+  return new Intl.DateTimeFormat("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric"
+  }).format(date);
 }
 
 function showFeedbackMessage(element, text, tone) {

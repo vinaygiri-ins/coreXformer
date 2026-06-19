@@ -164,6 +164,14 @@ function bindEvents() {
     clearMessage(dom.workspaceMessage);
     void loadWorkspaceData();
   });
+
+  dom.sessionBriefCard?.addEventListener("click", (event) => {
+    void handleSessionFeedbackCardAction(event);
+  });
+
+  dom.sessionList?.addEventListener("click", (event) => {
+    void handleSessionFeedbackCardAction(event);
+  });
 }
 
 async function handleSession(session) {
@@ -798,6 +806,7 @@ function renderSessionBrief() {
       <div class="detail-row"><strong>Role</strong><span>${escapeHtml(humanizeStudioRole(nextAssignment.assignment_role))}</span></div>
     </div>
     <p class="brief-copy">${escapeHtml(normalizeValue(nextAssignment.public_note) || "Once public or internal notes are added to this assignment, the session brief can start carrying them here.")}</p>
+    ${renderSessionFeedbackActions(nextAssignment)}
   `;
 }
 
@@ -818,9 +827,20 @@ function renderSessionList() {
         <span class="status-pill">${escapeHtml(humanizeAssignmentStatus(assignment.assignment_status))}</span>
       </div>
       <p>${escapeHtml(normalizeValue(assignment.public_note) || "No facilitator-facing note has been attached to this assignment yet.")}</p>
+      ${renderSessionFeedbackActions(assignment)}
     `;
     dom.sessionList.appendChild(article);
   });
+}
+
+function renderSessionFeedbackActions(assignment) {
+  return `
+    <div class="inline-action-group session-feedback-actions">
+      <button type="button" class="button button-ghost" data-session-feedback-action="copy" data-assignment-id="${escapeHtml(assignment.id)}">Copy feedback link</button>
+      <button type="button" class="button button-ghost" data-session-feedback-action="open" data-assignment-id="${escapeHtml(assignment.id)}">Open feedback form</button>
+    </div>
+    <p class="session-feedback-note">Use this after the session so participant responses stay attached to the correct batch.</p>
+  `;
 }
 
 function renderProductNotes() {
@@ -1112,6 +1132,127 @@ function buildSessionMeta(assignment) {
   return parts.join(" · ");
 }
 
+async function handleSessionFeedbackCardAction(event) {
+  const actionButton = event.target.closest("[data-session-feedback-action]");
+
+  if (!actionButton) {
+    return;
+  }
+
+  const assignmentId = normalizeValue(actionButton.dataset.assignmentId);
+  const action = normalizeValue(actionButton.dataset.sessionFeedbackAction);
+  const assignment = state.sessionAssignments.find((item) => item.id === assignmentId);
+
+  if (!assignment) {
+    showMessage(dom.workspaceMessage, "This session could not be matched right now. Refresh the workspace and try again.", "error");
+    return;
+  }
+
+  const feedbackUrl = buildSessionFeedbackUrl(assignment);
+
+  if (!feedbackUrl) {
+    showMessage(dom.workspaceMessage, "This session does not yet have enough detail to build a feedback route.", "error");
+    return;
+  }
+
+  try {
+    if (action === "open") {
+      window.open(feedbackUrl, "_blank", "noopener,noreferrer");
+      showMessage(dom.workspaceMessage, "The feedback form opened in a new tab for this session.", "success");
+      return;
+    }
+
+    await copyTextForFacilitator(feedbackUrl);
+    showMessage(dom.workspaceMessage, "The session feedback link is copied. Share it with participants after the batch ends.", "success");
+  } catch (error) {
+    showMessage(dom.workspaceMessage, "The feedback link could not be prepared right now. Please try again in a moment.", "error");
+    console.warn("CoreXformer facilitator feedback link action failed.", error);
+  }
+}
+
+function buildSessionFeedbackUrl(assignment) {
+  const sessionRun = assignment.sessionRun;
+
+  if (!sessionRun) {
+    return "";
+  }
+
+  const url = new URL("feedback.html", ensureFacilitatorTrailingSlash(resolveFacilitatorPublicOrigin()));
+  const sessionTitle = normalizeValue(sessionRun.session_title) || humanizeProductSlug(sessionRun.product_slug || assignment.product_slug);
+  const organizationName = normalizeValue(sessionRun.organization_name);
+  const facilitatorName = normalizeValue(state.activeFacilitator?.display_name)
+    || normalizeValue(state.activeFacilitator?.full_name)
+    || normalizeValue(state.profile?.full_name);
+
+  url.searchParams.set("view", "submit");
+  url.searchParams.set("sessionRunId", sessionRun.id);
+
+  if (normalizeValue(sessionRun.product_slug || assignment.product_slug)) {
+    url.searchParams.set("productSlug", normalizeValue(sessionRun.product_slug || assignment.product_slug));
+  }
+
+  if (normalizeValue(sessionRun.product_name || assignment.product_name)) {
+    url.searchParams.set("productName", normalizeValue(sessionRun.product_name || assignment.product_name));
+  }
+
+  if (sessionTitle) {
+    url.searchParams.set("sessionTitle", sessionTitle);
+  }
+
+  if (organizationName) {
+    url.searchParams.set("organizationName", organizationName);
+  }
+
+  if (facilitatorName) {
+    url.searchParams.set("facilitatorName", facilitatorName);
+  }
+
+  if (sessionRun.session_date) {
+    url.searchParams.set("sessionDate", normalizeFacilitatorDateParam(sessionRun.session_date));
+  }
+
+  return url.toString();
+}
+
+function resolveFacilitatorPublicOrigin() {
+  const configuredOrigin = window.COREXFORMER_STUDIO_CONFIG?.publicSiteUrl;
+  const currentOrigin = window.location.origin;
+
+  if (currentOrigin && currentOrigin !== "null" && !/\/\/(127\.0\.0\.1|localhost)(:\d+)?$/i.test(currentOrigin)) {
+    return currentOrigin;
+  }
+
+  if (configuredOrigin) {
+    return configuredOrigin;
+  }
+
+  return "https://corexformer.pages.dev";
+}
+
+function ensureFacilitatorTrailingSlash(value) {
+  return value.endsWith("/") ? value : `${value}/`;
+}
+
+function normalizeFacilitatorDateParam(value) {
+  const normalized = normalizeValue(value);
+
+  if (!normalized) {
+    return "";
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(normalized)) {
+    return normalized;
+  }
+
+  const date = new Date(normalized);
+
+  if (Number.isNaN(date.getTime())) {
+    return normalized;
+  }
+
+  return date.toISOString().slice(0, 10);
+}
+
 function buildCollaborationCards() {
   const cards = [];
 
@@ -1219,6 +1360,30 @@ function clearMessage(element) {
   element.textContent = "";
   element.classList.add("hidden");
   element.classList.remove("is-error", "is-success");
+}
+
+async function copyTextForFacilitator(value) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(value);
+    return;
+  }
+
+  const helper = document.createElement("textarea");
+  helper.value = value;
+  helper.setAttribute("readonly", "true");
+  helper.style.position = "fixed";
+  helper.style.opacity = "0";
+  helper.style.pointerEvents = "none";
+  document.body.appendChild(helper);
+  helper.select();
+  helper.setSelectionRange(0, helper.value.length);
+
+  const copied = document.execCommand("copy");
+  document.body.removeChild(helper);
+
+  if (!copied) {
+    throw new Error("Clipboard copy failed.");
+  }
 }
 
 function renderMetricCard(label, value, copy) {

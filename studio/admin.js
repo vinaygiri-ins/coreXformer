@@ -1,6 +1,19 @@
 const ADMIN_ALLOWED_ROLES = ["owner", "editor"];
 const FACILITATOR_SIDE_ROLES = ["candidate", "facilitator", "facilitator_lead"];
 const OWNER_ONLY_MODULES = new Set(["lead-map"]);
+const ADMIN_DEFAULT_VIEWS = {
+  facilitator: "facilitator-overview",
+  insights: "insights-overview",
+  feedback: "feedback-overview",
+  "lead-map": "lead-map-overview"
+};
+const ADMIN_VIEW_PREFIX = {
+  facilitator: "facilitator-",
+  insights: "insights-",
+  feedback: "feedback-",
+  "lead-map": "lead-map-"
+};
+const initialAdminRoute = getRequestedAdminRoute();
 
 const adminDom = {
   signOutButton: document.getElementById("signOutButton"),
@@ -20,8 +33,8 @@ const adminState = {
   supabase: null,
   session: null,
   profile: null,
-  activeModule: "facilitator",
-  activeView: "facilitator-overview"
+  activeModule: initialAdminRoute.module,
+  activeView: initialAdminRoute.view
 };
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -72,7 +85,7 @@ function bindAdminEvents() {
 
     window.COREXFORMER_STUDIO_AUTH?.clearSessionArtifacts();
     await adminState.supabase.auth.signOut();
-    window.location.replace("/studio/?mode=admin");
+    window.location.replace(buildAdminAccessPath());
   });
 
   adminDom.moduleTabs.forEach((button) => {
@@ -108,7 +121,7 @@ async function handleAdminSession(session) {
   if (!adminState.session) {
     hideAdminWorkspace();
     setAdminStateText("Signed out. Use the studio access page to enter the private admin workspace.");
-    window.location.replace("/studio/?mode=admin");
+    window.location.replace(buildAdminAccessPath());
     return;
   }
 
@@ -140,7 +153,7 @@ async function handleAdminSession(session) {
       setAdminMessage("This account belongs to the facilitator side. Redirecting to the facilitator workspace.", "error");
       setAdminStateText("This session does not have admin access.");
       window.setTimeout(() => {
-        window.location.replace("/studio/facilitator");
+        window.location.replace(buildFacilitatorWorkspacePath());
       }, 800);
       return;
     }
@@ -148,7 +161,7 @@ async function handleAdminSession(session) {
     setAdminMessage("This account does not have permission to open the admin workspace.", "error");
     setAdminStateText("Admin permission required.");
     window.setTimeout(() => {
-      window.location.replace("/studio/?mode=admin");
+      window.location.replace(buildAdminAccessPath());
     }, 800);
   } catch (error) {
     hideAdminWorkspace();
@@ -257,17 +270,7 @@ function delay(ms) {
 function setActiveModule(moduleKey) {
   adminState.activeModule = moduleKey;
 
-  if (moduleKey === "facilitator" && !adminState.activeView.startsWith("facilitator-")) {
-    adminState.activeView = "facilitator-overview";
-  }
-
-  if (moduleKey === "insights" && !adminState.activeView.startsWith("insights-")) {
-    adminState.activeView = "insights-overview";
-  }
-
-  if (moduleKey === "lead-map" && !adminState.activeView.startsWith("lead-map-")) {
-    adminState.activeView = "lead-map-overview";
-  }
+  ensureAdminViewMatchesModule();
 
   syncAdminShell();
 }
@@ -279,6 +282,7 @@ function setActiveView(viewKey) {
 
 function syncAdminShell() {
   enforceAdminModuleAccess();
+  syncAdminUrl();
 
   adminDom.moduleTabs.forEach((button) => {
     const isActive = button.dataset.adminModule === adminState.activeModule;
@@ -321,17 +325,7 @@ function enforceAdminModuleAccess() {
     adminState.activeModule = "facilitator";
   }
 
-  if (adminState.activeModule === "facilitator" && !adminState.activeView.startsWith("facilitator-")) {
-    adminState.activeView = "facilitator-overview";
-  }
-
-  if (adminState.activeModule === "insights" && !adminState.activeView.startsWith("insights-")) {
-    adminState.activeView = "insights-overview";
-  }
-
-  if (adminState.activeModule === "lead-map" && !adminState.activeView.startsWith("lead-map-")) {
-    adminState.activeView = "lead-map-overview";
-  }
+  ensureAdminViewMatchesModule();
 }
 
 function publishAdminContext() {
@@ -345,4 +339,87 @@ function publishAdminContext() {
 
   window.COREXFORMER_ADMIN_CONTEXT = detail;
   document.dispatchEvent(new CustomEvent("corexformer:admin-context", { detail }));
+}
+
+function ensureAdminViewMatchesModule() {
+  const expectedPrefix = ADMIN_VIEW_PREFIX[adminState.activeModule];
+  const defaultView = ADMIN_DEFAULT_VIEWS[adminState.activeModule] || ADMIN_DEFAULT_VIEWS.facilitator;
+
+  if (!expectedPrefix || !String(adminState.activeView || "").startsWith(expectedPrefix)) {
+    adminState.activeView = defaultView;
+  }
+}
+
+function getRequestedAdminRoute() {
+  const params = new URLSearchParams(window.location.search);
+  const requestedModule = params.get("module");
+  const moduleKey = Object.prototype.hasOwnProperty.call(ADMIN_DEFAULT_VIEWS, requestedModule)
+    ? requestedModule
+    : "facilitator";
+  const requestedView = params.get("view") || "";
+  const expectedPrefix = ADMIN_VIEW_PREFIX[moduleKey];
+  const viewKey = requestedView.startsWith(expectedPrefix)
+    ? requestedView
+    : ADMIN_DEFAULT_VIEWS[moduleKey];
+
+  return {
+    module: moduleKey,
+    view: viewKey
+  };
+}
+
+function syncAdminUrl() {
+  const url = new URL(window.location.href);
+  url.searchParams.set("module", adminState.activeModule);
+  url.searchParams.set("view", adminState.activeView);
+  window.history.replaceState({}, "", url.toString());
+}
+
+function buildAdminAccessPath() {
+  return buildStudioUrl(
+    (window.COREXFORMER_STUDIO_CONFIG?.studioAccessPath || "/studio/"),
+    new URLSearchParams({
+      mode: "admin",
+      module: adminState.activeModule,
+      view: adminState.activeView
+    })
+  );
+}
+
+function buildFacilitatorWorkspacePath() {
+  return buildStudioUrl(window.COREXFORMER_STUDIO_CONFIG?.facilitatorWorkspacePath || "/studio/facilitator.html");
+}
+
+function buildStudioUrl(path, params = null) {
+  const config = window.COREXFORMER_STUDIO_CONFIG || {};
+  const runtimeOrigin = resolveAdminRuntimeOrigin(config.publicSiteUrl);
+  const url = new URL(path || "/studio/", ensureTrailingSlash(runtimeOrigin));
+
+  if (params && typeof params.forEach === "function") {
+    params.forEach((value, key) => {
+      if (value) {
+        url.searchParams.set(key, value);
+      }
+    });
+  }
+
+  return url.toString();
+}
+
+function resolveAdminRuntimeOrigin(configuredOrigin) {
+  const currentOrigin = window.location.origin;
+
+  if (currentOrigin && currentOrigin !== "null") {
+    return currentOrigin;
+  }
+
+  if (configuredOrigin) {
+    return configuredOrigin;
+  }
+
+  return "https://corexformer.pages.dev";
+}
+
+function ensureTrailingSlash(value) {
+  return value.endsWith("/") ? value : `${value}/`;
 }

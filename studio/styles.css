@@ -976,6 +976,17 @@ button:disabled {
   gap: 14px;
 }
 
+.session-feedback-actions {
+  margin-top: 2px;
+}
+
+.session-feedback-note {
+  margin: -2px 0 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
 .session-room-meta-copy {
   display: grid;
   gap: 6px;
@@ -1850,6 +1861,93 @@ button:disabled {
   gap: 10px;
 }
 
+.feedback-admin-window-bar {
+  display: grid;
+  gap: 16px;
+}
+
+.feedback-admin-window-head {
+  margin-bottom: 0;
+}
+
+.feedback-admin-window-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.feedback-admin-action-bar {
+  justify-content: flex-end;
+}
+
+.feedback-admin-session-detail,
+.feedback-admin-session-summary,
+.feedback-admin-response-list,
+.feedback-admin-question-stack {
+  display: grid;
+  gap: 16px;
+}
+
+.feedback-admin-summary-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.feedback-admin-response-card {
+  display: grid;
+  gap: 16px;
+}
+
+.feedback-admin-detail-list {
+  gap: 10px;
+}
+
+.feedback-admin-ratings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.feedback-admin-rating-pill,
+.feedback-admin-question-block {
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.feedback-admin-rating-pill {
+  display: grid;
+  gap: 4px;
+  min-width: 170px;
+  padding: 14px 16px;
+}
+
+.feedback-admin-rating-pill span,
+.feedback-admin-question-block span {
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--highlight);
+}
+
+.feedback-admin-rating-pill strong {
+  font-size: 1rem;
+  font-family: "Fraunces", serif;
+  color: var(--ink);
+}
+
+.feedback-admin-question-block {
+  display: grid;
+  gap: 8px;
+  padding: 16px 18px;
+}
+
+.feedback-admin-question-block p {
+  margin: 0;
+  color: var(--ink);
+  line-height: 1.7;
+}
+
 @media (max-width: 980px) {
   .studio-hero,
   .studio-grid {
@@ -1881,6 +1979,11 @@ button:disabled {
 
   .application-field-grid,
   .application-review-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .feedback-admin-window-grid,
+  .feedback-admin-summary-grid {
     grid-template-columns: 1fr;
   }
 

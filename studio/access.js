@@ -695,7 +695,12 @@ async function routeByCredential(session, source, attemptedMode = state.mode) {
       ACCESS_COPY.admin.success
     );
     setAuthState("Admin access confirmed.");
-    window.location.replace(config.adminWorkspacePath || "/studio/admin.html");
+    window.location.replace(
+      buildWorkspaceRedirectUrl(
+        config.adminWorkspacePath || "/studio/admin.html",
+        getRequestedAdminWorkspaceParams()
+      )
+    );
     return;
   }
 
@@ -725,7 +730,7 @@ async function routeByCredential(session, source, attemptedMode = state.mode) {
     getFacilitatorCopy().success
   );
   setAuthState("Facilitator access confirmed.");
-  window.location.replace(config.facilitatorWorkspacePath || "/studio/facilitator.html");
+  window.location.replace(buildWorkspaceRedirectUrl(config.facilitatorWorkspacePath || "/studio/facilitator.html"));
 }
 
 function getActiveCopy() {
@@ -1040,6 +1045,53 @@ function resolveStudioAccessEntryPath(studioAccessPath) {
   }
 
   return normalizedPath.endsWith("/") ? `${normalizedPath}index.html` : normalizedPath;
+}
+
+function getRequestedAdminWorkspaceParams() {
+  const params = new URLSearchParams(window.location.search);
+  const nextParams = new URLSearchParams();
+  const requestedModule = normalizeValue(params.get("module"));
+  const requestedView = normalizeValue(params.get("view"));
+
+  if (requestedModule) {
+    nextParams.set("module", requestedModule);
+  }
+
+  if (requestedView) {
+    nextParams.set("view", requestedView);
+  }
+
+  return nextParams;
+}
+
+function buildWorkspaceRedirectUrl(workspacePath, extraParams = null) {
+  const config = window.COREXFORMER_STUDIO_CONFIG || {};
+  const runtimeOrigin = resolveRuntimeStudioOrigin(config.publicSiteUrl);
+  const url = new URL(workspacePath || "/studio/", ensureTrailingSlash(runtimeOrigin));
+
+  if (extraParams && typeof extraParams.forEach === "function") {
+    extraParams.forEach((value, key) => {
+      if (value) {
+        url.searchParams.set(key, value);
+      }
+    });
+  }
+
+  return url.toString();
+}
+
+function resolveRuntimeStudioOrigin(configuredOrigin) {
+  const currentOrigin = window.location.origin;
+
+  if (currentOrigin && currentOrigin !== "null") {
+    return currentOrigin;
+  }
+
+  if (configuredOrigin) {
+    return configuredOrigin;
+  }
+
+  return "https://corexformer.pages.dev";
 }
 
 function isRecoveryRequestFromUrl() {
