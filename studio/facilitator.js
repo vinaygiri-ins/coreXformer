@@ -137,7 +137,7 @@ async function initWorkspace() {
     setAuthState("Supabase connected, but the session could not be loaded.");
   }
 
-  await handleSession(session);
+  await handleSession(await recoverFacilitatorHandoffSession(session));
 
   state.supabase.auth.onAuthStateChange((_event, sessionUpdate) => {
     void handleSession(sessionUpdate);
@@ -234,6 +234,30 @@ async function handleSession(session) {
   }
 
   renderWorkspace();
+}
+
+async function recoverFacilitatorHandoffSession(session) {
+  if (session || !isFacilitatorHandoffRequest() || !state.supabase) {
+    return session;
+  }
+
+  setAuthState("Finishing private facilitator sign-in...");
+
+  for (let attempt = 0; attempt < 12; attempt += 1) {
+    await new Promise((resolve) => window.setTimeout(resolve, 250));
+
+    const {
+      data: { session: recoveredSession }
+    } = await state.supabase.auth.getSession();
+
+    if (recoveredSession) {
+      clearFacilitatorHandoffFlag();
+      return recoveredSession;
+    }
+  }
+
+  clearFacilitatorHandoffFlag();
+  return session;
 }
 
 async function waitForProfile(userId, attempts = 6) {
@@ -1323,6 +1347,21 @@ function shouldStayOnFacilitatorWorkspace() {
 function buildAccessPath() {
   const basePath = window.COREXFORMER_STUDIO_CONFIG?.studioAccessPath || "/studio/";
   return `${basePath}?mode=facilitator`;
+}
+
+function isFacilitatorHandoffRequest() {
+  return new URLSearchParams(window.location.search).get("handoff") === "1";
+}
+
+function clearFacilitatorHandoffFlag() {
+  const url = new URL(window.location.href);
+
+  if (!url.searchParams.has("handoff")) {
+    return;
+  }
+
+  url.searchParams.delete("handoff");
+  window.history.replaceState({}, "", url.toString());
 }
 
 function buildAuthSummary() {

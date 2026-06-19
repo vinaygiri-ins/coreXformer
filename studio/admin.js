@@ -67,7 +67,7 @@ async function initAdminWorkspace() {
     data: { session }
   } = await adminState.supabase.auth.getSession();
 
-  await handleAdminSession(session);
+  await handleAdminSession(await recoverAdminHandoffSession(session));
 
   adminState.supabase.auth.onAuthStateChange((_event, sessionUpdate) => {
     void handleAdminSession(sessionUpdate);
@@ -169,6 +169,30 @@ async function handleAdminSession(session) {
     setAdminStateText("Admin workspace unavailable.");
     publishAdminContext();
   }
+}
+
+async function recoverAdminHandoffSession(session) {
+  if (session || !isAdminHandoffRequest() || !adminState.supabase) {
+    return session;
+  }
+
+  setAdminStateText("Finishing private admin sign-in...");
+
+  for (let attempt = 0; attempt < 12; attempt += 1) {
+    await delay(250);
+
+    const {
+      data: { session: recoveredSession }
+    } = await adminState.supabase.auth.getSession();
+
+    if (recoveredSession) {
+      clearAdminHandoffFlag();
+      return recoveredSession;
+    }
+  }
+
+  clearAdminHandoffFlag();
+  return session;
 }
 
 async function waitForAdminProfile(userId, attempts = 6) {
@@ -370,6 +394,7 @@ function getRequestedAdminRoute() {
 
 function syncAdminUrl() {
   const url = new URL(window.location.href);
+  url.searchParams.delete("handoff");
   url.searchParams.set("module", adminState.activeModule);
   url.searchParams.set("view", adminState.activeView);
   window.history.replaceState({}, "", url.toString());
@@ -422,4 +447,19 @@ function resolveAdminRuntimeOrigin(configuredOrigin) {
 
 function ensureTrailingSlash(value) {
   return value.endsWith("/") ? value : `${value}/`;
+}
+
+function isAdminHandoffRequest() {
+  return new URLSearchParams(window.location.search).get("handoff") === "1";
+}
+
+function clearAdminHandoffFlag() {
+  const url = new URL(window.location.href);
+
+  if (!url.searchParams.has("handoff")) {
+    return;
+  }
+
+  url.searchParams.delete("handoff");
+  window.history.replaceState({}, "", url.toString());
 }

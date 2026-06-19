@@ -698,7 +698,7 @@ async function routeByCredential(session, source, attemptedMode = state.mode) {
     redirectToWorkspace(
       buildWorkspaceRedirectUrl(
         config.adminWorkspacePath || "/studio/admin.html",
-        getRequestedAdminWorkspaceParams()
+        getRequestedAdminWorkspaceParams(true)
       )
     );
     return;
@@ -730,7 +730,9 @@ async function routeByCredential(session, source, attemptedMode = state.mode) {
     getFacilitatorCopy().success
   );
   setAuthState("Facilitator access confirmed.");
-  redirectToWorkspace(buildWorkspaceRedirectUrl(config.facilitatorWorkspacePath || "/studio/facilitator.html"));
+  const facilitatorParams = new URLSearchParams();
+  facilitatorParams.set("handoff", "1");
+  redirectToWorkspace(buildWorkspaceRedirectUrl(config.facilitatorWorkspacePath || "/studio/facilitator.html", facilitatorParams));
 }
 
 function getActiveCopy() {
@@ -1047,11 +1049,15 @@ function resolveStudioAccessEntryPath(studioAccessPath) {
   return normalizedPath.endsWith("/") ? `${normalizedPath}index.html` : normalizedPath;
 }
 
-function getRequestedAdminWorkspaceParams() {
+function getRequestedAdminWorkspaceParams(includeHandoff = false) {
   const params = new URLSearchParams(window.location.search);
   const nextParams = new URLSearchParams();
   const requestedModule = normalizeValue(params.get("module"));
   const requestedView = normalizeValue(params.get("view"));
+
+  if (includeHandoff) {
+    nextParams.set("handoff", "1");
+  }
 
   if (requestedModule) {
     nextParams.set("module", requestedModule);
