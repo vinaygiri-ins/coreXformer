@@ -422,7 +422,7 @@ function buildAdminAccessPath() {
 }
 
 function buildFacilitatorWorkspacePath() {
-  return buildStudioUrl(window.COREXFORMER_STUDIO_CONFIG?.facilitatorWorkspacePath || "/studio/facilitator.html");
+  return buildStudioUrl(window.COREXFORMER_STUDIO_CONFIG?.facilitatorWorkspacePath || "/studio/facilitator");
 }
 
 function buildStudioUrl(path, params = null) {

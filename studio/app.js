@@ -1137,7 +1137,7 @@ async function handleSession(session) {
 
     if (!canEdit()) {
       setAuthState("This account belongs to the facilitator side. Redirecting to the facilitator workspace...");
-      window.location.replace(window.COREXFORMER_STUDIO_CONFIG?.facilitatorWorkspacePath || "/studio/facilitator.html");
+      window.location.replace(window.COREXFORMER_STUDIO_CONFIG?.facilitatorWorkspacePath || "/studio/facilitator");
       return;
     }
 

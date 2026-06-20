@@ -212,7 +212,7 @@ async function handleSession(session) {
 
     if (canAdminPreview() && !shouldStayOnFacilitatorWorkspace()) {
       setAuthState("This account belongs to the admin side. Redirecting to the admin workspace...");
-      window.location.replace(window.COREXFORMER_STUDIO_CONFIG?.adminWorkspacePath || "/studio/admin.html");
+      window.location.replace(window.COREXFORMER_STUDIO_CONFIG?.adminWorkspacePath || "/studio/admin");
       return;
     }
 

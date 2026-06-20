@@ -718,7 +718,7 @@ async function routeByCredential(session, source, attemptedMode = state.mode) {
     beginWorkspaceHandoff(
       "admin",
       buildWorkspaceRedirectUrl(
-        config.adminWorkspacePath || "/studio/admin.html",
+        config.adminWorkspacePath || "/studio/admin",
         getRequestedAdminWorkspaceParams(true)
       )
     );
@@ -756,7 +756,7 @@ async function routeByCredential(session, source, attemptedMode = state.mode) {
   facilitatorParams.set("handoff", "1");
   beginWorkspaceHandoff(
     "facilitator",
-    buildWorkspaceRedirectUrl(config.facilitatorWorkspacePath || "/studio/facilitator.html", facilitatorParams)
+    buildWorkspaceRedirectUrl(config.facilitatorWorkspacePath || "/studio/facilitator", facilitatorParams)
   );
 }
 

@@ -4,8 +4,8 @@ window.COREXFORMER_STUDIO_CONFIG = {
   siteName: "CoreXformer Studio",
   publicSiteUrl: "https://corexformer.pages.dev",
   studioAccessPath: "/studio/",
-  adminWorkspacePath: "/studio/admin.html",
-  facilitatorWorkspacePath: "/studio/facilitator.html",
+  adminWorkspacePath: "/studio/admin",
+  facilitatorWorkspacePath: "/studio/facilitator",
   leadMap: {
     provider: "google",
     googleMapsApiKey: "AIzaSyD57n38xCVp87_FCtLnpZ8s-R8BWddWFUI",
