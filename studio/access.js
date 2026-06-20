@@ -715,7 +715,7 @@ async function routeByCredential(session, source, attemptedMode = state.mode) {
       ACCESS_COPY.admin.success
     );
     setAuthState("Admin access confirmed.");
-    beginWorkspaceHandoff(
+    await beginWorkspaceHandoff(
       "admin",
       buildWorkspaceRedirectUrl(
         config.adminWorkspacePath || "/studio/admin",
@@ -754,7 +754,7 @@ async function routeByCredential(session, source, attemptedMode = state.mode) {
   setAuthState("Facilitator access confirmed.");
   const facilitatorParams = new URLSearchParams();
   facilitatorParams.set("handoff", "1");
-  beginWorkspaceHandoff(
+  await beginWorkspaceHandoff(
     "facilitator",
     buildWorkspaceRedirectUrl(config.facilitatorWorkspacePath || "/studio/facilitator", facilitatorParams)
   );
@@ -1120,7 +1120,7 @@ function buildWorkspaceRedirectUrl(workspacePath, extraParams = null) {
   return url.toString();
 }
 
-function beginWorkspaceHandoff(workspace, targetUrl) {
+async function beginWorkspaceHandoff(workspace, targetUrl) {
   if (!targetUrl) {
     return;
   }
@@ -1133,6 +1133,10 @@ function beginWorkspaceHandoff(workspace, targetUrl) {
     ttlMs: 20 * 1000
   });
   renderSessionActionButton();
+
+  // Give the auth client a brief moment to flush the signed-in session before
+  // we move into a new page that reads from the shared persisted session.
+  await sleep(900);
   redirectToWorkspace(state.pendingWorkspaceUrl);
 
   window.setTimeout(() => {
