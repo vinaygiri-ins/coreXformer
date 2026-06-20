@@ -714,14 +714,7 @@ async function routeByCredential(session, source, attemptedMode = state.mode) {
       dom.accessAuthMessage,
       ACCESS_COPY.admin.success
     );
-    setAuthState("Admin access confirmed.");
-    await beginWorkspaceHandoff(
-      "admin",
-      buildWorkspaceRedirectUrl(
-        config.adminWorkspacePath || "/studio/admin",
-        getRequestedAdminWorkspaceParams(true)
-      )
-    );
+    presentWorkspaceEntry("admin");
     return;
   }
 
@@ -751,13 +744,7 @@ async function routeByCredential(session, source, attemptedMode = state.mode) {
     dom.accessAuthMessage,
     getFacilitatorCopy().success
   );
-  setAuthState("Facilitator access confirmed.");
-  const facilitatorParams = new URLSearchParams();
-  facilitatorParams.set("handoff", "1");
-  await beginWorkspaceHandoff(
-    "facilitator",
-    buildWorkspaceRedirectUrl(config.facilitatorWorkspacePath || "/studio/facilitator", facilitatorParams)
-  );
+  presentWorkspaceEntry("facilitator");
 }
 
 function getActiveCopy() {
@@ -829,15 +816,22 @@ async function handleExistingSession(session) {
 function presentWorkspaceEntry(side) {
   const config = window.COREXFORMER_STUDIO_CONFIG || {};
   const workspace = side === "facilitator" ? "facilitator" : "admin";
+  const facilitatorParams = new URLSearchParams();
+  facilitatorParams.set("handoff", "1");
   const targetUrl = workspace === "facilitator"
-    ? buildWorkspaceRedirectUrl(config.facilitatorWorkspacePath || "/studio/facilitator")
+    ? buildWorkspaceRedirectUrl(config.facilitatorWorkspacePath || "/studio/facilitator", facilitatorParams)
     : buildWorkspaceRedirectUrl(
       config.adminWorkspacePath || "/studio/admin",
-      getRequestedAdminWorkspaceParams(false)
+      getRequestedAdminWorkspaceParams(true)
     );
 
   state.pendingWorkspaceUrl = targetUrl;
   state.pendingWorkspaceLabel = workspace;
+  window.COREXFORMER_STUDIO_AUTH?.setPendingWorkspaceHandoff?.({
+    workspace,
+    url: targetUrl,
+    ttlMs: 20 * 1000
+  });
   renderSessionActionButton();
   showMessage(
     dom.accessAuthMessage,
