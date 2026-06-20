@@ -813,7 +813,7 @@ async function handleExistingSession(session) {
   const sessionSide = getSessionSide();
 
   if (sessionSide === state.mode) {
-    await routeByCredential(session, "session", state.mode);
+    presentWorkspaceEntry(sessionSide);
     return;
   }
 
@@ -824,6 +824,27 @@ async function handleExistingSession(session) {
   );
   setAuthState(buildSessionMismatchState());
   renderSessionActionButton();
+}
+
+function presentWorkspaceEntry(side) {
+  const config = window.COREXFORMER_STUDIO_CONFIG || {};
+  const workspace = side === "facilitator" ? "facilitator" : "admin";
+  const targetUrl = workspace === "facilitator"
+    ? buildWorkspaceRedirectUrl(config.facilitatorWorkspacePath || "/studio/facilitator")
+    : buildWorkspaceRedirectUrl(
+      config.adminWorkspacePath || "/studio/admin",
+      getRequestedAdminWorkspaceParams(false)
+    );
+
+  state.pendingWorkspaceUrl = targetUrl;
+  state.pendingWorkspaceLabel = workspace;
+  renderSessionActionButton();
+  showMessage(
+    dom.accessAuthMessage,
+    `${humanizeWorkspaceLabel(workspace)} is ready. Use Open ${humanizeWorkspaceLabel(workspace)} now to continue.`,
+    "success"
+  );
+  setAuthState(`Signed in as ${state.sessionProfile?.email || "this user"}.`);
 }
 
 async function waitForProfile(userId, attempts = 6) {
