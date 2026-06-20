@@ -13,6 +13,7 @@ const ADMIN_VIEW_PREFIX = {
   feedback: "feedback-",
   "lead-map": "lead-map-"
 };
+const ADMIN_HANDOFF_WAIT_MS = 12 * 1000;
 const initialAdminRoute = getRequestedAdminRoute();
 
 const adminDom = {
@@ -34,7 +35,8 @@ const adminState = {
   session: null,
   profile: null,
   activeModule: initialAdminRoute.module,
-  activeView: initialAdminRoute.view
+  activeView: initialAdminRoute.view,
+  authBooting: true
 };
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -63,15 +65,20 @@ async function initAdminWorkspace() {
 
   bindAdminEvents();
 
+  adminState.supabase.auth.onAuthStateChange((_event, sessionUpdate) => {
+    if (adminState.authBooting && !sessionUpdate) {
+      return;
+    }
+
+    void handleAdminSession(sessionUpdate);
+  });
+
   const {
     data: { session }
   } = await adminState.supabase.auth.getSession();
 
   await handleAdminSession(await recoverAdminHandoffSession(session));
-
-  adminState.supabase.auth.onAuthStateChange((_event, sessionUpdate) => {
-    void handleAdminSession(sessionUpdate);
-  });
+  adminState.authBooting = false;
 }
 
 function bindAdminEvents() {
@@ -143,6 +150,7 @@ async function handleAdminSession(session) {
       updateAdminIdentity(profile);
       enforceAdminModuleAccess();
       syncAdminShell();
+      clearAdminHandoffArtifacts();
       publishAdminContext();
       return;
     }
@@ -172,26 +180,28 @@ async function handleAdminSession(session) {
 }
 
 async function recoverAdminHandoffSession(session) {
-  if (session || !isAdminHandoffRequest() || !adminState.supabase) {
+  if (session || (!isAdminHandoffRequest() && !hasPendingAdminHandoff()) || !adminState.supabase) {
     return session;
   }
 
   setAdminStateText("Finishing private admin sign-in...");
 
-  for (let attempt = 0; attempt < 12; attempt += 1) {
-    await delay(250);
+  const startedAt = Date.now();
+
+  while (Date.now() - startedAt < ADMIN_HANDOFF_WAIT_MS) {
+    await delay(300);
 
     const {
       data: { session: recoveredSession }
     } = await adminState.supabase.auth.getSession();
 
     if (recoveredSession) {
-      clearAdminHandoffFlag();
+      clearAdminHandoffArtifacts();
       return recoveredSession;
     }
   }
 
-  clearAdminHandoffFlag();
+  clearAdminHandoffArtifacts();
   return session;
 }
 
@@ -451,6 +461,15 @@ function ensureTrailingSlash(value) {
 
 function isAdminHandoffRequest() {
   return new URLSearchParams(window.location.search).get("handoff") === "1";
+}
+
+function hasPendingAdminHandoff() {
+  return Boolean(window.COREXFORMER_STUDIO_AUTH?.getPendingWorkspaceHandoff?.("admin"));
+}
+
+function clearAdminHandoffArtifacts() {
+  clearAdminHandoffFlag();
+  window.COREXFORMER_STUDIO_AUTH?.clearPendingWorkspaceHandoff?.("admin");
 }
 
 function clearAdminHandoffFlag() {

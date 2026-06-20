@@ -2,7 +2,9 @@
   const SESSION_STORAGE_KEY = "corexformer-studio-auth";
   const LAST_ACTIVITY_KEY = "corexformer-studio-last-activity";
   const FLASH_NOTICE_KEY = "corexformer-studio-auth-notice";
+  const PENDING_HANDOFF_KEY = "corexformer-studio-pending-handoff";
   const MAX_IDLE_MS = 30 * 60 * 1000;
+  const MAX_HANDOFF_MS = 20 * 1000;
 
   const memoryStore = new Map();
 
@@ -68,6 +70,77 @@
     }
 
     return message || "";
+  }
+
+  function getPendingWorkspaceHandoff(workspace = "") {
+    const raw = storageAdapter.getItem(PENDING_HANDOFF_KEY);
+
+    if (!raw) {
+      return null;
+    }
+
+    try {
+      const parsed = JSON.parse(raw);
+      const normalizedWorkspace = String(parsed?.workspace || "").trim().toLowerCase();
+      const expiresAt = Number(parsed?.expiresAt || 0);
+      const url = String(parsed?.url || "").trim();
+
+      if (!normalizedWorkspace || !url || !Number.isFinite(expiresAt) || Date.now() > expiresAt) {
+        storageAdapter.removeItem(PENDING_HANDOFF_KEY);
+        return null;
+      }
+
+      if (workspace && normalizedWorkspace !== String(workspace).trim().toLowerCase()) {
+        return null;
+      }
+
+      return {
+        workspace: normalizedWorkspace,
+        url,
+        createdAt: Number(parsed?.createdAt || 0),
+        expiresAt
+      };
+    } catch (_error) {
+      storageAdapter.removeItem(PENDING_HANDOFF_KEY);
+      return null;
+    }
+  }
+
+  function setPendingWorkspaceHandoff(payload = {}) {
+    const workspace = String(payload?.workspace || "").trim().toLowerCase();
+    const url = String(payload?.url || "").trim();
+
+    if (!workspace || !url) {
+      storageAdapter.removeItem(PENDING_HANDOFF_KEY);
+      return null;
+    }
+
+    const ttlMs = Number(payload?.ttlMs || 0);
+    const now = Date.now();
+    const handoff = {
+      workspace,
+      url,
+      createdAt: now,
+      expiresAt: now + (Number.isFinite(ttlMs) && ttlMs > 0 ? ttlMs : MAX_HANDOFF_MS)
+    };
+
+    storageAdapter.setItem(PENDING_HANDOFF_KEY, JSON.stringify(handoff));
+    return handoff;
+  }
+
+  function clearPendingWorkspaceHandoff(workspace = "") {
+    const pending = getPendingWorkspaceHandoff();
+
+    if (!pending) {
+      storageAdapter.removeItem(PENDING_HANDOFF_KEY);
+      return;
+    }
+
+    if (workspace && pending.workspace !== String(workspace).trim().toLowerCase()) {
+      return;
+    }
+
+    storageAdapter.removeItem(PENDING_HANDOFF_KEY);
   }
 
   function isSessionExpired() {
@@ -185,6 +258,7 @@
   function clearStudioSessionArtifacts() {
     clearActivity();
     storageAdapter.removeItem(FLASH_NOTICE_KEY);
+    storageAdapter.removeItem(PENDING_HANDOFF_KEY);
   }
 
   window.COREXFORMER_STUDIO_AUTH = {
@@ -193,6 +267,9 @@
     consumeNotice,
     setNotice,
     clearSessionArtifacts: clearStudioSessionArtifacts,
+    getPendingWorkspaceHandoff,
+    setPendingWorkspaceHandoff,
+    clearPendingWorkspaceHandoff,
     markActivity,
     idleMinutes: Math.round(MAX_IDLE_MS / 60000)
   };

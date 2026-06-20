@@ -1,5 +1,6 @@
 const ADMIN_ROLES = ["owner", "editor"];
 const FACILITATOR_SIDE_ROLES = ["candidate", "facilitator", "facilitator_lead"];
+const FACILITATOR_HANDOFF_WAIT_MS = 12 * 1000;
 const JOURNEY_STEPS = [
   {
     key: "profile",
@@ -92,6 +93,7 @@ const state = {
     availabilityMessage: ""
   },
   view: "journey",
+  authBooting: true,
   busy: {
     auth: false,
     data: false
@@ -127,6 +129,14 @@ async function initWorkspace() {
 
   setAuthState("Connecting to Supabase...");
 
+  state.supabase.auth.onAuthStateChange((_event, sessionUpdate) => {
+    if (state.authBooting && !sessionUpdate) {
+      return;
+    }
+
+    void handleSession(sessionUpdate);
+  });
+
   const {
     data: { session },
     error
@@ -138,10 +148,7 @@ async function initWorkspace() {
   }
 
   await handleSession(await recoverFacilitatorHandoffSession(session));
-
-  state.supabase.auth.onAuthStateChange((_event, sessionUpdate) => {
-    void handleSession(sessionUpdate);
-  });
+  state.authBooting = false;
 }
 
 function bindEvents() {
@@ -216,6 +223,7 @@ async function handleSession(session) {
       return;
     }
 
+    clearFacilitatorHandoffArtifacts();
     await loadWorkspaceData();
     clearMessage(dom.authMessage);
     setAuthState(buildAuthSummary());
@@ -237,26 +245,28 @@ async function handleSession(session) {
 }
 
 async function recoverFacilitatorHandoffSession(session) {
-  if (session || !isFacilitatorHandoffRequest() || !state.supabase) {
+  if (session || (!isFacilitatorHandoffRequest() && !hasPendingFacilitatorHandoff()) || !state.supabase) {
     return session;
   }
 
   setAuthState("Finishing private facilitator sign-in...");
 
-  for (let attempt = 0; attempt < 12; attempt += 1) {
-    await new Promise((resolve) => window.setTimeout(resolve, 250));
+  const startedAt = Date.now();
+
+  while (Date.now() - startedAt < FACILITATOR_HANDOFF_WAIT_MS) {
+    await sleep(300);
 
     const {
       data: { session: recoveredSession }
     } = await state.supabase.auth.getSession();
 
     if (recoveredSession) {
-      clearFacilitatorHandoffFlag();
+      clearFacilitatorHandoffArtifacts();
       return recoveredSession;
     }
   }
 
-  clearFacilitatorHandoffFlag();
+  clearFacilitatorHandoffArtifacts();
   return session;
 }
 
@@ -1351,6 +1361,15 @@ function buildAccessPath() {
 
 function isFacilitatorHandoffRequest() {
   return new URLSearchParams(window.location.search).get("handoff") === "1";
+}
+
+function hasPendingFacilitatorHandoff() {
+  return Boolean(window.COREXFORMER_STUDIO_AUTH?.getPendingWorkspaceHandoff?.("facilitator"));
+}
+
+function clearFacilitatorHandoffArtifacts() {
+  clearFacilitatorHandoffFlag();
+  window.COREXFORMER_STUDIO_AUTH?.clearPendingWorkspaceHandoff?.("facilitator");
 }
 
 function clearFacilitatorHandoffFlag() {

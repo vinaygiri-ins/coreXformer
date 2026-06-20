@@ -89,7 +89,9 @@ const state = {
   recoveryRequested: false,
   recoveryMode: false,
   session: null,
-  sessionProfile: null
+  sessionProfile: null,
+  pendingWorkspaceUrl: "",
+  pendingWorkspaceLabel: ""
 };
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -212,6 +214,11 @@ function bindEvents() {
   });
 
   dom.accessSessionActionButton?.addEventListener("click", () => {
+    if (state.pendingWorkspaceUrl) {
+      redirectToWorkspace(state.pendingWorkspaceUrl);
+      return;
+    }
+
     void signOutCurrentSession();
   });
 }
@@ -221,6 +228,7 @@ function setMode(mode) {
     return;
   }
 
+  clearPendingWorkspaceAction(true);
   state.mode = mode;
   if (mode === "admin") {
     state.facilitatorAction = "sign_in";
@@ -238,6 +246,7 @@ function setFacilitatorAction(action) {
     return;
   }
 
+  clearPendingWorkspaceAction(true);
   state.facilitatorAction = action;
   clearMessage(dom.accessAuthMessage);
   applyMode();
@@ -311,6 +320,8 @@ async function signIn() {
   const email = dom.accessEmailInput.value.trim();
   const password = dom.accessPasswordInput.value;
 
+  clearPendingWorkspaceAction(true);
+
   if (!email || !password) {
     showMessage(dom.accessAuthMessage, "Enter both email and password to sign in.", "error");
     return;
@@ -356,6 +367,8 @@ async function signIn() {
 async function sendPasswordReset() {
   const email = dom.accessEmailInput.value.trim().toLowerCase();
 
+  clearPendingWorkspaceAction(true);
+
   if (!email) {
     showMessage(dom.accessAuthMessage, "Enter the studio email first, then use Forgot password.", "error");
     setAuthState("Waiting for the email address needed for password recovery.");
@@ -397,6 +410,7 @@ async function sendPasswordReset() {
 }
 
 async function enterRecoveryMode(session) {
+  clearPendingWorkspaceAction(true);
   state.recoveryRequested = true;
   state.recoveryMode = true;
   state.session = session || null;
@@ -422,6 +436,7 @@ async function enterRecoveryMode(session) {
 }
 
 async function exitRecoveryMode() {
+  clearPendingWorkspaceAction(true);
   state.recoveryRequested = false;
   state.recoveryMode = false;
   clearRecoveryFlagFromUrl();
@@ -446,6 +461,7 @@ async function completePasswordRecovery() {
   const confirmPassword = dom.accessConfirmPasswordInput.value;
 
   if (!state.session) {
+    clearPendingWorkspaceAction(true);
     showMessage(dom.accessAuthMessage, ACCESS_COPY.recovery.invalid, "error");
     setAuthState("Recovery session is no longer active. Request a fresh password reset email.");
     return;
@@ -510,6 +526,8 @@ async function signUpOwner() {
   const password = dom.accessPasswordInput.value;
   const fullName = dom.accessFullNameInput.value.trim();
 
+  clearPendingWorkspaceAction(true);
+
   if (!email || !password) {
     showMessage(dom.accessAuthMessage, "Enter an email and password before creating the first owner account.", "error");
     return;
@@ -558,6 +576,8 @@ async function activateFacilitatorAccount() {
   const password = dom.accessPasswordInput.value;
   const confirmPassword = dom.accessConfirmPasswordInput.value;
   const fullName = dom.accessFullNameInput.value.trim();
+
+  clearPendingWorkspaceAction(true);
 
   if (!fullName || !email || !password || !confirmPassword) {
     showMessage(dom.accessAuthMessage, "Complete your full name, email, password, and password confirmation before activating access.", "error");
@@ -695,7 +715,8 @@ async function routeByCredential(session, source, attemptedMode = state.mode) {
       ACCESS_COPY.admin.success
     );
     setAuthState("Admin access confirmed.");
-    redirectToWorkspace(
+    beginWorkspaceHandoff(
+      "admin",
       buildWorkspaceRedirectUrl(
         config.adminWorkspacePath || "/studio/admin.html",
         getRequestedAdminWorkspaceParams(true)
@@ -705,6 +726,7 @@ async function routeByCredential(session, source, attemptedMode = state.mode) {
   }
 
   if (!isFacilitator) {
+    clearPendingWorkspaceAction(true);
     showMessage(
       dom.accessAuthMessage,
       source === "facilitator-activation"
@@ -732,7 +754,10 @@ async function routeByCredential(session, source, attemptedMode = state.mode) {
   setAuthState("Facilitator access confirmed.");
   const facilitatorParams = new URLSearchParams();
   facilitatorParams.set("handoff", "1");
-  redirectToWorkspace(buildWorkspaceRedirectUrl(config.facilitatorWorkspacePath || "/studio/facilitator.html", facilitatorParams));
+  beginWorkspaceHandoff(
+    "facilitator",
+    buildWorkspaceRedirectUrl(config.facilitatorWorkspacePath || "/studio/facilitator.html", facilitatorParams)
+  );
 }
 
 function getActiveCopy() {
@@ -774,6 +799,7 @@ function applyRequestedMode() {
 }
 
 async function handleExistingSession(session) {
+  clearPendingWorkspaceAction();
   state.session = session;
   state.sessionProfile = await waitForProfile(session.user.id);
 
@@ -992,7 +1018,15 @@ function humanizeSessionSide(side) {
 
 function renderSessionActionButton() {
   const hasSession = Boolean(state.session && state.sessionProfile) && !state.recoveryMode;
-  dom.accessSessionActionButton.classList.toggle("hidden", !hasSession);
+  const hasPendingWorkspace = Boolean(state.pendingWorkspaceUrl);
+  dom.accessSessionActionButton.classList.toggle("hidden", !hasPendingWorkspace && !hasSession);
+
+  if (hasPendingWorkspace) {
+    dom.accessSessionActionButton.textContent = `Open ${humanizeWorkspaceLabel(state.pendingWorkspaceLabel)} now`;
+    return;
+  }
+
+  dom.accessSessionActionButton.textContent = "Sign out current session";
 }
 
 function buildRecoveryRedirectUrl() {
@@ -1086,6 +1120,35 @@ function buildWorkspaceRedirectUrl(workspacePath, extraParams = null) {
   return url.toString();
 }
 
+function beginWorkspaceHandoff(workspace, targetUrl) {
+  if (!targetUrl) {
+    return;
+  }
+
+  state.pendingWorkspaceUrl = String(targetUrl);
+  state.pendingWorkspaceLabel = workspace;
+  window.COREXFORMER_STUDIO_AUTH?.setPendingWorkspaceHandoff?.({
+    workspace,
+    url: state.pendingWorkspaceUrl,
+    ttlMs: 20 * 1000
+  });
+  renderSessionActionButton();
+  redirectToWorkspace(state.pendingWorkspaceUrl);
+
+  window.setTimeout(() => {
+    if (state.pendingWorkspaceUrl === targetUrl && isStudioAccessLocation()) {
+      const workspaceLabel = humanizeWorkspaceLabel(workspace);
+      showMessage(
+        dom.accessAuthMessage,
+        `Access confirmed. If this page does not move automatically, use Open ${workspaceLabel} now.`,
+        "success"
+      );
+      setAuthState(`Access confirmed. Opening the ${workspaceLabel}...`);
+      renderSessionActionButton();
+    }
+  }, 1400);
+}
+
 function redirectToWorkspace(url) {
   const targetUrl = String(url || "");
 
@@ -1146,6 +1209,17 @@ function redirectToWorkspace(url) {
   }, 700);
 }
 
+function clearPendingWorkspaceAction(clearStored = false) {
+  state.pendingWorkspaceUrl = "";
+  state.pendingWorkspaceLabel = "";
+
+  if (clearStored) {
+    window.COREXFORMER_STUDIO_AUTH?.clearPendingWorkspaceHandoff?.();
+  }
+
+  renderSessionActionButton();
+}
+
 function resolveRuntimeStudioOrigin(configuredOrigin) {
   const currentOrigin = window.location.origin;
 
@@ -1158,6 +1232,18 @@ function resolveRuntimeStudioOrigin(configuredOrigin) {
   }
 
   return "https://corexformer.pages.dev";
+}
+
+function humanizeWorkspaceLabel(workspace) {
+  return workspace === "facilitator" ? "facilitator workspace" : "admin workspace";
+}
+
+function isStudioAccessLocation() {
+  try {
+    return /^\/studio\/?(?:index\.html)?$/i.test(window.location.pathname);
+  } catch (_error) {
+    return false;
+  }
 }
 
 function isRecoveryRequestFromUrl() {
