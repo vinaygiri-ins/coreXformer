@@ -151,6 +151,20 @@ h3 {
   color: var(--accent);
 }
 
+.studio-utility-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.utility-link-button {
+  border: 1px solid rgba(47, 107, 80, 0.14);
+  background: rgba(255, 255, 255, 0.76);
+  font: inherit;
+  color: var(--muted);
+  cursor: pointer;
+}
+
 .access-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: start;
@@ -1883,8 +1897,24 @@ button:disabled {
   gap: 14px;
 }
 
+.feedback-admin-stage-panel {
+  scroll-margin-top: 118px;
+}
+
 .feedback-admin-action-bar {
   justify-content: flex-end;
+}
+
+.feedback-admin-detail-actions {
+  display: grid;
+  justify-items: flex-end;
+  gap: 10px;
+}
+
+.feedback-admin-mobile-back-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .feedback-admin-session-detail,
@@ -2045,6 +2075,10 @@ button:disabled {
     grid-template-columns: 1fr;
   }
 
+  .feedback-admin-detail-actions {
+    justify-items: stretch;
+  }
+
   .lead-saved-head-actions,
   .lead-saved-results-head,
   .lead-saved-tab-head {
@@ -2101,6 +2135,12 @@ button:disabled {
     margin-bottom: 18px;
   }
 
+  .studio-shell-admin .admin-utility-nav,
+  .studio-shell-admin .studio-utility-nav {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
   .studio-shell-admin .module-note-box {
     display: none;
   }
@@ -2121,6 +2161,12 @@ button:disabled {
     width: 100%;
   }
 
+  .studio-shell-admin .workspace-link,
+  .studio-shell-admin .utility-link-button {
+    width: 100%;
+    justify-content: center;
+  }
+
   .studio-shell-admin .inline-action-group {
     width: 100%;
   }
@@ -2132,6 +2178,11 @@ button:disabled {
   .studio-shell-admin .feedback-admin-window-head,
   .studio-shell-admin .feedback-admin-action-bar {
     gap: 10px;
+  }
+
+  .studio-shell-admin .feedback-admin-rating-pill {
+    flex: 1 1 140px;
+    min-width: 0;
   }
 
   .hero-copy,

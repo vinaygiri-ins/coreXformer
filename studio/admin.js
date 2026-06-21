@@ -18,6 +18,7 @@ const initialAdminRoute = getRequestedAdminRoute();
 
 const adminDom = {
   signOutButton: document.getElementById("signOutButton"),
+  goBackButton: document.getElementById("adminGoBackButton"),
   workspaceContent: document.getElementById("workspaceContent"),
   authMessage: document.getElementById("authMessage"),
   authState: document.getElementById("authState"),
@@ -95,6 +96,15 @@ function bindAdminEvents() {
     window.location.replace(buildAdminAccessPath());
   });
 
+  adminDom.goBackButton?.addEventListener("click", () => {
+    if (window.history.length > 1) {
+      window.history.back();
+      return;
+    }
+
+    window.location.assign(buildStudioUrl("./index.html"));
+  });
+
   adminDom.moduleTabs.forEach((button) => {
     button.addEventListener("click", () => {
       const nextModule = button.dataset.adminModule;
@@ -103,7 +113,7 @@ function bindAdminEvents() {
         return;
       }
 
-      setActiveModule(nextModule);
+      setActiveModule(nextModule, { historyMode: "push", scrollBehavior: "smooth" });
     });
   });
 
@@ -115,8 +125,17 @@ function bindAdminEvents() {
         return;
       }
 
-      setActiveView(nextView);
+      setActiveView(nextView, { historyMode: "push", scrollBehavior: "smooth" });
     });
+  });
+
+  window.addEventListener("popstate", () => {
+    const requestedRoute = getRequestedAdminRoute();
+
+    adminState.activeModule = requestedRoute.module;
+    adminState.activeView = requestedRoute.view;
+    ensureAdminViewMatchesModule();
+    syncAdminShell({ historyMode: "none", scrollBehavior: "auto" });
   });
 }
 
@@ -149,7 +168,7 @@ async function handleAdminSession(session) {
       setAdminStateText(`Signed in as ${profile.email}.`);
       updateAdminIdentity(profile);
       enforceAdminModuleAccess();
-      syncAdminShell();
+      syncAdminShell({ historyMode: "replace", scrollBehavior: "auto" });
       clearAdminHandoffArtifacts();
       publishAdminContext();
       return;
@@ -301,22 +320,32 @@ function delay(ms) {
   });
 }
 
-function setActiveModule(moduleKey) {
+function setActiveModule(moduleKey, options = {}) {
+  if (!moduleKey || moduleKey === adminState.activeModule) {
+    return;
+  }
+
   adminState.activeModule = moduleKey;
 
   ensureAdminViewMatchesModule();
 
-  syncAdminShell();
+  syncAdminShell(options);
 }
 
-function setActiveView(viewKey) {
+function setActiveView(viewKey, options = {}) {
+  if (!viewKey || viewKey === adminState.activeView) {
+    return;
+  }
+
   adminState.activeView = viewKey;
-  syncAdminShell();
+  syncAdminShell(options);
 }
 
-function syncAdminShell() {
+function syncAdminShell(options = {}) {
+  const historyMode = options.historyMode || "replace";
+  const scrollBehavior = options.scrollBehavior || "smooth";
   enforceAdminModuleAccess();
-  syncAdminUrl();
+  syncAdminUrl(historyMode);
 
   adminDom.moduleTabs.forEach((button) => {
     const isActive = button.dataset.adminModule === adminState.activeModule;
@@ -338,10 +367,10 @@ function syncAdminShell() {
     panel.classList.toggle("hidden", panel.dataset.adminViewPanel !== adminState.activeView);
   });
 
-  scrollActiveAdminTabsIntoView();
+  scrollActiveAdminTabsIntoView(scrollBehavior);
 }
 
-function scrollActiveAdminTabsIntoView() {
+function scrollActiveAdminTabsIntoView(behavior = "smooth") {
   if (!window.matchMedia("(max-width: 980px)").matches) {
     return;
   }
@@ -353,7 +382,7 @@ function scrollActiveAdminTabsIntoView() {
 
   activeButtons.forEach((button) => {
     button.scrollIntoView({
-      behavior: "smooth",
+      behavior,
       block: "nearest",
       inline: "center"
     });
@@ -423,12 +452,23 @@ function getRequestedAdminRoute() {
   };
 }
 
-function syncAdminUrl() {
+function syncAdminUrl(mode = "replace") {
   const url = new URL(window.location.href);
   url.searchParams.delete("handoff");
   url.searchParams.set("module", adminState.activeModule);
   url.searchParams.set("view", adminState.activeView);
-  window.history.replaceState({}, "", url.toString());
+  const nextUrl = url.toString();
+
+  if (nextUrl === window.location.href || mode === "none") {
+    return;
+  }
+
+  if (mode === "push") {
+    window.history.pushState({}, "", nextUrl);
+    return;
+  }
+
+  window.history.replaceState({}, "", nextUrl);
 }
 
 function buildAdminAccessPath() {

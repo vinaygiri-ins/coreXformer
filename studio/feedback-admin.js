@@ -56,10 +56,14 @@ const feedbackAdminDom = {
   windowSummary: document.getElementById("feedbackAdminWindowSummary"),
   filterInput: document.getElementById("feedbackAdminFilterInput"),
   scope: document.getElementById("feedbackAdminScope"),
+  sessionsView: document.getElementById("feedbackAdminSessionsView"),
+  groupPanel: document.getElementById("feedbackAdminGroupPanel"),
   groupList: document.getElementById("feedbackAdminGroupList"),
   groupEmptyState: document.getElementById("feedbackAdminGroupEmptyState"),
+  detailPanel: document.getElementById("feedbackAdminDetailPanel"),
   sessionDetail: document.getElementById("feedbackAdminSessionDetail"),
   sessionEmptyState: document.getElementById("feedbackAdminSessionEmptyState"),
+  backToGroupsButton: document.getElementById("feedbackAdminBackToGroupsButton"),
   copyLinkButton: document.getElementById("feedbackAdminCopyLinkButton"),
   downloadPdfButton: document.getElementById("feedbackAdminDownloadPdfButton")
 };
@@ -76,11 +80,13 @@ const feedbackAdminState = {
   receivedTo: "",
   filterText: "",
   selectedGroupKey: "",
+  mobileStage: "groups",
   jsPdfLoader: null
 };
 
 document.addEventListener("DOMContentLoaded", () => {
   bindFeedbackAdminEvents();
+  bindFeedbackAdminViewportEvents();
 
   if (window.COREXFORMER_ADMIN_CONTEXT) {
     void handleFeedbackAdminContext(window.COREXFORMER_ADMIN_CONTEXT);
@@ -138,7 +144,14 @@ function bindFeedbackAdminEvents() {
     }
 
     feedbackAdminState.selectedGroupKey = button.dataset.feedbackGroupKey || "";
+    if (isFeedbackAdminMobileLayout()) {
+      feedbackAdminState.mobileStage = "detail";
+    }
     renderFeedbackAdmin();
+
+    if (isFeedbackAdminMobileLayout()) {
+      queueFeedbackAdminStageScroll("detail");
+    }
   });
 
   feedbackAdminDom.copyLinkButton?.addEventListener("click", () => {
@@ -148,6 +161,32 @@ function bindFeedbackAdminEvents() {
   feedbackAdminDom.downloadPdfButton?.addEventListener("click", () => {
     void downloadFeedbackAdminPdf();
   });
+
+  feedbackAdminDom.backToGroupsButton?.addEventListener("click", () => {
+    feedbackAdminState.mobileStage = "groups";
+    renderFeedbackAdmin();
+    queueFeedbackAdminStageScroll("groups");
+  });
+}
+
+function bindFeedbackAdminViewportEvents() {
+  const mobileViewport = window.matchMedia("(max-width: 980px)");
+  const syncViewport = () => {
+    if (!mobileViewport.matches) {
+      feedbackAdminState.mobileStage = "groups";
+    }
+
+    renderFeedbackAdmin();
+  };
+
+  if (typeof mobileViewport.addEventListener === "function") {
+    mobileViewport.addEventListener("change", syncViewport);
+    return;
+  }
+
+  if (typeof mobileViewport.addListener === "function") {
+    mobileViewport.addListener(syncViewport);
+  }
 }
 
 async function handleFeedbackAdminContext(detail) {
@@ -382,6 +421,10 @@ function syncFeedbackAdminSelection() {
   if (!hasSelectedVisibleGroup) {
     feedbackAdminState.selectedGroupKey = visibleGroups[0]?.key || "";
   }
+
+  if (!feedbackAdminState.selectedGroupKey) {
+    feedbackAdminState.mobileStage = "groups";
+  }
 }
 
 function getFilteredFeedbackAdminRows() {
@@ -444,6 +487,7 @@ function renderFeedbackAdmin() {
   renderFeedbackAdminOverview();
   renderFeedbackAdminGroupList();
   renderFeedbackAdminSessionDetail();
+  syncFeedbackAdminMobilePanels();
   syncFeedbackAdminButtons();
 }
 
@@ -635,6 +679,43 @@ function renderFeedbackAdminSessionDetail() {
       ${group.rows.map((row, index) => renderFeedbackAdminResponseCard(row, index)).join("")}
     </div>
   `;
+}
+
+function syncFeedbackAdminMobilePanels() {
+  const isMobile = isFeedbackAdminMobileLayout();
+  const hasSelectedGroup = Boolean(getSelectedFeedbackAdminGroup());
+  const showDetail = isMobile && feedbackAdminState.mobileStage === "detail" && hasSelectedGroup;
+
+  feedbackAdminDom.sessionsView?.classList.toggle("feedback-admin-mobile-groups", isMobile && !showDetail);
+  feedbackAdminDom.sessionsView?.classList.toggle("feedback-admin-mobile-detail", showDetail);
+
+  if (!isMobile) {
+    feedbackAdminDom.groupPanel?.classList.remove("hidden");
+    feedbackAdminDom.detailPanel?.classList.remove("hidden");
+    feedbackAdminDom.backToGroupsButton?.classList.add("hidden");
+    return;
+  }
+
+  feedbackAdminDom.groupPanel?.classList.toggle("hidden", showDetail);
+  feedbackAdminDom.detailPanel?.classList.toggle("hidden", !showDetail);
+  feedbackAdminDom.backToGroupsButton?.classList.toggle("hidden", !showDetail);
+}
+
+function isFeedbackAdminMobileLayout() {
+  return window.matchMedia("(max-width: 980px)").matches;
+}
+
+function queueFeedbackAdminStageScroll(stage) {
+  window.requestAnimationFrame(() => {
+    const target = stage === "detail"
+      ? feedbackAdminDom.detailPanel
+      : feedbackAdminDom.groupPanel;
+
+    target?.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+  });
 }
 
 function renderFeedbackAdminResponseCard(row, index) {
