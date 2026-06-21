@@ -134,11 +134,9 @@ async function handleApplicationSession(session) {
       return;
     }
 
-    applicationDom.section.classList.remove("hidden");
     await loadApplications();
     renderApplications();
   } catch (error) {
-    applicationDom.section.classList.remove("hidden");
     showApplicationAdminMessage(error.message || "The facilitator application queue could not be loaded.", "error");
     renderApplicationStats();
     renderApplicationCards();
