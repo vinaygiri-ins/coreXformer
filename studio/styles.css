@@ -449,6 +449,7 @@ button:disabled {
 
 .studio-shell-admin .workspace-tab-bar {
   gap: 8px;
+  margin-bottom: 14px;
 }
 
 .studio-shell-admin .workspace-tab {
@@ -2075,9 +2076,9 @@ button:disabled {
     flex-wrap: nowrap;
     overflow-x: auto;
     overflow-y: hidden;
-    gap: 8px;
-    margin: 0 -4px;
-    padding: 0 4px 2px;
+    gap: 7px;
+    margin: 0 -3px 10px;
+    padding: 0 3px 2px;
     scroll-snap-type: x proximity;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
@@ -2089,8 +2090,8 @@ button:disabled {
 
   .studio-shell-admin .workspace-tab {
     flex: 0 0 auto;
-    min-height: 40px;
-    padding: 9px 13px;
+    min-height: 38px;
+    padding: 8px 12px;
     white-space: nowrap;
     scroll-snap-align: start;
   }
@@ -2170,17 +2171,22 @@ button:disabled {
 
   .studio-shell-admin {
     width: min(100% - 16px, 1240px);
-    padding: 12px 0 32px;
+    padding: 10px 0 28px;
   }
 
   .studio-shell-admin .admin-session-bar,
   .studio-shell-admin .admin-module-chooser {
-    padding: 12px 14px;
+    padding: 10px 12px;
   }
 
   .studio-shell-admin .admin-module-shell {
-    gap: 12px;
-    margin-bottom: 14px;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .studio-shell-admin .admin-module-chooser {
+    top: 0;
+    border-radius: 18px;
   }
 
   .studio-shell-admin .admin-session-bar-head,
@@ -2196,11 +2202,50 @@ button:disabled {
   }
 
   .studio-shell-admin h2 {
-    font-size: 1.28rem;
+    font-size: 1.18rem;
   }
 
   .studio-shell-admin .admin-session-bar-copy h1 {
-    font-size: 1.55rem;
+    font-size: 1.38rem;
+  }
+
+  .studio-shell-admin .eyebrow {
+    margin-bottom: 6px;
+    font-size: 0.66rem;
+  }
+
+  .studio-shell-admin .workspace-tab-bar {
+    gap: 6px;
+    margin: 0 -2px 8px;
+    padding: 0 2px 0;
+  }
+
+  .studio-shell-admin .workspace-tab {
+    min-height: 34px;
+    padding: 7px 11px;
+    border-radius: 12px;
+    font-size: 0.78rem;
+  }
+
+  .studio-shell-admin .admin-utility-nav {
+    gap: 6px;
+  }
+
+  .studio-shell-admin .admin-utility-nav .workspace-link,
+  .studio-shell-admin .admin-utility-nav .utility-link-button {
+    padding: 7px 11px;
+    font-size: 0.78rem;
+  }
+
+  .studio-shell-admin .auth-state,
+  .studio-shell-admin .notice-box {
+    padding: 10px 12px;
+  }
+
+  .studio-shell-admin .feedback-admin-window-bar,
+  .studio-shell-admin .application-card,
+  .studio-shell-admin .panel {
+    padding: 16px;
   }
 
   .studio-shell-admin .button,
