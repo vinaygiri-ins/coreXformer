@@ -1,17 +1,17 @@
 const ADMIN_ALLOWED_ROLES = ["owner", "editor"];
 const FACILITATOR_SIDE_ROLES = ["candidate", "facilitator", "facilitator_lead"];
 const OWNER_ONLY_MODULES = new Set(["lead-map"]);
-const ADMIN_DEFAULT_VIEWS = {
-  facilitator: "facilitator-overview",
-  insights: "insights-overview",
-  feedback: "feedback-overview",
-  "lead-map": "lead-map-overview"
+const ADMIN_MODULE_VIEWS = {
+  facilitator: new Set(["facilitator-requests", "facilitator-links"]),
+  insights: new Set(["insights-overview", "insights-pages", "insights-sources", "insights-journeys", "insights-forms"]),
+  feedback: new Set(["feedback-sessions"]),
+  "lead-map": new Set(["lead-map-scanner", "lead-map-saved"])
 };
-const ADMIN_VIEW_PREFIX = {
-  facilitator: "facilitator-",
-  insights: "insights-",
-  feedback: "feedback-",
-  "lead-map": "lead-map-"
+const ADMIN_DEFAULT_VIEWS = {
+  facilitator: "facilitator-requests",
+  insights: "insights-overview",
+  feedback: "feedback-sessions",
+  "lead-map": "lead-map-scanner"
 };
 const ADMIN_HANDOFF_WAIT_MS = 12 * 1000;
 const initialAdminRoute = getRequestedAdminRoute();
@@ -333,7 +333,7 @@ function setActiveModule(moduleKey, options = {}) {
 }
 
 function setActiveView(viewKey, options = {}) {
-  if (!viewKey || viewKey === adminState.activeView) {
+  if (!viewKey || viewKey === adminState.activeView || !isValidAdminView(adminState.activeModule, viewKey)) {
     return;
   }
 
@@ -426,10 +426,9 @@ function publishAdminContext() {
 }
 
 function ensureAdminViewMatchesModule() {
-  const expectedPrefix = ADMIN_VIEW_PREFIX[adminState.activeModule];
   const defaultView = ADMIN_DEFAULT_VIEWS[adminState.activeModule] || ADMIN_DEFAULT_VIEWS.facilitator;
 
-  if (!expectedPrefix || !String(adminState.activeView || "").startsWith(expectedPrefix)) {
+  if (!isValidAdminView(adminState.activeModule, adminState.activeView)) {
     adminState.activeView = defaultView;
   }
 }
@@ -441,8 +440,7 @@ function getRequestedAdminRoute() {
     ? requestedModule
     : "facilitator";
   const requestedView = params.get("view") || "";
-  const expectedPrefix = ADMIN_VIEW_PREFIX[moduleKey];
-  const viewKey = requestedView.startsWith(expectedPrefix)
+  const viewKey = isValidAdminView(moduleKey, requestedView)
     ? requestedView
     : ADMIN_DEFAULT_VIEWS[moduleKey];
 
@@ -450,6 +448,11 @@ function getRequestedAdminRoute() {
     module: moduleKey,
     view: viewKey
   };
+}
+
+function isValidAdminView(moduleKey, viewKey) {
+  const allowedViews = ADMIN_MODULE_VIEWS[moduleKey];
+  return Boolean(allowedViews && allowedViews.has(String(viewKey || "")));
 }
 
 function syncAdminUrl(mode = "replace") {

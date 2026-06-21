@@ -9,170 +9,57 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-  <link rel="stylesheet" href="styles.css?v=20260621-studio-admin-mobile-3">
+  <link rel="stylesheet" href="styles.css?v=20260621-studio-admin-mobile-4">
 </head>
 <body>
   <main class="studio-shell studio-shell-admin">
-    <section class="studio-hero">
-      <div class="hero-copy">
-        <p class="eyebrow">Private admin workspace</p>
-        <h1>CoreXformer Admin</h1>
-        <p class="hero-text">
-          This workspace should not become one long mixed admin page. It should stay organized by module, so each part
-          of the website has its own admin view, review logic, and operational checks.
-        </p>
-        <div class="hero-points">
-          <span>Module-first control</span>
-          <span>Category-based review</span>
-          <span>Future-safe admin structure</span>
+    <section class="panel admin-session-bar">
+      <div class="admin-session-bar-head">
+        <div class="admin-session-bar-copy">
+          <p class="eyebrow">Private admin workspace</p>
+          <h1>Studio Admin</h1>
         </div>
+        <button id="signOutButton" type="button" class="button button-muted hidden">Sign out</button>
       </div>
 
-      <aside class="login-card admin-access-card">
-        <p class="card-label">Workspace access</p>
-        <h2>Admin access is routed through the shared studio entry.</h2>
-        <p class="card-note">
-          This route should only open for an authenticated admin session. If you are signed out, the studio returns you
-          to the shared access page and then brings you back here after admin sign in succeeds.
-          For privacy, this private session now asks for the password again after inactivity or when the browser tab closes.
-        </p>
-        <div class="access-secondary">
-          <a class="button access-link-button" href="/studio/?mode=admin">Go to studio access</a>
-          <button id="signOutButton" type="button" class="button button-muted hidden">Sign out</button>
-        </div>
-        <div id="authMessage" class="message-banner hidden"></div>
+      <div class="admin-session-bar-meta">
         <div id="authState" class="auth-state">
-          <strong>Session status</strong>
+          <strong>Session</strong>
           <span>Checking private admin session...</span>
         </div>
         <div id="adminIdentity" class="notice-box hidden">
-          <h3>Current admin</h3>
           <p id="adminIdentityText">Loading admin identity...</p>
         </div>
-      </aside>
+      </div>
+
+      <div id="authMessage" class="message-banner hidden"></div>
     </section>
 
     <div id="workspaceContent" class="hidden">
-      <section class="panel admin-module-shell admin-module-chooser">
-        <div class="panel-head">
-          <div>
-            <p class="eyebrow">Admin modules</p>
-            <h2>Choose the part of the system you want to manage</h2>
-          </div>
-        </div>
 
+      <section class="panel admin-module-shell admin-module-chooser">
         <div class="workspace-tab-bar admin-module-tabs" role="tablist" aria-label="Admin modules">
-          <button id="adminModuleFacilitator" type="button" class="workspace-tab is-active" data-admin-module="facilitator" role="tab" aria-selected="true">To Be Facilitator</button>
-          <button id="adminModuleInsights" type="button" class="workspace-tab" data-admin-module="insights" role="tab" aria-selected="false">Website Insights</button>
+          <button id="adminModuleFacilitator" type="button" class="workspace-tab is-active" data-admin-module="facilitator" role="tab" aria-selected="true">Facilitators</button>
+          <button id="adminModuleInsights" type="button" class="workspace-tab" data-admin-module="insights" role="tab" aria-selected="false">Insights</button>
           <button id="adminModuleLeadMap" type="button" class="workspace-tab" data-admin-module="lead-map" data-owner-only="true" role="tab" aria-selected="false">Lead Map</button>
           <button type="button" class="workspace-tab is-disabled" data-admin-module="products" role="tab" aria-selected="false" disabled>Products <span class="tab-soon">Soon</span></button>
           <button type="button" class="workspace-tab" data-admin-module="feedback" role="tab" aria-selected="false">Feedback</button>
           <button type="button" class="workspace-tab is-disabled" data-admin-module="public-pages" role="tab" aria-selected="false" disabled>Public Pages <span class="tab-soon">Soon</span></button>
           <button type="button" class="workspace-tab is-disabled" data-admin-module="operations" role="tab" aria-selected="false" disabled>Operations <span class="tab-soon">Soon</span></button>
         </div>
-        <p class="admin-mobile-tab-hint">Swipe sideways to move across modules.</p>
 
         <div class="studio-utility-nav admin-utility-nav" aria-label="Studio navigation">
-          <button id="adminGoBackButton" type="button" class="workspace-link utility-link-button">Back one step</button>
-          <a class="workspace-link" href="./index.html">Studio home</a>
-          <a class="workspace-link" href="../index.html">Main website</a>
-        </div>
-
-        <div class="notice-box module-note-box">
-          <h3>Why this matters</h3>
-          <p>
-            Each website module should have its own admin layer. That way the admin side grows in a controlled way instead
-            of becoming a single long garbage box whenever we add products, feedback, or more private workflows.
-          </p>
+          <button id="adminGoBackButton" type="button" class="workspace-link utility-link-button">Back</button>
+          <a class="workspace-link" href="./index.html">Studio</a>
+          <a class="workspace-link" href="../index.html">Website</a>
         </div>
       </section>
 
       <section class="panel admin-module-shell" data-admin-module-panel="facilitator">
-        <div class="panel-head">
-          <div>
-            <p class="eyebrow">To Be Facilitator</p>
-            <h2>Review and organize the facilitator entry module</h2>
-          </div>
-          <span class="status-pill">Active module</span>
-        </div>
-
         <div class="workspace-tab-bar admin-view-tabs" role="tablist" aria-label="Facilitator admin views">
-          <button type="button" class="workspace-tab is-active" data-admin-view="facilitator-overview" role="tab" aria-selected="true">Overview</button>
           <button type="button" class="workspace-tab" data-admin-view="facilitator-requests" role="tab" aria-selected="false">Requests</button>
-          <button type="button" class="workspace-tab" data-admin-view="facilitator-handoff" role="tab" aria-selected="false">Onboarding handoff</button>
-          <button type="button" class="workspace-tab" data-admin-view="facilitator-links" role="tab" aria-selected="false">Cross-check links</button>
+          <button type="button" class="workspace-tab" data-admin-view="facilitator-links" role="tab" aria-selected="false">Links</button>
         </div>
-      </section>
-
-      <section class="studio-grid admin-view-panel" data-admin-view-panel="facilitator-overview">
-        <article class="panel">
-          <div class="panel-head">
-            <div>
-              <p class="eyebrow">Module relationships</p>
-              <h2>What this admin module must stay connected to</h2>
-            </div>
-            <span class="status-pill">Facilitator entry</span>
-          </div>
-
-          <div class="pipeline-grid">
-            <div class="pipeline-card">
-              <span>Public page</span>
-              <strong>Intake</strong>
-              <p>The public `Become a Facilitator` page collects intent, entry path, audience fit, and product interest.</p>
-            </div>
-            <div class="pipeline-card">
-              <span>Admin control</span>
-              <strong>Decision</strong>
-              <p>Admin reviews fit, saves notes, changes status, and decides whether private onboarding should open.</p>
-            </div>
-            <div class="pipeline-card">
-              <span>Facilitator workspace</span>
-              <strong>Handoff</strong>
-              <p>Approved people should enter `My Journey` first, not jump into all facilitator operations at once.</p>
-            </div>
-            <div class="pipeline-card">
-              <span>Products and scope</span>
-              <strong>Readiness</strong>
-              <p>Applications should help reveal what products, audiences, or support paths make the most sense next.</p>
-            </div>
-          </div>
-        </article>
-
-        <article class="panel">
-          <div class="panel-head">
-            <div>
-              <p class="eyebrow">Admin decisions</p>
-              <h2>What this module should help admin decide clearly</h2>
-            </div>
-          </div>
-
-          <ul class="ops-list">
-            <li>
-              <strong>Entry path</strong>
-              <span>Should this person begin through shadowing, facilitator-track onboarding, support, or associate contribution?</span>
-            </li>
-            <li>
-              <strong>Progress status</strong>
-              <span>Should the application remain submitted, move into screening, be invited, or be closed for now?</span>
-            </li>
-            <li>
-              <strong>Private access</strong>
-              <span>Is this the moment to create candidate-side access, or should the person remain in review first?</span>
-            </li>
-            <li>
-              <strong>Future fit</strong>
-              <span>Which audience and product relationships seem most aligned for this person as they move deeper into CoreXformer?</span>
-            </li>
-          </ul>
-
-          <div class="notice-box">
-            <h3>Important boundary</h3>
-            <p>
-              This view should stay at the architecture level. Use it to remember what this module is responsible for, not
-              to carry every operational detail in one place.
-            </p>
-          </div>
-        </article>
       </section>
 
       <section id="applicationReviewSection" class="studio-grid admin-view-panel hidden" data-admin-view-panel="facilitator-requests">
@@ -180,19 +67,12 @@
           <div class="panel-head">
             <div>
               <p class="eyebrow">Facilitator applications</p>
-              <h2>Review who is entering the CoreXformer system</h2>
+              <h2>Review incoming requests</h2>
             </div>
             <span class="status-pill">Private intake</span>
           </div>
 
           <div id="applicationStats" class="pipeline-grid"></div>
-          <div class="notice-box">
-            <h3>How this should work</h3>
-            <p>
-              A public application should land here first. Only after review should the person be invited into onboarding
-              and later activate facilitator-side access through the shared studio entry.
-            </p>
-          </div>
         </article>
 
         <article class="panel">
@@ -212,42 +92,12 @@
         </article>
       </section>
 
-      <section class="studio-grid admin-view-panel hidden" data-admin-view-panel="facilitator-handoff">
-        <article class="panel docs-panel">
-          <div class="panel-head">
-            <div>
-              <p class="eyebrow">Private handoff rules</p>
-              <h2>What should happen after a review decision</h2>
-            </div>
-          </div>
-
-          <ul class="ops-list">
-            <li>
-              <strong>Submitted or screening</strong>
-              <span>The person stays in admin review and should not receive a private login yet.</span>
-            </li>
-            <li>
-              <strong>Invited to onboarding</strong>
-              <span>Admin sends the onboarding note and prepares candidate-stage access through the shared studio entry.</span>
-            </li>
-            <li>
-              <strong>Candidate stage</strong>
-              <span>The facilitator should see `My Journey` first: profile, foundations, product path, and related issues.</span>
-            </li>
-            <li>
-              <strong>Approved later</strong>
-              <span>`My Work` should only open after product-specific readiness and real operational approval become clear.</span>
-            </li>
-          </ul>
-        </article>
-      </section>
-
       <section class="studio-grid admin-view-panel hidden" data-admin-view-panel="facilitator-links">
         <article class="panel docs-panel">
           <div class="panel-head">
             <div>
               <p class="eyebrow">Module links</p>
-              <h2>Check both sides of the facilitator system</h2>
+              <h2>Open related pages quickly</h2>
             </div>
           </div>
 
@@ -262,14 +112,6 @@
       </section>
 
       <section class="panel admin-module-shell hidden" data-admin-module-panel="insights">
-        <div class="panel-head">
-          <div>
-            <p class="eyebrow">Website Insights</p>
-            <h2>Observe how the public website is being discovered and used</h2>
-          </div>
-          <span class="status-pill">Admin module</span>
-        </div>
-
         <div class="workspace-tab-bar admin-view-tabs" role="tablist" aria-label="Website insights views">
           <button type="button" class="workspace-tab" data-admin-view="insights-overview" role="tab" aria-selected="false">Overview</button>
           <button type="button" class="workspace-tab" data-admin-view="insights-pages" role="tab" aria-selected="false">Pages</button>
@@ -289,14 +131,6 @@
         </div>
 
         <div id="websiteInsightsMessage" class="message-banner hidden"></div>
-
-        <div class="notice-box">
-          <h3>Important boundary</h3>
-          <p>
-            This module is built as first-party anonymous insight tracking. It can show pages, sessions, entry sources,
-            visible search terms, and successful form movement, but it should not pretend to identify exact people.
-          </p>
-        </div>
       </section>
 
       <section class="studio-grid admin-view-panel hidden" data-admin-view-panel="insights-overview">
@@ -425,28 +259,7 @@
       </section>
 
       <section class="panel admin-module-shell hidden" data-admin-module-panel="feedback">
-        <div class="panel-head">
-          <div>
-            <p class="eyebrow">Feedback</p>
-            <h2>Review session reflections and export one PDF per batch</h2>
-          </div>
-          <span class="status-pill">Admin module</span>
-        </div>
-
-        <div class="workspace-tab-bar admin-view-tabs" role="tablist" aria-label="Feedback admin views">
-          <button type="button" class="workspace-tab" data-admin-view="feedback-overview" role="tab" aria-selected="false">Overview</button>
-          <button type="button" class="workspace-tab" data-admin-view="feedback-sessions" role="tab" aria-selected="false">Session exports</button>
-        </div>
-
         <div id="feedbackAdminMessage" class="message-banner hidden"></div>
-
-        <div class="notice-box">
-          <h3>How this module should help</h3>
-          <p>
-            This space should help CoreXformer treat feedback as a real session record. Reflections can be grouped by
-            session or batch, reviewed in full, and exported into one clean PDF file that can be shared privately after delivery.
-          </p>
-        </div>
 
         <div class="notice-box feedback-admin-window-bar">
           <div class="panel-head feedback-admin-window-head">
@@ -474,30 +287,6 @@
 
           <p id="feedbackAdminWindowSummary" class="lead-map-area-summary">Currently showing all feedback received so far.</p>
         </div>
-      </section>
-
-      <section class="studio-grid admin-view-panel hidden" data-admin-view-panel="feedback-overview">
-        <article class="panel">
-          <div class="panel-head">
-            <div>
-              <p class="eyebrow">Overview</p>
-              <h2>What is being captured across feedback responses</h2>
-            </div>
-          </div>
-
-          <div id="feedbackAdminSummaryCards" class="pipeline-grid"></div>
-        </article>
-
-        <article class="panel">
-          <div class="panel-head">
-            <div>
-              <p class="eyebrow">What this export includes</p>
-              <h2>Everything captured in the feedback form for a session</h2>
-            </div>
-          </div>
-
-          <div id="feedbackAdminHighlights" class="collaboration-list"></div>
-        </article>
       </section>
 
       <section id="feedbackAdminSessionsView" class="studio-grid admin-view-panel hidden" data-admin-view-panel="feedback-sessions">
@@ -549,90 +338,10 @@
       </section>
 
       <section class="panel admin-module-shell hidden" data-admin-module-panel="lead-map">
-        <div class="panel-head">
-          <div>
-            <p class="eyebrow">Lead Map</p>
-            <h2>Discover institutions by area and turn them into refined outreach leads</h2>
-          </div>
-          <span class="status-pill">Owner only</span>
-        </div>
-
         <div class="workspace-tab-bar admin-view-tabs" role="tablist" aria-label="Lead map admin views">
-          <button type="button" class="workspace-tab" data-admin-view="lead-map-overview" role="tab" aria-selected="false">Overview</button>
           <button type="button" class="workspace-tab" data-admin-view="lead-map-scanner" role="tab" aria-selected="false">Map scanner</button>
           <button type="button" class="workspace-tab" data-admin-view="lead-map-saved" role="tab" aria-selected="false">Saved leads</button>
         </div>
-      </section>
-
-      <section class="studio-grid admin-view-panel hidden" data-admin-view-panel="lead-map-overview">
-        <article class="panel">
-          <div class="panel-head">
-            <div>
-              <p class="eyebrow">Module relationships</p>
-              <h2>How this module fits into the CoreXformer system</h2>
-            </div>
-            <span class="status-pill">Private scouting</span>
-          </div>
-
-          <div class="pipeline-grid">
-            <div class="pipeline-card">
-              <span>Selected area</span>
-              <strong>Scan</strong>
-              <p>Pan and zoom to the geography you want to scout. The visible map area becomes the scan boundary.</p>
-            </div>
-            <div class="pipeline-card">
-              <span>Institution discovery</span>
-              <strong>Extract</strong>
-              <p>Pull schools, colleges, corporates, communities, and government anchors from map data into one refined result list.</p>
-            </div>
-            <div class="pipeline-card">
-              <span>Owner review</span>
-              <strong>Refine</strong>
-              <p>Shortlist, add notes, set follow-up dates, and decide which organizations are worth meaningful outreach.</p>
-            </div>
-            <div class="pipeline-card">
-              <span>Future operations</span>
-              <strong>Connect</strong>
-              <p>Later these leads can connect with products, sessions, follow-up history, and relationship management.</p>
-            </div>
-          </div>
-        </article>
-
-        <article class="panel">
-          <div class="panel-head">
-            <div>
-              <p class="eyebrow">How to use it</p>
-              <h2>The simplest working flow for outreach discovery</h2>
-            </div>
-          </div>
-
-          <ul class="ops-list">
-            <li>
-              <strong>Start with geography</strong>
-              <span>Move the map to the city, district, or neighborhood you want to cover and use the current view as the scan area.</span>
-            </li>
-            <li>
-              <strong>Pick the institution types</strong>
-              <span>Choose whether you want only schools, only colleges, or a broader mix that includes offices, communities, and government anchors.</span>
-            </li>
-            <li>
-              <strong>Save only the useful leads</strong>
-              <span>Do not keep everything. Save the organizations that seem relevant for meaningful experiential learning outreach.</span>
-            </li>
-            <li>
-              <strong>Use the saved board as your private pipeline</strong>
-              <span>Capture status, priority, notes, next follow-up, and the best person to approach so the research becomes actionable.</span>
-            </li>
-          </ul>
-
-          <div class="notice-box">
-            <h3>Current storage</h3>
-            <p>
-              For this first version, saved leads and notes stay private in this browser on this device. That keeps the
-              module lightweight while we refine the real workflow before moving it into shared backend records.
-            </p>
-          </div>
-        </article>
       </section>
 
       <section class="admin-view-panel hidden" data-admin-view-panel="lead-map-scanner">
@@ -820,10 +529,6 @@
             </div>
           </div>
 
-          <p class="lead-saved-intro">
-            Use this page as a focused lead navigator: choose a category, then a place, then move one saved lead at a time while the map stays in sync.
-          </p>
-
           <div class="lead-saved-distance-bar">
             <p id="leadSavedDistanceSummary" class="lead-saved-distance-summary">Distance order is off. Use your current location to sort places and leads from nearest to farthest.</p>
             <div class="inline-action-group">
@@ -887,12 +592,12 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-  <script src="config.js?v=20260621-studio-admin-mobile-3"></script>
-  <script src="session-auth.js?v=20260621-studio-admin-mobile-3"></script>
-  <script src="admin.js?v=20260621-studio-admin-mobile-3"></script>
-  <script src="applications.js?v=20260621-studio-admin-mobile-3"></script>
-  <script src="website-insights.js?v=20260621-studio-admin-mobile-3"></script>
-  <script src="feedback-admin.js?v=20260621-studio-admin-mobile-3"></script>
-  <script src="lead-map.js?v=20260621-studio-admin-mobile-3"></script>
+  <script src="config.js?v=20260621-studio-admin-mobile-4"></script>
+  <script src="session-auth.js?v=20260621-studio-admin-mobile-4"></script>
+  <script src="admin.js?v=20260621-studio-admin-mobile-4"></script>
+  <script src="applications.js?v=20260621-studio-admin-mobile-4"></script>
+  <script src="website-insights.js?v=20260621-studio-admin-mobile-4"></script>
+  <script src="feedback-admin.js?v=20260621-studio-admin-mobile-4"></script>
+  <script src="lead-map.js?v=20260621-studio-admin-mobile-4"></script>
 </body>
 </html>
