@@ -1279,6 +1279,10 @@ function isRecoveryRequestFromUrl() {
     || hashParams.get("type") === "recovery";
 }
 
+function normalizeValue(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
 function ensureTrailingSlash(value) {
   return value.endsWith("/") ? value : `${value}/`;
 }
