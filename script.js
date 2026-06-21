@@ -72,7 +72,9 @@ function initHomeStoryRail() {
   let activeIndex = 0;
   let scrollFrame = 0;
   let hasDismissedMobileCue = false;
+  let touchSwipeState = null;
   const compactViewport = window.matchMedia("(max-width: 900px)");
+  const swipeIgnoreSelector = "a, button, input, select, textarea, label";
 
   function dismissMobileCue() {
     if (hasDismissedMobileCue) {
@@ -161,6 +163,14 @@ function initHomeStoryRail() {
     });
   }
 
+  function resetTouchSwipeState() {
+    touchSwipeState = null;
+  }
+
+  function getSwipeDistanceThreshold() {
+    return Math.max(44, Math.min(72, rail.clientWidth * 0.12));
+  }
+
   tabs.forEach((tab, index) => {
     tab.addEventListener("click", () => {
       dismissMobileCue();
@@ -180,6 +190,49 @@ function initHomeStoryRail() {
 
   rail.addEventListener("pointerdown", dismissMobileCue, { passive: true });
   rail.addEventListener("touchstart", dismissMobileCue, { passive: true });
+
+  rail.addEventListener("touchstart", (event) => {
+    if (!compactViewport.matches || event.touches.length !== 1 || event.target.closest(swipeIgnoreSelector)) {
+      resetTouchSwipeState();
+      return;
+    }
+
+    const touch = event.touches[0];
+    touchSwipeState = {
+      startX: touch.clientX,
+      startY: touch.clientY,
+      startedAt: window.performance.now(),
+      startIndex: activeIndex
+    };
+  }, { passive: true });
+
+  rail.addEventListener("touchend", (event) => {
+    if (!compactViewport.matches || !touchSwipeState || event.changedTouches.length !== 1) {
+      resetTouchSwipeState();
+      return;
+    }
+
+    const touch = event.changedTouches[0];
+    const deltaX = touch.clientX - touchSwipeState.startX;
+    const deltaY = touch.clientY - touchSwipeState.startY;
+    const absX = Math.abs(deltaX);
+    const absY = Math.abs(deltaY);
+    const elapsed = Math.max(1, window.performance.now() - touchSwipeState.startedAt);
+    const hasHorizontalIntent = absX > absY * 1.15;
+    const isQuickSwipe = elapsed <= 240 && absX >= 24;
+    const passedDistanceThreshold = absX >= getSwipeDistanceThreshold();
+
+    if (hasHorizontalIntent && (isQuickSwipe || passedDistanceThreshold)) {
+      dismissMobileCue();
+      goToPanel(touchSwipeState.startIndex + (deltaX < 0 ? 1 : -1), "smooth");
+    } else if (absX > 18) {
+      goToPanel(touchSwipeState.startIndex, "smooth");
+    }
+
+    resetTouchSwipeState();
+  }, { passive: true });
+
+  rail.addEventListener("touchcancel", resetTouchSwipeState, { passive: true });
 
   rail.addEventListener("scroll", () => {
     window.cancelAnimationFrame(scrollFrame);
