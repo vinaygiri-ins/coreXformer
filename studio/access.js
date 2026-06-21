@@ -161,11 +161,12 @@ async function initAccess() {
   }
 
   const accessNotice = studioAuth?.consumeNotice();
+  const resolvedSession = session || state.session;
 
-  if (session && state.recoveryRequested) {
-    await enterRecoveryMode(session);
-  } else if (session) {
-    await handleExistingSession(session);
+  if (resolvedSession && state.recoveryRequested) {
+    await enterRecoveryMode(resolvedSession);
+  } else if (resolvedSession) {
+    await handleExistingSession(resolvedSession);
   } else {
     if (accessNotice) {
       showMessage(dom.accessAuthMessage, accessNotice, "info");
