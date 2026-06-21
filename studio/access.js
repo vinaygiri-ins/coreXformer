@@ -90,6 +90,7 @@ const state = {
   recoveryMode: false,
   session: null,
   sessionProfile: null,
+  ignoreEmptySessionUntil: 0,
   pendingWorkspaceUrl: "",
   pendingWorkspaceLabel: ""
 };
@@ -129,6 +130,10 @@ async function initAccess() {
 
     if (sessionUpdate) {
       state.session = sessionUpdate;
+      return;
+    }
+
+    if (Date.now() < state.ignoreEmptySessionUntil) {
       return;
     }
 
@@ -828,18 +833,16 @@ function presentWorkspaceEntry(side) {
 
   state.pendingWorkspaceUrl = targetUrl;
   state.pendingWorkspaceLabel = workspace;
+  state.ignoreEmptySessionUntil = Date.now() + 15 * 1000;
   window.COREXFORMER_STUDIO_AUTH?.setPendingWorkspaceHandoff?.({
     workspace,
     url: targetUrl,
-    ttlMs: 20 * 1000
+      ttlMs: 20 * 1000
   });
   renderSessionActionButton();
-  showMessage(
-    dom.accessAuthMessage,
-    `${humanizeWorkspaceLabel(workspace)} is ready. Use Open ${humanizeWorkspaceLabel(workspace)} now to continue.`,
-    "success"
-  );
-  setAuthState(`Signed in as ${state.sessionProfile?.email || "this user"}.`);
+  showMessage(dom.accessAuthMessage, `Access confirmed. Opening the ${humanizeWorkspaceLabel(workspace)}...`, "success");
+  setAuthState(`Signed in as ${state.sessionProfile?.email || "this user"}. Opening the ${humanizeWorkspaceLabel(workspace)}...`);
+  void beginWorkspaceHandoff(workspace, targetUrl);
 }
 
 async function waitForProfile(userId, attempts = 6) {
@@ -1232,6 +1235,7 @@ function redirectToWorkspace(url) {
 function clearPendingWorkspaceAction(clearStored = false) {
   state.pendingWorkspaceUrl = "";
   state.pendingWorkspaceLabel = "";
+  state.ignoreEmptySessionUntil = 0;
 
   if (clearStored) {
     window.COREXFORMER_STUDIO_AUTH?.clearPendingWorkspaceHandoff?.();
