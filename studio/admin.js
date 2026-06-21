@@ -337,6 +337,27 @@ function syncAdminShell() {
   adminDom.viewPanels.forEach((panel) => {
     panel.classList.toggle("hidden", panel.dataset.adminViewPanel !== adminState.activeView);
   });
+
+  scrollActiveAdminTabsIntoView();
+}
+
+function scrollActiveAdminTabsIntoView() {
+  if (!window.matchMedia("(max-width: 980px)").matches) {
+    return;
+  }
+
+  const activeButtons = [
+    adminDom.moduleTabs.find((button) => button.dataset.adminModule === adminState.activeModule),
+    adminDom.viewTabs.find((button) => button.dataset.adminView === adminState.activeView)
+  ].filter(Boolean);
+
+  activeButtons.forEach((button) => {
+    button.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "center"
+    });
+  });
 }
 
 function enforceAdminModuleAccess() {

@@ -9,10 +9,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-  <link rel="stylesheet" href="styles.css?v=20260621-studio-auth-fix-5">
+  <link rel="stylesheet" href="styles.css?v=20260621-studio-admin-mobile-1">
 </head>
 <body>
-  <main class="studio-shell">
+  <main class="studio-shell studio-shell-admin">
     <section class="studio-hero">
       <div class="hero-copy">
         <p class="eyebrow">Private admin workspace</p>
@@ -28,7 +28,7 @@
         </div>
       </div>
 
-      <aside class="login-card">
+      <aside class="login-card admin-access-card">
         <p class="card-label">Workspace access</p>
         <h2>Admin access is routed through the shared studio entry.</h2>
         <p class="card-note">
@@ -53,7 +53,7 @@
     </section>
 
     <div id="workspaceContent" class="hidden">
-      <section class="panel admin-module-shell">
+      <section class="panel admin-module-shell admin-module-chooser">
         <div class="panel-head">
           <div>
             <p class="eyebrow">Admin modules</p>
@@ -70,6 +70,7 @@
           <button type="button" class="workspace-tab is-disabled" data-admin-module="public-pages" role="tab" aria-selected="false" disabled>Public Pages <span class="tab-soon">Soon</span></button>
           <button type="button" class="workspace-tab is-disabled" data-admin-module="operations" role="tab" aria-selected="false" disabled>Operations <span class="tab-soon">Soon</span></button>
         </div>
+        <p class="admin-mobile-tab-hint">Swipe sideways to move across modules.</p>
 
         <div class="notice-box module-note-box">
           <h3>Why this matters</h3>
@@ -877,12 +878,12 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-  <script src="config.js?v=20260621-studio-auth-fix-5"></script>
-  <script src="session-auth.js?v=20260621-studio-auth-fix-5"></script>
-  <script src="admin.js?v=20260621-studio-auth-fix-5"></script>
-  <script src="applications.js?v=20260621-studio-auth-fix-5"></script>
-  <script src="website-insights.js?v=20260621-studio-auth-fix-5"></script>
-  <script src="feedback-admin.js?v=20260621-studio-auth-fix-5"></script>
-  <script src="lead-map.js?v=20260621-studio-auth-fix-5"></script>
+  <script src="config.js?v=20260621-studio-admin-mobile-1"></script>
+  <script src="session-auth.js?v=20260621-studio-admin-mobile-1"></script>
+  <script src="admin.js?v=20260621-studio-admin-mobile-1"></script>
+  <script src="applications.js?v=20260621-studio-admin-mobile-1"></script>
+  <script src="website-insights.js?v=20260621-studio-admin-mobile-1"></script>
+  <script src="feedback-admin.js?v=20260621-studio-admin-mobile-1"></script>
+  <script src="lead-map.js?v=20260621-studio-admin-mobile-1"></script>
 </body>
 </html>

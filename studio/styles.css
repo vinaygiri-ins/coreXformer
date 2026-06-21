@@ -375,6 +375,13 @@ button:disabled {
   margin-bottom: 0;
 }
 
+.admin-mobile-tab-hint {
+  display: none;
+  margin: 2px 0 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
 .module-note-box {
   margin: 0;
 }
@@ -1954,6 +1961,57 @@ button:disabled {
     grid-template-columns: 1fr;
   }
 
+  .studio-shell-admin .admin-module-chooser {
+    position: sticky;
+    top: 10px;
+    z-index: 30;
+    background: rgba(255, 253, 248, 0.94);
+    backdrop-filter: blur(14px);
+  }
+
+  .studio-shell-admin .workspace-tab-bar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    gap: 10px;
+    margin: 0 -4px;
+    padding: 0 4px 10px;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(47, 107, 80, 0.34) rgba(31, 43, 36, 0.08);
+  }
+
+  .studio-shell-admin .workspace-tab-bar::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  .studio-shell-admin .workspace-tab-bar::-webkit-scrollbar-track {
+    border-radius: 999px;
+    background: rgba(31, 43, 36, 0.08);
+  }
+
+  .studio-shell-admin .workspace-tab-bar::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: rgba(47, 107, 80, 0.34);
+  }
+
+  .studio-shell-admin .workspace-tab {
+    flex: 0 0 auto;
+    min-height: 48px;
+    padding: 12px 16px;
+    white-space: nowrap;
+    scroll-snap-align: start;
+  }
+
+  .studio-shell-admin .admin-module-tabs .workspace-tab.is-disabled {
+    display: none;
+  }
+
+  .studio-shell-admin .admin-mobile-tab-hint {
+    display: block;
+  }
+
   .lead-map-scanner-controls,
   .lead-map-workbench {
     grid-template-columns: 1fr;
@@ -2017,6 +2075,63 @@ button:disabled {
   .studio-shell {
     width: min(100% - 20px, 1240px);
     padding: 20px 0 48px;
+  }
+
+  .studio-shell-admin {
+    width: min(100% - 16px, 1240px);
+    padding: 16px 0 40px;
+  }
+
+  .studio-shell-admin .studio-hero {
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+
+  .studio-shell-admin .hero-copy {
+    display: none;
+  }
+
+  .studio-shell-admin .admin-access-card,
+  .studio-shell-admin .admin-module-chooser {
+    padding: 18px;
+  }
+
+  .studio-shell-admin .admin-module-shell {
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+
+  .studio-shell-admin .module-note-box {
+    display: none;
+  }
+
+  .studio-shell-admin .panel-head {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .studio-shell-admin h2 {
+    font-size: 1.45rem;
+  }
+
+  .studio-shell-admin .button,
+  .studio-shell-admin .access-link-button {
+    width: 100%;
+  }
+
+  .studio-shell-admin .inline-action-group {
+    width: 100%;
+  }
+
+  .studio-shell-admin .inline-action-group .button {
+    width: 100%;
+  }
+
+  .studio-shell-admin .feedback-admin-window-head,
+  .studio-shell-admin .feedback-admin-action-bar {
+    gap: 10px;
   }
 
   .hero-copy,
