@@ -29,6 +29,7 @@ const operationsDom = {
   newEntryButton: document.getElementById("operationsNewEntryButton"),
   saveButton: document.getElementById("operationsSaveButton"),
   resetButton: document.getElementById("operationsResetButton"),
+  railSection: document.getElementById("operationsRailSection"),
   railCount: document.getElementById("operationsRailCount"),
   entriesRail: document.getElementById("operationsEntriesRail"),
   entriesEmptyState: document.getElementById("operationsEntriesEmptyState")
@@ -345,10 +346,7 @@ async function saveOperationsWorkspace() {
     "success"
   );
   renderOperationsWorkspace();
-
-  if (!wasEditingExisting) {
-    operationsDom.titleInput?.focus();
-  }
+  scrollOperationsRailIntoView();
 }
 
 function startNewOperationsEntry() {
@@ -832,6 +830,18 @@ function scrollActiveOperationsTabIntoView() {
       block: "nearest",
       inline: "center"
     });
+}
+
+function scrollOperationsRailIntoView() {
+  operationsDom.entriesRail?.scrollTo({
+    left: 0,
+    behavior: "smooth"
+  });
+
+  operationsDom.railSection?.scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
 }
 
 function getOperationsDraft(tabKey) {
