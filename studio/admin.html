@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-  <link rel="stylesheet" href="styles.css?v=20260622-studio-admin-operations-1">
+  <link rel="stylesheet" href="styles.css?v=20260622-studio-admin-operations-3">
 </head>
 <body>
   <main class="studio-shell studio-shell-admin">
@@ -599,27 +599,57 @@
               <p class="eyebrow">Operations</p>
               <h2 id="operationsActiveTabLabel">Schools</h2>
             </div>
-            <span id="operationsUpdatedBadge" class="status-pill">Not saved yet</span>
+            <span id="operationsUpdatedBadge" class="status-pill">New rail</span>
           </div>
 
           <div id="operationsMessage" class="message-banner hidden"></div>
 
           <form id="operationsEditorForm" class="editor-form operations-editor-form">
-            <label>
-              <span>Heading</span>
-              <input id="operationsTitleInput" type="text" placeholder="Optional heading for this tab">
-            </label>
+            <div class="operations-editor-grid">
+              <label>
+                <span>Heading</span>
+                <input id="operationsTitleInput" type="text" placeholder="Optional heading for this rail">
+              </label>
+
+              <div class="operations-upload-block">
+                <label>
+                  <span>Photo</span>
+                  <input id="operationsImageInput" type="file" accept="image/*" capture="environment">
+                </label>
+                <div class="inline-action-group operations-upload-actions">
+                  <button id="operationsRemovePhotoButton" type="button" class="button button-ghost">Remove photo</button>
+                </div>
+              </div>
+            </div>
+
+            <div id="operationsImagePreview" class="operations-image-preview hidden"></div>
 
             <label>
-              <span>Working notes</span>
-              <textarea id="operationsBodyInput" rows="18" placeholder="Write and update your working notes here."></textarea>
+              <span>Working window</span>
+              <textarea id="operationsBodyInput" rows="18" placeholder="Write and update your working window here."></textarea>
             </label>
           </form>
 
           <div class="editor-actions operations-editor-actions">
-            <button id="operationsSaveButton" type="button" class="button">Save updates</button>
-            <button id="operationsResetButton" type="button" class="button button-ghost">Reset tab</button>
-            <button id="operationsClearButton" type="button" class="button button-muted">Clear tab</button>
+            <button id="operationsNewEntryButton" type="button" class="button button-ghost">New rail</button>
+            <button id="operationsSaveButton" type="button" class="button">Save rail</button>
+            <button id="operationsResetButton" type="button" class="button button-muted">Reset draft</button>
+          </div>
+
+          <div class="operations-rail-section">
+            <div class="operations-rail-head">
+              <div>
+                <p class="eyebrow">Saved rails</p>
+                <h3 id="operationsRailCount">0 rails</h3>
+              </div>
+            </div>
+
+            <div id="operationsEntriesRail" class="operations-entry-rail"></div>
+
+            <div id="operationsEntriesEmptyState" class="empty-state operations-empty-state">
+              <h3>No saved rails yet</h3>
+              <p>Each time you save your working window here, it will appear as a visible rail inside this tab.</p>
+            </div>
           </div>
         </article>
       </section>
@@ -628,13 +658,13 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-  <script src="config.js?v=20260622-studio-admin-operations-1"></script>
-  <script src="session-auth.js?v=20260622-studio-admin-operations-1"></script>
-  <script src="admin.js?v=20260622-studio-admin-operations-1"></script>
-  <script src="applications.js?v=20260622-studio-admin-operations-1"></script>
-  <script src="website-insights.js?v=20260622-studio-admin-operations-1"></script>
-  <script src="feedback-admin.js?v=20260622-studio-admin-operations-1"></script>
-  <script src="lead-map.js?v=20260622-studio-admin-operations-1"></script>
-  <script src="operations-admin.js?v=20260622-studio-admin-operations-1"></script>
+  <script src="config.js?v=20260622-studio-admin-operations-3"></script>
+  <script src="session-auth.js?v=20260622-studio-admin-operations-3"></script>
+  <script src="admin.js?v=20260622-studio-admin-operations-3"></script>
+  <script src="applications.js?v=20260622-studio-admin-operations-3"></script>
+  <script src="website-insights.js?v=20260622-studio-admin-operations-3"></script>
+  <script src="feedback-admin.js?v=20260622-studio-admin-operations-3"></script>
+  <script src="lead-map.js?v=20260622-studio-admin-operations-3"></script>
+  <script src="operations-admin.js?v=20260622-studio-admin-operations-3"></script>
 </body>
 </html>
