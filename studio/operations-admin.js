@@ -257,6 +257,7 @@ async function saveOperationsWorkspace() {
   const nextSections = cloneOperationsSections(operationsState.persistedSections);
   const activeSection = nextSections[activeKey] || createEmptyOperationsSection();
   const existingEntries = Array.isArray(activeSection.entries) ? [...activeSection.entries] : [];
+  let wasEditingExisting = false;
 
   let savedEntry = null;
   const title = normalizeOperationsTitle(draft.title);
@@ -268,6 +269,7 @@ async function saveOperationsWorkspace() {
     const entryIndex = existingEntries.findIndex((entry) => entry.id === draft.selectedEntryId);
 
     if (entryIndex >= 0) {
+      wasEditingExisting = true;
       const existingEntry = existingEntries[entryIndex];
       savedEntry = normalizeOperationsEntry({
         ...existingEntry,
@@ -331,13 +333,22 @@ async function saveOperationsWorkspace() {
   );
 
   operationsState.persistedSections = cloneOperationsSections(normalizedSections);
-  operationsState.draftsByTab[activeKey] = persistedEntry
+  operationsState.draftsByTab[activeKey] = wasEditingExisting && persistedEntry
     ? createOperationsDraftFromEntry(persistedEntry)
     : createBlankOperationsDraft();
   operationsState.dirtyTabs.delete(activeKey);
 
-  setOperationsMessage("This rail was saved successfully.", "success");
+  setOperationsMessage(
+    wasEditingExisting
+      ? "This rail was updated successfully."
+      : "A new rail was saved successfully.",
+    "success"
+  );
   renderOperationsWorkspace();
+
+  if (!wasEditingExisting) {
+    operationsDom.titleInput?.focus();
+  }
 }
 
 function startNewOperationsEntry() {
@@ -386,14 +397,19 @@ function resetCurrentOperationsTab() {
 function loadOperationsEntryIntoDraft(entryId) {
   const activeKey = operationsState.activeTab;
   const draft = getOperationsDraft(activeKey);
+  const isSameEntry = draft.selectedEntryId === entryId;
 
-  if (!entryId || draft.selectedEntryId === entryId) {
+  if (!entryId) {
     return;
   }
 
   if (
     operationsState.dirtyTabs.has(activeKey)
-    && !window.confirm("You have unsaved changes in this rail. Open another saved rail anyway?")
+    && !window.confirm(
+      isSameEntry
+        ? "Discard the unsaved edits in this rail and reopen the saved version?"
+        : "You have unsaved changes in this rail. Open another saved rail anyway?"
+    )
   ) {
     return;
   }
@@ -409,6 +425,11 @@ function loadOperationsEntryIntoDraft(entryId) {
   operationsState.dirtyTabs.delete(activeKey);
   clearOperationsMessage();
   renderOperationsWorkspace();
+  operationsDom.titleInput?.focus();
+  operationsDom.workspace?.scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
 }
 
 async function deleteOperationsEntry(entryId) {
