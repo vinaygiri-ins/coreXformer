@@ -476,6 +476,75 @@ button:disabled {
   flex: 0 0 auto;
 }
 
+.operations-tab-bar {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 8px;
+  margin-bottom: 0;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.operations-tab-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.operations-tab-bar .workspace-tab {
+  flex: 0 0 auto;
+}
+
+.operations-tab-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.operations-tab-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--highlight);
+  box-shadow: 0 0 0 3px rgba(186, 123, 60, 0.12);
+}
+
+.operations-tab.is-dirty:not(.is-active) {
+  border-color: rgba(186, 123, 60, 0.34);
+}
+
+.operations-editor-panel {
+  display: grid;
+  gap: 18px;
+}
+
+.operations-editor-head {
+  margin-bottom: 0;
+}
+
+.operations-editor-head .status-pill {
+  max-width: 100%;
+  text-align: center;
+  white-space: normal;
+}
+
+.operations-editor-form {
+  gap: 18px;
+}
+
+.operations-editor-form textarea {
+  min-height: 420px;
+  line-height: 1.72;
+}
+
+.operations-editor-actions {
+  flex-wrap: wrap;
+  margin-top: 0;
+}
+
+.status-pill.is-draft {
+  background: rgba(186, 123, 60, 0.14);
+  color: #8a5d1d;
+}
+
 .module-note-box {
   margin: 0;
 }
@@ -2100,6 +2169,15 @@ button:disabled {
     display: none;
   }
 
+  .operations-tab-bar {
+    margin: 0 -3px;
+    padding: 0 3px 2px;
+  }
+
+  .operations-editor-form textarea {
+    min-height: 360px;
+  }
+
   .lead-map-scanner-controls,
   .lead-map-workbench {
     grid-template-columns: 1fr;
@@ -2227,6 +2305,24 @@ button:disabled {
     font-size: 0.78rem;
   }
 
+  .operations-tab-bar {
+    gap: 6px;
+    margin: 0 -2px;
+    padding: 0 2px 2px;
+  }
+
+  .operations-editor-panel {
+    gap: 14px;
+  }
+
+  .operations-editor-form {
+    gap: 14px;
+  }
+
+  .operations-editor-form textarea {
+    min-height: 48svh;
+  }
+
   .studio-shell-admin .admin-utility-nav {
     gap: 6px;
   }
@@ -2246,6 +2342,14 @@ button:disabled {
   .studio-shell-admin .application-card,
   .studio-shell-admin .panel {
     padding: 16px;
+  }
+
+  .operations-editor-actions {
+    flex-direction: column;
+  }
+
+  .operations-editor-actions .button {
+    width: 100%;
   }
 
   .studio-shell-admin .button,

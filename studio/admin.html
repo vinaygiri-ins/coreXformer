@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-  <link rel="stylesheet" href="styles.css?v=20260621-studio-admin-mobile-5">
+  <link rel="stylesheet" href="styles.css?v=20260622-studio-admin-operations-1">
 </head>
 <body>
   <main class="studio-shell studio-shell-admin">
@@ -45,7 +45,7 @@
           <button type="button" class="workspace-tab is-disabled" data-admin-module="products" role="tab" aria-selected="false" disabled>Products <span class="tab-soon">Soon</span></button>
           <button type="button" class="workspace-tab" data-admin-module="feedback" role="tab" aria-selected="false">Feedback</button>
           <button type="button" class="workspace-tab is-disabled" data-admin-module="public-pages" role="tab" aria-selected="false" disabled>Public Pages <span class="tab-soon">Soon</span></button>
-          <button type="button" class="workspace-tab is-disabled" data-admin-module="operations" role="tab" aria-selected="false" disabled>Operations <span class="tab-soon">Soon</span></button>
+          <button type="button" class="workspace-tab" data-admin-module="operations" role="tab" aria-selected="false">Operations</button>
         </div>
 
         <div class="studio-utility-nav admin-utility-nav" aria-label="Studio navigation">
@@ -344,6 +344,10 @@
         </div>
       </section>
 
+      <section class="panel admin-module-shell hidden" data-admin-module-panel="operations">
+        <div id="operationsTabList" class="workspace-tab-bar operations-tab-bar" role="tablist" aria-label="Operations categories"></div>
+      </section>
+
       <section class="admin-view-panel hidden" data-admin-view-panel="lead-map-scanner">
         <article class="panel lead-map-panel">
           <div class="panel-head">
@@ -587,17 +591,50 @@
           </div>
         </article>
       </section>
+
+      <section class="admin-view-panel hidden" data-admin-view-panel="operations-workspace">
+        <article id="operationsWorkspace" class="panel operations-editor-panel">
+          <div class="panel-head operations-editor-head">
+            <div>
+              <p class="eyebrow">Operations</p>
+              <h2 id="operationsActiveTabLabel">Schools</h2>
+            </div>
+            <span id="operationsUpdatedBadge" class="status-pill">Not saved yet</span>
+          </div>
+
+          <div id="operationsMessage" class="message-banner hidden"></div>
+
+          <form id="operationsEditorForm" class="editor-form operations-editor-form">
+            <label>
+              <span>Heading</span>
+              <input id="operationsTitleInput" type="text" placeholder="Optional heading for this tab">
+            </label>
+
+            <label>
+              <span>Working notes</span>
+              <textarea id="operationsBodyInput" rows="18" placeholder="Write and update your working notes here."></textarea>
+            </label>
+          </form>
+
+          <div class="editor-actions operations-editor-actions">
+            <button id="operationsSaveButton" type="button" class="button">Save updates</button>
+            <button id="operationsResetButton" type="button" class="button button-ghost">Reset tab</button>
+            <button id="operationsClearButton" type="button" class="button button-muted">Clear tab</button>
+          </div>
+        </article>
+      </section>
     </div>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-  <script src="config.js?v=20260621-studio-admin-mobile-5"></script>
-  <script src="session-auth.js?v=20260621-studio-admin-mobile-5"></script>
-  <script src="admin.js?v=20260621-studio-admin-mobile-5"></script>
-  <script src="applications.js?v=20260621-studio-admin-mobile-5"></script>
-  <script src="website-insights.js?v=20260621-studio-admin-mobile-5"></script>
-  <script src="feedback-admin.js?v=20260621-studio-admin-mobile-5"></script>
-  <script src="lead-map.js?v=20260621-studio-admin-mobile-5"></script>
+  <script src="config.js?v=20260622-studio-admin-operations-1"></script>
+  <script src="session-auth.js?v=20260622-studio-admin-operations-1"></script>
+  <script src="admin.js?v=20260622-studio-admin-operations-1"></script>
+  <script src="applications.js?v=20260622-studio-admin-operations-1"></script>
+  <script src="website-insights.js?v=20260622-studio-admin-operations-1"></script>
+  <script src="feedback-admin.js?v=20260622-studio-admin-operations-1"></script>
+  <script src="lead-map.js?v=20260622-studio-admin-operations-1"></script>
+  <script src="operations-admin.js?v=20260622-studio-admin-operations-1"></script>
 </body>
 </html>

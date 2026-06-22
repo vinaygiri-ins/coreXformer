@@ -5,13 +5,15 @@ const ADMIN_MODULE_VIEWS = {
   facilitator: new Set(["facilitator-requests", "facilitator-links"]),
   insights: new Set(["insights-overview", "insights-pages", "insights-sources", "insights-journeys", "insights-forms"]),
   feedback: new Set(["feedback-sessions"]),
-  "lead-map": new Set(["lead-map-scanner", "lead-map-saved"])
+  "lead-map": new Set(["lead-map-scanner", "lead-map-saved"]),
+  operations: new Set(["operations-workspace"])
 };
 const ADMIN_DEFAULT_VIEWS = {
   facilitator: "facilitator-requests",
   insights: "insights-overview",
   feedback: "feedback-sessions",
-  "lead-map": "lead-map-scanner"
+  "lead-map": "lead-map-scanner",
+  operations: "operations-workspace"
 };
 const ADMIN_HANDOFF_WAIT_MS = 12 * 1000;
 const initialAdminRoute = getRequestedAdminRoute();
