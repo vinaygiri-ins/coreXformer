@@ -2,6 +2,11 @@ const OPERATIONS_ADMIN_ROLES = ["owner", "editor"];
 const OPERATIONS_SETTING_KEY = "operations_workspace_v1";
 const OPERATIONS_IMAGE_MAX_DIMENSION = 1400;
 const OPERATIONS_IMAGE_MAX_BYTES = 1.35 * 1024 * 1024;
+const OPERATIONS_HABIT_TAB_KEY = "change-a-habit";
+const OPERATIONS_DEFAULT_HABIT_METHOD_TAB = {
+  key: "methods",
+  label: "Methods"
+};
 const OPERATIONS_TABS = [
   { key: "schools", label: "Schools" },
   { key: "colleges", label: "Colleges" },
@@ -21,6 +26,9 @@ const operationsDom = {
   activeTabLabel: document.getElementById("operationsActiveTabLabel"),
   updatedBadge: document.getElementById("operationsUpdatedBadge"),
   message: document.getElementById("operationsMessage"),
+  habitTabPanel: document.getElementById("operationsHabitTabPanel"),
+  habitTabList: document.getElementById("operationsHabitTabList"),
+  createHabitTabButton: document.getElementById("operationsCreateHabitTabButton"),
   form: document.getElementById("operationsEditorForm"),
   titleInput: document.getElementById("operationsTitleInput"),
   imageInput: document.getElementById("operationsImageInput"),
@@ -44,6 +52,7 @@ const operationsState = {
   isSaving: false,
   isUploadingImage: false,
   activeTab: OPERATIONS_TABS[0].key,
+  activeHabitTab: OPERATIONS_DEFAULT_HABIT_METHOD_TAB.key,
   persistedSections: createEmptyOperationsSections(),
   draftsByTab: createEmptyOperationsDrafts(),
   dirtyTabs: new Set()
@@ -78,9 +87,35 @@ function bindOperationsAdminEvents() {
 
     syncCurrentOperationsDraft();
     operationsState.activeTab = nextTab;
+    ensureActiveOperationsHabitTab();
     clearOperationsMessage();
     renderOperationsWorkspace();
     scrollActiveOperationsTabIntoView();
+  });
+
+  operationsDom.habitTabList?.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-operations-habit-tab]");
+
+    if (!button || operationsState.activeTab !== OPERATIONS_HABIT_TAB_KEY) {
+      return;
+    }
+
+    const nextHabitTab = button.dataset.operationsHabitTab || "";
+
+    if (!nextHabitTab || nextHabitTab === operationsState.activeHabitTab) {
+      return;
+    }
+
+    syncCurrentOperationsDraft();
+    operationsState.activeHabitTab = nextHabitTab;
+    ensureActiveOperationsHabitTab();
+    clearOperationsMessage();
+    renderOperationsWorkspace();
+    scrollActiveOperationsHabitTabIntoView();
+  });
+
+  operationsDom.createHabitTabButton?.addEventListener("click", () => {
+    void createOperationsHabitTab();
   });
 
   operationsDom.titleInput?.addEventListener("input", () => {
@@ -172,6 +207,7 @@ async function handleOperationsAdminContext(detail) {
 }
 
 function resetOperationsState() {
+  operationsState.activeHabitTab = OPERATIONS_DEFAULT_HABIT_METHOD_TAB.key;
   operationsState.persistedSections = createEmptyOperationsSections();
   operationsState.draftsByTab = createEmptyOperationsDrafts();
   operationsState.dirtyTabs.clear();
@@ -202,6 +238,7 @@ async function loadOperationsWorkspace() {
     operationsState.persistedSections = cloneOperationsSections(sections);
     operationsState.draftsByTab = createDraftsFromSections(sections);
     operationsState.dirtyTabs.clear();
+    ensureActiveOperationsHabitTab();
     clearOperationsMessage();
   } catch (error) {
     const errorText = String(error?.message || "");
@@ -215,6 +252,7 @@ async function loadOperationsWorkspace() {
     operationsState.persistedSections = createEmptyOperationsSections();
     operationsState.draftsByTab = createEmptyOperationsDrafts();
     operationsState.dirtyTabs.clear();
+    ensureActiveOperationsHabitTab();
     setOperationsMessage(
       backendNotReady
         ? "The shared operations storage is not fully enabled yet. Activate the `site_settings` table access in Supabase, then refresh this page."
@@ -227,6 +265,83 @@ async function loadOperationsWorkspace() {
   }
 }
 
+async function createOperationsHabitTab() {
+  if (
+    operationsState.activeTab !== OPERATIONS_HABIT_TAB_KEY
+    || !operationsState.isAdmin
+    || !operationsState.supabase
+    || operationsState.isSaving
+  ) {
+    return;
+  }
+
+  const rawLabel = window.prompt("Name this habit method tab");
+  const label = normalizeOperationsTitle(rawLabel);
+
+  if (!label) {
+    return;
+  }
+
+  const existingTabs = getOperationsHabitTabs();
+  const alreadyExists = existingTabs.some((tab) => {
+    return tab.label.toLowerCase() === label.toLowerCase();
+  });
+
+  if (alreadyExists) {
+    setOperationsMessage("A habit method tab with this name already exists.", "error");
+    return;
+  }
+
+  syncCurrentOperationsDraft();
+  operationsState.isSaving = true;
+  syncOperationsActionState();
+  setOperationsMessage("Generating this habit method tab...", "info");
+
+  const updatedAt = new Date().toISOString();
+  const nextSections = cloneOperationsSections(operationsState.persistedSections);
+  const habitSection = nextSections[OPERATIONS_HABIT_TAB_KEY] || createEmptyOperationsSection();
+  const customHabitTabs = normalizeOperationsHabitTabs(habitSection.habitTabs);
+  const habitTab = normalizeOperationsHabitTab({
+    key: createOperationsHabitTabKey(label, existingTabs),
+    label,
+    createdAt: updatedAt,
+    updatedAt
+  });
+
+  habitSection.habitTabs = [...customHabitTabs, habitTab];
+  nextSections[OPERATIONS_HABIT_TAB_KEY] = habitSection;
+
+  const payload = {
+    key: OPERATIONS_SETTING_KEY,
+    value: {
+      sections: nextSections
+    },
+    is_public: false,
+    updated_by: operationsState.profile?.id || null
+  };
+
+  const { error } = await operationsState.supabase
+    .from("site_settings")
+    .upsert(payload, { onConflict: "key" });
+
+  operationsState.isSaving = false;
+
+  if (error) {
+    setOperationsMessage(error.message || "This habit method tab could not be generated right now.", "error");
+    renderOperationsStatus();
+    syncOperationsActionState();
+    return;
+  }
+
+  const normalizedSections = normalizeOperationsSections(nextSections);
+  operationsState.persistedSections = cloneOperationsSections(normalizedSections);
+  operationsState.activeHabitTab = habitTab.key;
+  operationsState.draftsByTab[buildOperationsScopeKey(OPERATIONS_HABIT_TAB_KEY, habitTab.key)] = createBlankOperationsDraft();
+  setOperationsMessage("Habit method tab generated. You can now save rails under it.", "success");
+  renderOperationsWorkspace();
+  scrollActiveOperationsHabitTabIntoView();
+}
+
 async function saveOperationsWorkspace() {
   if (!operationsState.isAdmin || !operationsState.supabase || operationsState.isSaving) {
     return;
@@ -235,7 +350,9 @@ async function saveOperationsWorkspace() {
   syncCurrentOperationsDraft();
 
   const activeKey = operationsState.activeTab;
-  const draft = getOperationsDraft(activeKey);
+  const activeScopeKey = getActiveOperationsScopeKey();
+  const activeHabitTabKey = getActiveOperationsHabitTabKey();
+  const draft = getOperationsDraft(activeScopeKey);
 
   if (!hasOperationsDraftContent(draft)) {
     setOperationsMessage("Add some writing or a photo before saving this rail.", "error");
@@ -243,7 +360,7 @@ async function saveOperationsWorkspace() {
     return;
   }
 
-  if (!operationsState.dirtyTabs.has(activeKey)) {
+  if (!operationsState.dirtyTabs.has(activeScopeKey)) {
     setOperationsMessage("There are no new changes to save in this rail.", "success");
     renderOperationsStatus();
     syncOperationsActionState();
@@ -279,6 +396,7 @@ async function saveOperationsWorkspace() {
         body,
         imageDataUrl,
         imageName,
+        subTabKey: activeKey === OPERATIONS_HABIT_TAB_KEY ? activeHabitTabKey : "",
         createdAt: existingEntry.createdAt || draft.createdAt || updatedAt,
         updatedAt,
         updatedBy
@@ -295,6 +413,7 @@ async function saveOperationsWorkspace() {
       body,
       imageDataUrl,
       imageName,
+      subTabKey: activeKey === OPERATIONS_HABIT_TAB_KEY ? activeHabitTabKey : "",
       createdAt: updatedAt,
       updatedAt,
       updatedBy
@@ -330,15 +449,15 @@ async function saveOperationsWorkspace() {
 
   const normalizedSections = normalizeOperationsSections(nextSections);
   const persistedEntry = findOperationsEntryById(
-    normalizedSections[activeKey].entries,
+    getOperationsEntriesForSectionScope(normalizedSections[activeKey], activeKey, activeHabitTabKey),
     savedEntry?.id
   );
 
   operationsState.persistedSections = cloneOperationsSections(normalizedSections);
-  operationsState.draftsByTab[activeKey] = wasEditingExisting && persistedEntry
+  operationsState.draftsByTab[activeScopeKey] = wasEditingExisting && persistedEntry
     ? createOperationsDraftFromEntry(persistedEntry)
     : createBlankOperationsDraft();
-  operationsState.dirtyTabs.delete(activeKey);
+  operationsState.dirtyTabs.delete(activeScopeKey);
 
   setOperationsMessage(
     wasEditingExisting
@@ -351,11 +470,11 @@ async function saveOperationsWorkspace() {
 }
 
 function startNewOperationsEntry() {
-  const activeKey = operationsState.activeTab;
-  const draft = getOperationsDraft(activeKey);
+  const activeScopeKey = getActiveOperationsScopeKey();
+  const draft = getOperationsDraft(activeScopeKey);
 
   if (
-    operationsState.dirtyTabs.has(activeKey)
+    operationsState.dirtyTabs.has(activeScopeKey)
     && !window.confirm("You have unsaved changes in this rail. Start a new rail anyway?")
   ) {
     return;
@@ -365,37 +484,39 @@ function startNewOperationsEntry() {
     return;
   }
 
-  operationsState.draftsByTab[activeKey] = createBlankOperationsDraft();
-  operationsState.dirtyTabs.delete(activeKey);
+  operationsState.draftsByTab[activeScopeKey] = createBlankOperationsDraft();
+  operationsState.dirtyTabs.delete(activeScopeKey);
   clearOperationsMessage();
   renderOperationsWorkspace();
 }
 
 function resetCurrentOperationsTab() {
   const activeKey = operationsState.activeTab;
-  const draft = getOperationsDraft(activeKey);
+  const activeScopeKey = getActiveOperationsScopeKey();
+  const draft = getOperationsDraft(activeScopeKey);
 
   if (draft.selectedEntryId) {
     const persistedEntry = findOperationsEntryById(
-      operationsState.persistedSections[activeKey]?.entries,
+      getOperationsEntriesForScope(activeKey, getActiveOperationsHabitTabKey()),
       draft.selectedEntryId
     );
 
-    operationsState.draftsByTab[activeKey] = persistedEntry
+    operationsState.draftsByTab[activeScopeKey] = persistedEntry
       ? createOperationsDraftFromEntry(persistedEntry)
       : createBlankOperationsDraft();
   } else {
-    operationsState.draftsByTab[activeKey] = createBlankOperationsDraft();
+    operationsState.draftsByTab[activeScopeKey] = createBlankOperationsDraft();
   }
 
-  syncOperationsDirtyState(activeKey);
+  syncOperationsDirtyState(activeScopeKey);
   clearOperationsMessage();
   renderOperationsWorkspace();
 }
 
 function loadOperationsEntryIntoDraft(entryId) {
   const activeKey = operationsState.activeTab;
-  const draft = getOperationsDraft(activeKey);
+  const activeScopeKey = getActiveOperationsScopeKey();
+  const draft = getOperationsDraft(activeScopeKey);
   const isSameEntry = draft.selectedEntryId === entryId;
 
   if (!entryId) {
@@ -403,7 +524,7 @@ function loadOperationsEntryIntoDraft(entryId) {
   }
 
   if (
-    operationsState.dirtyTabs.has(activeKey)
+    operationsState.dirtyTabs.has(activeScopeKey)
     && !window.confirm(
       isSameEntry
         ? "Discard the unsaved edits in this rail and reopen the saved version?"
@@ -413,15 +534,18 @@ function loadOperationsEntryIntoDraft(entryId) {
     return;
   }
 
-  const entry = findOperationsEntryById(operationsState.persistedSections[activeKey]?.entries, entryId);
+  const entry = findOperationsEntryById(
+    getOperationsEntriesForScope(activeKey, getActiveOperationsHabitTabKey()),
+    entryId
+  );
 
   if (!entry) {
     setOperationsMessage("That saved rail could not be opened right now.", "error");
     return;
   }
 
-  operationsState.draftsByTab[activeKey] = createOperationsDraftFromEntry(entry);
-  operationsState.dirtyTabs.delete(activeKey);
+  operationsState.draftsByTab[activeScopeKey] = createOperationsDraftFromEntry(entry);
+  operationsState.dirtyTabs.delete(activeScopeKey);
   clearOperationsMessage();
   renderOperationsWorkspace();
   operationsDom.titleInput?.focus();
@@ -433,12 +557,17 @@ function loadOperationsEntryIntoDraft(entryId) {
 
 async function deleteOperationsEntry(entryId) {
   const activeKey = operationsState.activeTab;
+  const activeScopeKey = getActiveOperationsScopeKey();
+  const activeHabitTabKey = getActiveOperationsHabitTabKey();
 
   if (!entryId) {
     return;
   }
 
-  const targetEntry = findOperationsEntryById(operationsState.persistedSections[activeKey]?.entries, entryId);
+  const targetEntry = findOperationsEntryById(
+    getOperationsEntriesForScope(activeKey, activeHabitTabKey),
+    entryId
+  );
 
   if (!targetEntry) {
     setOperationsMessage("That rail could not be found anymore.", "error");
@@ -488,16 +617,20 @@ async function deleteOperationsEntry(entryId) {
   const normalizedSections = normalizeOperationsSections(nextSections);
   operationsState.persistedSections = cloneOperationsSections(normalizedSections);
 
-  const currentDraft = getOperationsDraft(activeKey);
+  const currentDraft = getOperationsDraft(activeScopeKey);
 
   if (currentDraft.selectedEntryId === entryId) {
-    const nextSelectedEntry = normalizedSections[activeKey].entries[0] || null;
-    operationsState.draftsByTab[activeKey] = nextSelectedEntry
+    const nextSelectedEntry = getOperationsEntriesForSectionScope(
+      normalizedSections[activeKey],
+      activeKey,
+      activeHabitTabKey
+    )[0] || null;
+    operationsState.draftsByTab[activeScopeKey] = nextSelectedEntry
       ? createOperationsDraftFromEntry(nextSelectedEntry)
       : createBlankOperationsDraft();
-    operationsState.dirtyTabs.delete(activeKey);
+    operationsState.dirtyTabs.delete(activeScopeKey);
   } else {
-    syncOperationsDirtyState(activeKey);
+    syncOperationsDirtyState(activeScopeKey);
   }
 
   setOperationsMessage("The saved rail was deleted.", "success");
@@ -518,12 +651,12 @@ async function handleOperationsImageSelection(event) {
 
   try {
     const image = await prepareOperationsImage(file);
-    const activeKey = operationsState.activeTab;
-    const draft = getOperationsDraft(activeKey);
+    const activeScopeKey = getActiveOperationsScopeKey();
+    const draft = getOperationsDraft(activeScopeKey);
 
     draft.imageDataUrl = image.dataUrl;
     draft.imageName = image.fileName;
-    syncOperationsDirtyState(activeKey);
+    syncOperationsDirtyState(activeScopeKey);
     clearOperationsMessage();
     renderOperationsTabs();
     renderOperationsImagePreview();
@@ -545,8 +678,8 @@ async function handleOperationsImageSelection(event) {
 }
 
 function removeCurrentOperationsImage() {
-  const activeKey = operationsState.activeTab;
-  const draft = getOperationsDraft(activeKey);
+  const activeScopeKey = getActiveOperationsScopeKey();
+  const draft = getOperationsDraft(activeScopeKey);
 
   if (!draft.imageDataUrl) {
     return;
@@ -554,7 +687,7 @@ function removeCurrentOperationsImage() {
 
   draft.imageDataUrl = "";
   draft.imageName = "";
-  syncOperationsDirtyState(activeKey);
+  syncOperationsDirtyState(activeScopeKey);
   clearOperationsMessage();
   renderOperationsTabs();
   renderOperationsImagePreview();
@@ -563,12 +696,12 @@ function removeCurrentOperationsImage() {
 }
 
 function syncCurrentOperationsDraft() {
-  const activeKey = operationsState.activeTab;
-  const draft = getOperationsDraft(activeKey);
+  const activeScopeKey = getActiveOperationsScopeKey();
+  const draft = getOperationsDraft(activeScopeKey);
 
   draft.title = normalizeOperationsTitle(operationsDom.titleInput?.value);
   draft.body = normalizeOperationsBody(operationsDom.bodyInput?.value);
-  syncOperationsDirtyState(activeKey);
+  syncOperationsDirtyState(activeScopeKey);
 }
 
 function syncOperationsDirtyState(tabKey) {
@@ -600,6 +733,7 @@ function isOperationsDraftDirty(tabKey) {
 
 function renderOperationsWorkspace() {
   renderOperationsTabs();
+  renderOperationsHabitTabs();
   renderOperationsEditor();
   renderOperationsStatus();
   syncOperationsActionState();
@@ -612,7 +746,7 @@ function renderOperationsTabs() {
 
   operationsDom.tabList.innerHTML = OPERATIONS_TABS.map((tab) => {
     const isActive = tab.key === operationsState.activeTab;
-    const isDirty = operationsState.dirtyTabs.has(tab.key);
+    const isDirty = isOperationsTopTabDirty(tab.key);
 
     return `
       <button
@@ -631,12 +765,56 @@ function renderOperationsTabs() {
   }).join("");
 }
 
+function renderOperationsHabitTabs() {
+  const isHabitWorkspace = operationsState.activeTab === OPERATIONS_HABIT_TAB_KEY;
+
+  operationsDom.habitTabPanel?.classList.toggle("hidden", !isHabitWorkspace);
+
+  if (!operationsDom.habitTabList) {
+    return;
+  }
+
+  if (!isHabitWorkspace) {
+    operationsDom.habitTabList.innerHTML = "";
+    return;
+  }
+
+  const habitTabs = getOperationsHabitTabs();
+  ensureActiveOperationsHabitTab(habitTabs);
+
+  operationsDom.habitTabList.innerHTML = habitTabs.map((tab) => {
+    const isActive = tab.key === operationsState.activeHabitTab;
+    const scopeKey = buildOperationsScopeKey(OPERATIONS_HABIT_TAB_KEY, tab.key);
+    const isDirty = operationsState.dirtyTabs.has(scopeKey);
+
+    return `
+      <button
+        type="button"
+        class="workspace-tab operations-subtab${isActive ? " is-active" : ""}${isDirty ? " is-dirty" : ""}"
+        data-operations-habit-tab="${escapeOperationsHtml(tab.key)}"
+        aria-selected="${isActive ? "true" : "false"}"
+        role="tab"
+      >
+        <span class="operations-tab-label">
+          <span>${escapeOperationsHtml(tab.label)}</span>
+          ${isDirty ? '<span class="operations-tab-dot" aria-hidden="true"></span>' : ""}
+        </span>
+      </button>
+    `;
+  }).join("");
+}
+
 function renderOperationsEditor() {
   const tab = getActiveOperationsTab();
-  const draft = getOperationsDraft(operationsState.activeTab);
+  const draft = getOperationsDraft(getActiveOperationsScopeKey());
+  const habitTab = operationsState.activeTab === OPERATIONS_HABIT_TAB_KEY
+    ? getActiveOperationsHabitTab()
+    : null;
 
   if (operationsDom.activeTabLabel) {
-    operationsDom.activeTabLabel.textContent = tab.label;
+    operationsDom.activeTabLabel.textContent = habitTab
+      ? `${tab.label} · ${habitTab.label}`
+      : tab.label;
   }
 
   if (operationsDom.titleInput) {
@@ -674,7 +852,7 @@ function renderOperationsImagePreview() {
     return;
   }
 
-  const draft = getOperationsDraft(operationsState.activeTab);
+  const draft = getOperationsDraft(getActiveOperationsScopeKey());
   const hasImage = Boolean(draft.imageDataUrl);
 
   operationsDom.imagePreview.classList.toggle("hidden", !hasImage);
@@ -696,12 +874,17 @@ function renderOperationsImagePreview() {
 }
 
 function renderOperationsEntriesRail() {
-  const section = operationsState.persistedSections[operationsState.activeTab] || createEmptyOperationsSection();
-  const entries = Array.isArray(section.entries) ? section.entries : [];
-  const draft = getOperationsDraft(operationsState.activeTab);
+  const activeKey = operationsState.activeTab;
+  const activeHabitTabKey = getActiveOperationsHabitTabKey();
+  const entries = getOperationsEntriesForScope(activeKey, activeHabitTabKey);
+  const draft = getOperationsDraft(getActiveOperationsScopeKey());
+  const habitTab = activeKey === OPERATIONS_HABIT_TAB_KEY
+    ? getActiveOperationsHabitTab()
+    : null;
 
   if (operationsDom.railCount) {
-    operationsDom.railCount.textContent = `${entries.length} rail${entries.length === 1 ? "" : "s"}`;
+    const railText = `${entries.length} rail${entries.length === 1 ? "" : "s"}`;
+    operationsDom.railCount.textContent = habitTab ? `${railText} · ${habitTab.label}` : railText;
   }
 
   if (operationsDom.entriesEmptyState) {
@@ -771,10 +954,10 @@ function renderOperationsStatus() {
     return;
   }
 
-  const activeKey = operationsState.activeTab;
-  const draft = getOperationsDraft(activeKey);
-  const isDirty = operationsState.dirtyTabs.has(activeKey);
-  const persistedEntry = getPersistedEntryForDraft(activeKey);
+  const activeScopeKey = getActiveOperationsScopeKey();
+  const draft = getOperationsDraft(activeScopeKey);
+  const isDirty = operationsState.dirtyTabs.has(activeScopeKey);
+  const persistedEntry = getPersistedEntryForDraft(activeScopeKey);
 
   operationsDom.updatedBadge.classList.toggle("is-draft", isDirty || operationsState.isUploadingImage);
 
@@ -800,10 +983,10 @@ function renderOperationsStatus() {
 
 function syncOperationsActionState() {
   const canEdit = operationsState.isAdmin && !operationsState.isLoading;
-  const activeKey = operationsState.activeTab;
-  const draft = getOperationsDraft(activeKey);
+  const activeScopeKey = getActiveOperationsScopeKey();
+  const draft = getOperationsDraft(activeScopeKey);
   const hasContent = hasOperationsDraftContent(draft);
-  const isDirty = operationsState.dirtyTabs.has(activeKey);
+  const isDirty = operationsState.dirtyTabs.has(activeScopeKey);
   const isBusy = operationsState.isSaving || operationsState.isUploadingImage;
 
   if (operationsDom.titleInput) {
@@ -833,6 +1016,12 @@ function syncOperationsActionState() {
   if (operationsDom.newEntryButton) {
     operationsDom.newEntryButton.disabled = !canEdit || isBusy || (!draft.selectedEntryId && !hasContent);
   }
+
+  if (operationsDom.createHabitTabButton) {
+    operationsDom.createHabitTabButton.disabled = !canEdit
+      || isBusy
+      || operationsState.activeTab !== OPERATIONS_HABIT_TAB_KEY;
+  }
 }
 
 function scrollActiveOperationsTabIntoView() {
@@ -842,6 +1031,16 @@ function scrollActiveOperationsTabIntoView() {
 
   operationsDom.tabList
     ?.querySelector("[data-operations-tab].is-active")
+    ?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "center"
+    });
+}
+
+function scrollActiveOperationsHabitTabIntoView() {
+  operationsDom.habitTabList
+    ?.querySelector("[data-operations-habit-tab].is-active")
     ?.scrollIntoView({
       behavior: "smooth",
       block: "nearest",
@@ -861,32 +1060,117 @@ function scrollOperationsRailIntoView() {
   });
 }
 
-function getOperationsDraft(tabKey) {
-  if (!operationsState.draftsByTab[tabKey]) {
-    const firstEntry = operationsState.persistedSections[tabKey]?.entries?.[0] || null;
-    operationsState.draftsByTab[tabKey] = firstEntry
+function getOperationsDraft(scopeKey) {
+  if (!operationsState.draftsByTab[scopeKey]) {
+    const { tabKey, subTabKey } = parseOperationsScopeKey(scopeKey);
+    const firstEntry = getOperationsEntriesForScope(tabKey, subTabKey)[0] || null;
+    operationsState.draftsByTab[scopeKey] = firstEntry
       ? createOperationsDraftFromEntry(firstEntry)
       : createBlankOperationsDraft();
   }
 
-  return operationsState.draftsByTab[tabKey];
+  return operationsState.draftsByTab[scopeKey];
 }
 
-function getPersistedEntryForDraft(tabKey) {
-  const draft = getOperationsDraft(tabKey);
+function getPersistedEntryForDraft(scopeKey) {
+  const draft = getOperationsDraft(scopeKey);
+  const { tabKey, subTabKey } = parseOperationsScopeKey(scopeKey);
 
   if (!draft.selectedEntryId) {
     return null;
   }
 
   return findOperationsEntryById(
-    operationsState.persistedSections[tabKey]?.entries,
+    getOperationsEntriesForScope(tabKey, subTabKey),
     draft.selectedEntryId
   );
 }
 
 function getActiveOperationsTab() {
   return OPERATIONS_TABS.find((tab) => tab.key === operationsState.activeTab) || OPERATIONS_TABS[0];
+}
+
+function getActiveOperationsScopeKey() {
+  return buildOperationsScopeKey(operationsState.activeTab, getActiveOperationsHabitTabKey());
+}
+
+function getActiveOperationsHabitTabKey() {
+  if (operationsState.activeTab !== OPERATIONS_HABIT_TAB_KEY) {
+    return "";
+  }
+
+  ensureActiveOperationsHabitTab();
+  return operationsState.activeHabitTab;
+}
+
+function getActiveOperationsHabitTab() {
+  const habitTabs = getOperationsHabitTabs();
+  ensureActiveOperationsHabitTab(habitTabs);
+  return habitTabs.find((tab) => tab.key === operationsState.activeHabitTab) || habitTabs[0];
+}
+
+function ensureActiveOperationsHabitTab(habitTabs = getOperationsHabitTabs()) {
+  if (!habitTabs.some((tab) => tab.key === operationsState.activeHabitTab)) {
+    operationsState.activeHabitTab = habitTabs[0]?.key || OPERATIONS_DEFAULT_HABIT_METHOD_TAB.key;
+  }
+}
+
+function isOperationsTopTabDirty(tabKey) {
+  if (tabKey !== OPERATIONS_HABIT_TAB_KEY) {
+    return operationsState.dirtyTabs.has(tabKey);
+  }
+
+  return [...operationsState.dirtyTabs].some((scopeKey) => {
+    return scopeKey === tabKey || scopeKey.startsWith(`${tabKey}::`);
+  });
+}
+
+function buildOperationsScopeKey(tabKey, subTabKey = "") {
+  if (tabKey !== OPERATIONS_HABIT_TAB_KEY) {
+    return tabKey;
+  }
+
+  return `${tabKey}::${subTabKey || OPERATIONS_DEFAULT_HABIT_METHOD_TAB.key}`;
+}
+
+function parseOperationsScopeKey(scopeKey) {
+  const [tabKey, subTabKey = ""] = String(scopeKey || "").split("::");
+
+  return {
+    tabKey: tabKey || OPERATIONS_TABS[0].key,
+    subTabKey
+  };
+}
+
+function getOperationsEntriesForScope(tabKey, subTabKey = "") {
+  return getOperationsEntriesForSectionScope(
+    operationsState.persistedSections[tabKey],
+    tabKey,
+    subTabKey
+  );
+}
+
+function getOperationsEntriesForSectionScope(section, tabKey, subTabKey = "") {
+  const entries = Array.isArray(section?.entries) ? section.entries : [];
+
+  if (tabKey !== OPERATIONS_HABIT_TAB_KEY) {
+    return entries;
+  }
+
+  const activeSubTabKey = subTabKey || OPERATIONS_DEFAULT_HABIT_METHOD_TAB.key;
+
+  return entries.filter((entry) => {
+    const entrySubTabKey = normalizeOperationsText(entry?.subTabKey).trim()
+      || OPERATIONS_DEFAULT_HABIT_METHOD_TAB.key;
+    return entrySubTabKey === activeSubTabKey;
+  });
+}
+
+function getOperationsHabitTabs(section = operationsState.persistedSections[OPERATIONS_HABIT_TAB_KEY]) {
+  return [
+    OPERATIONS_DEFAULT_HABIT_METHOD_TAB,
+    ...normalizeOperationsHabitTabs(section?.habitTabs)
+  ];
 }
 
 function hasOperationsDraftContent(draft) {
@@ -920,25 +1204,41 @@ function createEmptyOperationsSections() {
 
 function createEmptyOperationsSection() {
   return {
-    entries: []
+    entries: [],
+    habitTabs: []
   };
 }
 
 function createEmptyOperationsDrafts() {
-  return OPERATIONS_TABS.reduce((accumulator, tab) => {
-    accumulator[tab.key] = createBlankOperationsDraft();
-    return accumulator;
-  }, {});
+  return createDraftsFromSections(createEmptyOperationsSections());
 }
 
 function createDraftsFromSections(sections) {
-  return OPERATIONS_TABS.reduce((accumulator, tab) => {
-    const firstEntry = sections?.[tab.key]?.entries?.[0] || null;
+  const drafts = OPERATIONS_TABS.reduce((accumulator, tab) => {
+    if (tab.key === OPERATIONS_HABIT_TAB_KEY) {
+      return accumulator;
+    }
+
+    const firstEntry = getOperationsEntriesForSectionScope(sections?.[tab.key], tab.key)[0] || null;
     accumulator[tab.key] = firstEntry
       ? createOperationsDraftFromEntry(firstEntry)
       : createBlankOperationsDraft();
     return accumulator;
   }, {});
+
+  getOperationsHabitTabs(sections?.[OPERATIONS_HABIT_TAB_KEY]).forEach((tab) => {
+    const scopeKey = buildOperationsScopeKey(OPERATIONS_HABIT_TAB_KEY, tab.key);
+    const firstEntry = getOperationsEntriesForSectionScope(
+      sections?.[OPERATIONS_HABIT_TAB_KEY],
+      OPERATIONS_HABIT_TAB_KEY,
+      tab.key
+    )[0] || null;
+    drafts[scopeKey] = firstEntry
+      ? createOperationsDraftFromEntry(firstEntry)
+      : createBlankOperationsDraft();
+  });
+
+  return drafts;
 }
 
 function createBlankOperationsDraft() {
@@ -972,7 +1272,10 @@ function cloneOperationsSections(source) {
     accumulator[tab.key] = {
       entries: (source?.[tab.key]?.entries || [])
         .map((entry, index) => normalizeOperationsEntry(entry, `${tab.key}-${index}`))
-        .filter(Boolean)
+        .filter(Boolean),
+      habitTabs: tab.key === OPERATIONS_HABIT_TAB_KEY
+        ? normalizeOperationsHabitTabs(source?.[tab.key]?.habitTabs)
+        : []
     };
     return accumulator;
   }, {});
@@ -982,6 +1285,9 @@ function normalizeOperationsSections(source) {
   return OPERATIONS_TABS.reduce((accumulator, tab) => {
     const rawSection = source?.[tab.key];
     let entries = normalizeOperationsEntries(rawSection?.entries, tab.key);
+    const habitTabs = tab.key === OPERATIONS_HABIT_TAB_KEY
+      ? normalizeOperationsHabitTabs(rawSection?.habitTabs)
+      : [];
 
     if (!entries.length) {
       const legacyEntry = normalizeLegacyOperationsEntry(rawSection, tab.key);
@@ -992,7 +1298,8 @@ function normalizeOperationsSections(source) {
     }
 
     accumulator[tab.key] = {
-      entries: sortOperationsEntries(entries)
+      entries: sortOperationsEntries(entries),
+      habitTabs
     };
     return accumulator;
   }, {});
@@ -1021,10 +1328,70 @@ function normalizeLegacyOperationsEntry(section, tabKey) {
     body: section.body,
     imageDataUrl: section.imageDataUrl,
     imageName: section.imageName,
+    subTabKey: tabKey === OPERATIONS_HABIT_TAB_KEY ? OPERATIONS_DEFAULT_HABIT_METHOD_TAB.key : "",
     createdAt: section.createdAt || section.updatedAt,
     updatedAt: section.updatedAt,
     updatedBy: section.updatedBy
   }, `${tabKey}-legacy`);
+}
+
+function normalizeOperationsHabitTabs(tabs) {
+  if (!Array.isArray(tabs)) {
+    return [];
+  }
+
+  const seen = new Set([OPERATIONS_DEFAULT_HABIT_METHOD_TAB.key]);
+
+  return tabs
+    .map((tab, index) => normalizeOperationsHabitTab(tab, `habit-method-${index}`))
+    .filter(Boolean)
+    .filter((tab) => {
+      if (seen.has(tab.key)) {
+        return false;
+      }
+
+      seen.add(tab.key);
+      return true;
+    });
+}
+
+function normalizeOperationsHabitTab(tab, fallbackSeed = "habit-method") {
+  const label = normalizeOperationsTitle(tab?.label);
+
+  if (!label) {
+    return null;
+  }
+
+  return {
+    key: normalizeOperationsText(tab?.key).trim() || createOperationsHabitTabKey(label, [], fallbackSeed),
+    label,
+    createdAt: normalizeOperationsText(tab?.createdAt),
+    updatedAt: normalizeOperationsText(tab?.updatedAt)
+  };
+}
+
+function createOperationsHabitTabKey(label, existingTabs = [], fallbackSeed = "habit-method") {
+  const usedKeys = new Set(
+    existingTabs.map((tab) => normalizeOperationsText(tab?.key).trim()).filter(Boolean)
+  );
+  let baseKey = normalizeOperationsTitle(label)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  if (!baseKey) {
+    baseKey = fallbackSeed;
+  }
+
+  let nextKey = baseKey;
+  let suffix = 2;
+
+  while (usedKeys.has(nextKey) || nextKey === OPERATIONS_DEFAULT_HABIT_METHOD_TAB.key) {
+    nextKey = `${baseKey}-${suffix}`;
+    suffix += 1;
+  }
+
+  return nextKey;
 }
 
 function normalizeOperationsEntry(entry, fallbackSeed = "operations") {
@@ -1034,6 +1401,7 @@ function normalizeOperationsEntry(entry, fallbackSeed = "operations") {
     body: normalizeOperationsBody(entry?.body),
     imageDataUrl: normalizeOperationsDataUrl(entry?.imageDataUrl),
     imageName: normalizeOperationsFilename(entry?.imageName),
+    subTabKey: normalizeOperationsText(entry?.subTabKey).trim(),
     createdAt: normalizeOperationsText(entry?.createdAt),
     updatedAt: normalizeOperationsText(entry?.updatedAt),
     updatedBy: normalizeOperationsText(entry?.updatedBy)
