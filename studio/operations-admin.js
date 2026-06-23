@@ -10,6 +10,7 @@ const OPERATIONS_TABS = [
   { key: "communities", label: "Communities" },
   { key: "government", label: "Government" },
   { key: "learning-values", label: "Learning Values" },
+  { key: "change-a-habit", label: "Change a Habit" },
   { key: "games", label: "Games" },
   { key: "tasks", label: "Tasks" }
 ];
@@ -640,16 +641,32 @@ function renderOperationsEditor() {
 
   if (operationsDom.titleInput) {
     operationsDom.titleInput.value = draft.title || "";
-    operationsDom.titleInput.placeholder = `Optional heading for this ${tab.label.toLowerCase()} rail`;
+    operationsDom.titleInput.placeholder = getOperationsTitlePlaceholder(tab);
   }
 
   if (operationsDom.bodyInput) {
     operationsDom.bodyInput.value = draft.body || "";
-    operationsDom.bodyInput.placeholder = `Write and update your ${tab.label.toLowerCase()} working window here.`;
+    operationsDom.bodyInput.placeholder = getOperationsBodyPlaceholder(tab);
   }
 
   renderOperationsImagePreview();
   renderOperationsEntriesRail();
+}
+
+function getOperationsTitlePlaceholder(tab) {
+  if (tab.key === "change-a-habit") {
+    return "Method name, cue, routine, reward, or behavior shift";
+  }
+
+  return `Optional heading for this ${tab.label.toLowerCase()} rail`;
+}
+
+function getOperationsBodyPlaceholder(tab) {
+  if (tab.key === "change-a-habit") {
+    return "Write the method to change a habit here: cue, routine, reward, friction, replacement behavior, and next practice step.";
+  }
+
+  return `Write and update your ${tab.label.toLowerCase()} working window here.`;
 }
 
 function renderOperationsImagePreview() {
