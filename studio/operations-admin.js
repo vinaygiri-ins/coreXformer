@@ -3,10 +3,18 @@ const OPERATIONS_SETTING_KEY = "operations_workspace_v1";
 const OPERATIONS_IMAGE_MAX_DIMENSION = 1400;
 const OPERATIONS_IMAGE_MAX_BYTES = 1.35 * 1024 * 1024;
 const OPERATIONS_HABIT_TAB_KEY = "change-a-habit";
+const OPERATIONS_TASK_TAB_KEY = "tasks";
+const OPERATIONS_TASK_REMINDER_LEAD_MS = 60 * 60 * 1000;
 const OPERATIONS_DEFAULT_HABIT_METHOD_TAB = {
   key: "methods",
   label: "Methods"
 };
+const OPERATIONS_TASK_PRIORITIES = [
+  { key: "urgent", label: "Urgent" },
+  { key: "high", label: "High" },
+  { key: "medium", label: "Medium" },
+  { key: "low", label: "Low" }
+];
 const OPERATIONS_TABS = [
   { key: "schools", label: "Schools" },
   { key: "colleges", label: "Colleges" },
@@ -30,12 +38,33 @@ const operationsDom = {
   habitTabList: document.getElementById("operationsHabitTabList"),
   createHabitTabButton: document.getElementById("operationsCreateHabitTabButton"),
   deleteHabitTabButton: document.getElementById("operationsDeleteHabitTabButton"),
+  taskWorkspace: document.getElementById("operationsTaskWorkspace"),
+  taskForm: document.getElementById("operationsTaskForm"),
+  taskTitleInput: document.getElementById("operationsTaskTitleInput"),
+  taskDueInput: document.getElementById("operationsTaskDueInput"),
+  taskPriorityInput: document.getElementById("operationsTaskPriorityInput"),
+  taskNotesInput: document.getElementById("operationsTaskNotesInput"),
+  taskNewButton: document.getElementById("operationsNewTaskButton"),
+  taskSaveButton: document.getElementById("operationsSaveTaskButton"),
+  taskResetButton: document.getElementById("operationsResetTaskButton"),
+  taskList: document.getElementById("operationsTaskList"),
+  taskCount: document.getElementById("operationsTaskCount"),
+  taskReminderSummary: document.getElementById("operationsTaskReminderSummary"),
+  taskEmptyState: document.getElementById("operationsTaskEmptyState"),
+  enableRemindersButton: document.getElementById("operationsEnableRemindersButton"),
   form: document.getElementById("operationsEditorForm"),
   titleInput: document.getElementById("operationsTitleInput"),
   imageInput: document.getElementById("operationsImageInput"),
   removePhotoButton: document.getElementById("operationsRemovePhotoButton"),
   imagePreview: document.getElementById("operationsImagePreview"),
   bodyInput: document.getElementById("operationsBodyInput"),
+  linkedTaskPanel: document.getElementById("operationsLinkedTaskPanel"),
+  linkedTaskFields: document.getElementById("operationsLinkedTaskFields"),
+  toggleLinkedTaskButton: document.getElementById("operationsToggleLinkedTaskButton"),
+  linkedTaskTitleInput: document.getElementById("operationsLinkedTaskTitleInput"),
+  linkedTaskDueInput: document.getElementById("operationsLinkedTaskDueInput"),
+  linkedTaskPriorityInput: document.getElementById("operationsLinkedTaskPriorityInput"),
+  linkedTaskNotesInput: document.getElementById("operationsLinkedTaskNotesInput"),
   newEntryButton: document.getElementById("operationsNewEntryButton"),
   saveButton: document.getElementById("operationsSaveButton"),
   resetButton: document.getElementById("operationsResetButton"),
@@ -56,6 +85,10 @@ const operationsState = {
   activeHabitTab: OPERATIONS_DEFAULT_HABIT_METHOD_TAB.key,
   persistedSections: createEmptyOperationsSections(),
   draftsByTab: createEmptyOperationsDrafts(),
+  taskDraft: createBlankOperationsTaskDraft(),
+  linkedTaskDraft: createBlankOperationsLinkedTaskDraft(),
+  linkedTaskEnabled: false,
+  reminderTimers: [],
   dirtyTabs: new Set()
 };
 
@@ -86,7 +119,7 @@ function bindOperationsAdminEvents() {
       return;
     }
 
-    syncCurrentOperationsDraft();
+    syncCurrentOperationsWorkspaceDraft();
     operationsState.activeTab = nextTab;
     ensureActiveOperationsHabitTab();
     clearOperationsMessage();
@@ -107,7 +140,7 @@ function bindOperationsAdminEvents() {
       return;
     }
 
-    syncCurrentOperationsDraft();
+    syncCurrentOperationsWorkspaceDraft();
     operationsState.activeHabitTab = nextHabitTab;
     ensureActiveOperationsHabitTab();
     clearOperationsMessage();
@@ -121,6 +154,64 @@ function bindOperationsAdminEvents() {
 
   operationsDom.deleteHabitTabButton?.addEventListener("click", () => {
     void deleteOperationsHabitTab();
+  });
+
+  operationsDom.taskTitleInput?.addEventListener("input", () => {
+    syncCurrentOperationsTaskDraft();
+    renderOperationsStatus();
+    syncOperationsActionState();
+  });
+
+  operationsDom.taskDueInput?.addEventListener("input", () => {
+    syncCurrentOperationsTaskDraft();
+    renderOperationsStatus();
+    syncOperationsActionState();
+  });
+
+  operationsDom.taskPriorityInput?.addEventListener("change", () => {
+    syncCurrentOperationsTaskDraft();
+    renderOperationsStatus();
+    syncOperationsActionState();
+  });
+
+  operationsDom.taskNotesInput?.addEventListener("input", () => {
+    syncCurrentOperationsTaskDraft();
+    renderOperationsStatus();
+    syncOperationsActionState();
+  });
+
+  operationsDom.taskForm?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    void saveOperationsTask();
+  });
+
+  operationsDom.taskNewButton?.addEventListener("click", () => {
+    startNewOperationsTask();
+  });
+
+  operationsDom.taskSaveButton?.addEventListener("click", () => {
+    void saveOperationsTask();
+  });
+
+  operationsDom.taskResetButton?.addEventListener("click", () => {
+    resetCurrentOperationsTask();
+  });
+
+  operationsDom.enableRemindersButton?.addEventListener("click", () => {
+    void enableOperationsTaskReminders();
+  });
+
+  operationsDom.taskList?.addEventListener("click", (event) => {
+    const actionButton = event.target.closest("[data-operations-task-action]");
+
+    if (!actionButton) {
+      return;
+    }
+
+    const taskId = actionButton.dataset.operationsTaskId || "";
+    const action = actionButton.dataset.operationsTaskAction || "";
+
+    void handleOperationsTaskAction(taskId, action);
   });
 
   operationsDom.titleInput?.addEventListener("input", () => {
@@ -147,7 +238,28 @@ function bindOperationsAdminEvents() {
 
   operationsDom.form?.addEventListener("submit", (event) => {
     event.preventDefault();
-    void saveOperationsWorkspace();
+    void saveOperationsCurrentWorkspace();
+  });
+
+  operationsDom.toggleLinkedTaskButton?.addEventListener("click", () => {
+    toggleOperationsLinkedTask();
+  });
+
+  operationsDom.linkedTaskTitleInput?.addEventListener("input", () => {
+    syncCurrentOperationsLinkedTaskDraft();
+    syncOperationsActionState();
+  });
+
+  operationsDom.linkedTaskDueInput?.addEventListener("input", () => {
+    syncCurrentOperationsLinkedTaskDraft();
+  });
+
+  operationsDom.linkedTaskPriorityInput?.addEventListener("change", () => {
+    syncCurrentOperationsLinkedTaskDraft();
+  });
+
+  operationsDom.linkedTaskNotesInput?.addEventListener("input", () => {
+    syncCurrentOperationsLinkedTaskDraft();
   });
 
   operationsDom.newEntryButton?.addEventListener("click", () => {
@@ -155,7 +267,7 @@ function bindOperationsAdminEvents() {
   });
 
   operationsDom.saveButton?.addEventListener("click", () => {
-    void saveOperationsWorkspace();
+    void saveOperationsCurrentWorkspace();
   });
 
   operationsDom.resetButton?.addEventListener("click", () => {
@@ -191,7 +303,7 @@ function bindOperationsAdminEvents() {
     }
 
     event.preventDefault();
-    void saveOperationsWorkspace();
+    void saveOperationsCurrentWorkspace();
   });
 }
 
@@ -215,7 +327,11 @@ function resetOperationsState() {
   operationsState.activeHabitTab = OPERATIONS_DEFAULT_HABIT_METHOD_TAB.key;
   operationsState.persistedSections = createEmptyOperationsSections();
   operationsState.draftsByTab = createEmptyOperationsDrafts();
+  operationsState.taskDraft = createBlankOperationsTaskDraft();
+  operationsState.linkedTaskDraft = createBlankOperationsLinkedTaskDraft();
+  operationsState.linkedTaskEnabled = false;
   operationsState.dirtyTabs.clear();
+  clearOperationsTaskReminderTimers();
   clearOperationsMessage();
 }
 
@@ -242,8 +358,12 @@ async function loadOperationsWorkspace() {
     const sections = normalizeOperationsSections(data?.value?.sections);
     operationsState.persistedSections = cloneOperationsSections(sections);
     operationsState.draftsByTab = createDraftsFromSections(sections);
+    operationsState.taskDraft = createBlankOperationsTaskDraft();
+    operationsState.linkedTaskDraft = createBlankOperationsLinkedTaskDraft();
+    operationsState.linkedTaskEnabled = false;
     operationsState.dirtyTabs.clear();
     ensureActiveOperationsHabitTab();
+    scheduleOperationsTaskReminderTimers();
     clearOperationsMessage();
   } catch (error) {
     const errorText = String(error?.message || "");
@@ -256,7 +376,11 @@ async function loadOperationsWorkspace() {
 
     operationsState.persistedSections = createEmptyOperationsSections();
     operationsState.draftsByTab = createEmptyOperationsDrafts();
+    operationsState.taskDraft = createBlankOperationsTaskDraft();
+    operationsState.linkedTaskDraft = createBlankOperationsLinkedTaskDraft();
+    operationsState.linkedTaskEnabled = false;
     operationsState.dirtyTabs.clear();
+    clearOperationsTaskReminderTimers();
     ensureActiveOperationsHabitTab();
     setOperationsMessage(
       backendNotReady
@@ -428,17 +552,28 @@ async function deleteOperationsHabitTab() {
   scrollActiveOperationsHabitTabIntoView();
 }
 
+async function saveOperationsCurrentWorkspace() {
+  if (operationsState.activeTab === OPERATIONS_TASK_TAB_KEY) {
+    await saveOperationsTask();
+    return;
+  }
+
+  await saveOperationsWorkspace();
+}
+
 async function saveOperationsWorkspace() {
   if (!operationsState.isAdmin || !operationsState.supabase || operationsState.isSaving) {
     return;
   }
 
   syncCurrentOperationsDraft();
+  syncCurrentOperationsLinkedTaskDraft();
 
   const activeKey = operationsState.activeTab;
   const activeScopeKey = getActiveOperationsScopeKey();
   const activeHabitTabKey = getActiveOperationsHabitTabKey();
   const draft = getOperationsDraft(activeScopeKey);
+  const linkedTaskDraft = operationsState.linkedTaskDraft;
 
   if (!hasOperationsDraftContent(draft)) {
     setOperationsMessage("Add some writing or a photo before saving this rail.", "error");
@@ -446,8 +581,39 @@ async function saveOperationsWorkspace() {
     return;
   }
 
+  if (
+    operationsState.linkedTaskEnabled
+    && hasOperationsLinkedTaskContent(linkedTaskDraft)
+    && !normalizeOperationsTitle(linkedTaskDraft.title)
+  ) {
+    setOperationsMessage("Add a task title, or close the task panel before saving this rail.", "error");
+    syncOperationsActionState();
+    return;
+  }
+
   if (!operationsState.dirtyTabs.has(activeScopeKey)) {
-    setOperationsMessage("There are no new changes to save in this rail.", "success");
+    if (!hasOperationsLinkedTaskContent(linkedTaskDraft)) {
+      setOperationsMessage("There are no new changes to save in this rail.", "success");
+      renderOperationsStatus();
+      syncOperationsActionState();
+      return;
+    }
+
+    if (!normalizeOperationsTitle(linkedTaskDraft.title)) {
+      setOperationsMessage("Add a task title before creating a task from this rail.", "error");
+      syncOperationsActionState();
+      return;
+    }
+
+    setOperationsMessage("Saving this task from the current rail...", "info");
+  } else {
+    setOperationsMessage("Saving this rail...", "info");
+  }
+
+  const shouldCreateLinkedTask = hasOperationsLinkedTaskContent(linkedTaskDraft)
+    && normalizeOperationsTitle(linkedTaskDraft.title);
+
+  if (!operationsState.dirtyTabs.has(activeScopeKey) && !shouldCreateLinkedTask) {
     renderOperationsStatus();
     syncOperationsActionState();
     return;
@@ -455,7 +621,6 @@ async function saveOperationsWorkspace() {
 
   operationsState.isSaving = true;
   syncOperationsActionState();
-  setOperationsMessage("Saving this rail...", "info");
 
   const updatedAt = new Date().toISOString();
   const updatedBy = operationsState.profile?.full_name || operationsState.profile?.email || "Admin";
@@ -511,6 +676,33 @@ async function saveOperationsWorkspace() {
   activeSection.entries = sortOperationsEntries(existingEntries);
   nextSections[activeKey] = activeSection;
 
+  if (shouldCreateLinkedTask) {
+    const tasksSection = nextSections[OPERATIONS_TASK_TAB_KEY] || createEmptyOperationsSection();
+    const existingTasks = Array.isArray(tasksSection.tasks) ? [...tasksSection.tasks] : [];
+    const sourceLabel = buildOperationsTaskSourceLabel(activeKey, activeHabitTabKey, savedEntry);
+    const linkedTask = normalizeOperationsTask({
+      id: createOperationsId("task"),
+      title: linkedTaskDraft.title,
+      notes: linkedTaskDraft.notes,
+      dueAt: linkedTaskDraft.dueAt,
+      priority: linkedTaskDraft.priority,
+      status: "open",
+      sourceTabKey: activeKey,
+      sourceSubTabKey: activeKey === OPERATIONS_HABIT_TAB_KEY ? activeHabitTabKey : "",
+      sourceEntryId: savedEntry.id,
+      sourceTitle: sourceLabel,
+      createdAt: updatedAt,
+      updatedAt,
+      updatedBy,
+      order: createOperationsTaskOrderValue(linkedTaskDraft.dueAt, updatedAt)
+    }, "linked-task");
+
+    if (linkedTask) {
+      tasksSection.tasks = sortOperationsTasks([linkedTask, ...existingTasks]);
+      nextSections[OPERATIONS_TASK_TAB_KEY] = tasksSection;
+    }
+  }
+
   const payload = {
     key: OPERATIONS_SETTING_KEY,
     value: {
@@ -543,16 +735,336 @@ async function saveOperationsWorkspace() {
   operationsState.draftsByTab[activeScopeKey] = wasEditingExisting && persistedEntry
     ? createOperationsDraftFromEntry(persistedEntry)
     : createBlankOperationsDraft();
+  operationsState.linkedTaskDraft = createBlankOperationsLinkedTaskDraft();
+  operationsState.linkedTaskEnabled = false;
   operationsState.dirtyTabs.delete(activeScopeKey);
+  scheduleOperationsTaskReminderTimers();
 
   setOperationsMessage(
-    wasEditingExisting
+    shouldCreateLinkedTask
+      ? "Rail saved and task added to the Tasks window."
+      : wasEditingExisting
       ? "This rail was updated successfully."
       : "A new rail was saved successfully.",
     "success"
   );
   renderOperationsWorkspace();
   scrollOperationsRailIntoView();
+}
+
+async function saveOperationsTask() {
+  if (!operationsState.isAdmin || !operationsState.supabase || operationsState.isSaving) {
+    return;
+  }
+
+  syncCurrentOperationsTaskDraft();
+
+  const draft = operationsState.taskDraft;
+  const title = normalizeOperationsTitle(draft.title);
+
+  if (!title) {
+    setOperationsMessage("Add a task title before saving.", "error");
+    syncOperationsActionState();
+    return;
+  }
+
+  if (!isOperationsTaskDraftDirty()) {
+    setOperationsMessage("There are no new changes to save in this task.", "success");
+    renderOperationsStatus();
+    syncOperationsActionState();
+    return;
+  }
+
+  operationsState.isSaving = true;
+  syncOperationsActionState();
+  setOperationsMessage("Saving this task...", "info");
+
+  const updatedAt = new Date().toISOString();
+  const updatedBy = operationsState.profile?.full_name || operationsState.profile?.email || "Admin";
+  const nextSections = cloneOperationsSections(operationsState.persistedSections);
+  const taskSection = nextSections[OPERATIONS_TASK_TAB_KEY] || createEmptyOperationsSection();
+  const existingTasks = Array.isArray(taskSection.tasks) ? [...taskSection.tasks] : [];
+  let savedTask = null;
+  let wasEditingExisting = false;
+
+  if (draft.selectedTaskId) {
+    const taskIndex = existingTasks.findIndex((task) => task.id === draft.selectedTaskId);
+
+    if (taskIndex >= 0) {
+      wasEditingExisting = true;
+      const existingTask = existingTasks[taskIndex];
+      const dueChanged = normalizeOperationsDateTime(draft.dueAt) !== normalizeOperationsDateTime(existingTask.dueAt);
+      savedTask = normalizeOperationsTask({
+        ...existingTask,
+        title,
+        notes: draft.notes,
+        dueAt: draft.dueAt,
+        priority: draft.priority,
+        updatedAt,
+        updatedBy,
+        order: dueChanged
+          ? createOperationsTaskOrderValue(draft.dueAt, existingTask.createdAt || updatedAt)
+          : existingTask.order ?? createOperationsTaskOrderValue(draft.dueAt, existingTask.createdAt || updatedAt)
+      }, "task-edit");
+
+      existingTasks[taskIndex] = savedTask;
+    }
+  }
+
+  if (!savedTask) {
+    savedTask = normalizeOperationsTask({
+      id: createOperationsId("task"),
+      title,
+      notes: draft.notes,
+      dueAt: draft.dueAt,
+      priority: draft.priority,
+      status: "open",
+      sourceTabKey: "",
+      sourceSubTabKey: "",
+      sourceEntryId: "",
+      sourceTitle: "",
+      createdAt: updatedAt,
+      updatedAt,
+      updatedBy,
+      order: createOperationsTaskOrderValue(draft.dueAt, updatedAt)
+    }, "task-new");
+
+    if (savedTask) {
+      existingTasks.push(savedTask);
+    }
+  }
+
+  taskSection.tasks = sortOperationsTasks(existingTasks);
+  nextSections[OPERATIONS_TASK_TAB_KEY] = taskSection;
+
+  const error = await persistOperationsSections(nextSections);
+  operationsState.isSaving = false;
+
+  if (error) {
+    setOperationsMessage(error.message || "This task could not be saved right now.", "error");
+    renderOperationsStatus();
+    syncOperationsActionState();
+    return;
+  }
+
+  const normalizedSections = normalizeOperationsSections(nextSections);
+  const persistedTask = findOperationsTaskById(
+    getOperationsTasksFromSections(normalizedSections),
+    savedTask?.id
+  );
+
+  operationsState.persistedSections = cloneOperationsSections(normalizedSections);
+  operationsState.taskDraft = wasEditingExisting && persistedTask
+    ? createOperationsTaskDraftFromTask(persistedTask)
+    : createBlankOperationsTaskDraft();
+  scheduleOperationsTaskReminderTimers();
+  setOperationsMessage(wasEditingExisting ? "Task updated." : "Task added to your reminder sequence.", "success");
+  renderOperationsWorkspace();
+}
+
+function startNewOperationsTask() {
+  if (
+    isOperationsTaskDraftDirty()
+    && !window.confirm("You have unsaved task changes. Start a new task anyway?")
+  ) {
+    return;
+  }
+
+  operationsState.taskDraft = createBlankOperationsTaskDraft();
+  clearOperationsMessage();
+  renderOperationsWorkspace();
+  operationsDom.taskTitleInput?.focus();
+}
+
+function resetCurrentOperationsTask() {
+  const persistedTask = findOperationsTaskById(
+    getOperationsTasks(),
+    operationsState.taskDraft.selectedTaskId
+  );
+
+  operationsState.taskDraft = persistedTask
+    ? createOperationsTaskDraftFromTask(persistedTask)
+    : createBlankOperationsTaskDraft();
+  clearOperationsMessage();
+  renderOperationsWorkspace();
+}
+
+async function handleOperationsTaskAction(taskId, action) {
+  if (!taskId || !action || operationsState.isSaving) {
+    return;
+  }
+
+  if (action === "edit") {
+    loadOperationsTaskIntoDraft(taskId);
+    return;
+  }
+
+  if (action === "delete") {
+    await deleteOperationsTask(taskId);
+    return;
+  }
+
+  if (action === "complete" || action === "reopen") {
+    await toggleOperationsTaskCompletion(taskId);
+    return;
+  }
+
+  if (action === "up" || action === "down") {
+    await moveOperationsTask(taskId, action);
+  }
+}
+
+function loadOperationsTaskIntoDraft(taskId) {
+  if (
+    isOperationsTaskDraftDirty()
+    && !window.confirm("You have unsaved task changes. Open another task anyway?")
+  ) {
+    return;
+  }
+
+  const task = findOperationsTaskById(getOperationsTasks(), taskId);
+
+  if (!task) {
+    setOperationsMessage("That task could not be found anymore.", "error");
+    return;
+  }
+
+  operationsState.taskDraft = createOperationsTaskDraftFromTask(task);
+  clearOperationsMessage();
+  renderOperationsWorkspace();
+  operationsDom.taskTitleInput?.focus();
+}
+
+async function deleteOperationsTask(taskId) {
+  const targetTask = findOperationsTaskById(getOperationsTasks(), taskId);
+
+  if (!targetTask) {
+    setOperationsMessage("That task could not be found anymore.", "error");
+    return;
+  }
+
+  if (!window.confirm(`Delete "${targetTask.title}"? This cannot be undone.`)) {
+    return;
+  }
+
+  const nextTasks = getOperationsTasks().filter((task) => task.id !== taskId);
+  const didSave = await saveOperationsTaskList(nextTasks, "Task deleted.");
+
+  if (didSave && operationsState.taskDraft.selectedTaskId === taskId) {
+    operationsState.taskDraft = createBlankOperationsTaskDraft();
+  }
+
+  renderOperationsWorkspace();
+}
+
+async function toggleOperationsTaskCompletion(taskId) {
+  const updatedAt = new Date().toISOString();
+  const updatedBy = operationsState.profile?.full_name || operationsState.profile?.email || "Admin";
+  const nextTasks = getOperationsTasks().map((task) => {
+    if (task.id !== taskId) {
+      return task;
+    }
+
+    const isDone = task.status === "done";
+
+    return normalizeOperationsTask({
+      ...task,
+      status: isDone ? "open" : "done",
+      completedAt: isDone ? "" : updatedAt,
+      updatedAt,
+      updatedBy
+    }, "task-toggle");
+  }).filter(Boolean);
+
+  const didSave = await saveOperationsTaskList(nextTasks, "Task status updated.");
+
+  if (didSave && operationsState.taskDraft.selectedTaskId === taskId) {
+    const refreshedTask = findOperationsTaskById(nextTasks, taskId);
+    operationsState.taskDraft = refreshedTask
+      ? createOperationsTaskDraftFromTask(refreshedTask)
+      : createBlankOperationsTaskDraft();
+  }
+
+  renderOperationsWorkspace();
+}
+
+async function moveOperationsTask(taskId, direction) {
+  const sortedTasks = sortOperationsTasks(getOperationsTasks());
+  const movableTasks = sortedTasks.filter((task) => task.status !== "done");
+  const currentIndex = movableTasks.findIndex((task) => task.id === taskId);
+  const targetIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
+
+  if (currentIndex < 0 || targetIndex < 0 || targetIndex >= movableTasks.length) {
+    return;
+  }
+
+  const currentTask = movableTasks[currentIndex];
+  const targetTask = movableTasks[targetIndex];
+  const currentStoredOrder = Number(currentTask.order);
+  const targetStoredOrder = Number(targetTask.order);
+  const currentOrder = Number.isFinite(currentStoredOrder)
+    ? currentStoredOrder
+    : createOperationsTaskOrderValue(currentTask.dueAt, currentTask.createdAt);
+  const targetOrder = Number.isFinite(targetStoredOrder)
+    ? targetStoredOrder
+    : createOperationsTaskOrderValue(targetTask.dueAt, targetTask.createdAt);
+  const updatedAt = new Date().toISOString();
+  const updatedBy = operationsState.profile?.full_name || operationsState.profile?.email || "Admin";
+
+  const nextTasks = getOperationsTasks().map((task) => {
+    if (task.id === currentTask.id) {
+      return normalizeOperationsTask({
+        ...task,
+        order: targetOrder,
+        updatedAt,
+        updatedBy
+      }, "task-move-current");
+    }
+
+    if (task.id === targetTask.id) {
+      return normalizeOperationsTask({
+        ...task,
+        order: currentOrder,
+        updatedAt,
+        updatedBy
+      }, "task-move-target");
+    }
+
+    return task;
+  }).filter(Boolean);
+
+  await saveOperationsTaskList(nextTasks, "Task priority order updated.");
+  renderOperationsWorkspace();
+}
+
+async function saveOperationsTaskList(tasks, successMessage) {
+  if (!operationsState.supabase || operationsState.isSaving) {
+    return false;
+  }
+
+  operationsState.isSaving = true;
+  syncOperationsActionState();
+  setOperationsMessage("Updating tasks...", "info");
+
+  const nextSections = cloneOperationsSections(operationsState.persistedSections);
+  const taskSection = nextSections[OPERATIONS_TASK_TAB_KEY] || createEmptyOperationsSection();
+  taskSection.tasks = sortOperationsTasks(tasks);
+  nextSections[OPERATIONS_TASK_TAB_KEY] = taskSection;
+
+  const error = await persistOperationsSections(nextSections);
+  operationsState.isSaving = false;
+
+  if (error) {
+    setOperationsMessage(error.message || "Tasks could not be updated right now.", "error");
+    syncOperationsActionState();
+    return false;
+  }
+
+  const normalizedSections = normalizeOperationsSections(nextSections);
+  operationsState.persistedSections = cloneOperationsSections(normalizedSections);
+  scheduleOperationsTaskReminderTimers();
+  setOperationsMessage(successMessage, "success");
+  return true;
 }
 
 function startNewOperationsEntry() {
@@ -782,12 +1294,64 @@ function removeCurrentOperationsImage() {
 }
 
 function syncCurrentOperationsDraft() {
+  if (operationsState.activeTab === OPERATIONS_TASK_TAB_KEY) {
+    return;
+  }
+
   const activeScopeKey = getActiveOperationsScopeKey();
   const draft = getOperationsDraft(activeScopeKey);
 
   draft.title = normalizeOperationsTitle(operationsDom.titleInput?.value);
   draft.body = normalizeOperationsBody(operationsDom.bodyInput?.value);
   syncOperationsDirtyState(activeScopeKey);
+}
+
+function syncCurrentOperationsWorkspaceDraft() {
+  if (operationsState.activeTab === OPERATIONS_TASK_TAB_KEY) {
+    syncCurrentOperationsTaskDraft();
+    return;
+  }
+
+  syncCurrentOperationsDraft();
+  syncCurrentOperationsLinkedTaskDraft();
+}
+
+function syncCurrentOperationsTaskDraft() {
+  if (operationsState.activeTab !== OPERATIONS_TASK_TAB_KEY) {
+    return;
+  }
+
+  operationsState.taskDraft.title = normalizeOperationsTitle(operationsDom.taskTitleInput?.value);
+  operationsState.taskDraft.dueAt = normalizeOperationsDateTimeInput(operationsDom.taskDueInput?.value);
+  operationsState.taskDraft.priority = normalizeOperationsTaskPriority(operationsDom.taskPriorityInput?.value);
+  operationsState.taskDraft.notes = normalizeOperationsBody(operationsDom.taskNotesInput?.value);
+}
+
+function syncCurrentOperationsLinkedTaskDraft() {
+  if (operationsState.activeTab === OPERATIONS_TASK_TAB_KEY) {
+    return;
+  }
+
+  operationsState.linkedTaskDraft.title = normalizeOperationsTitle(operationsDom.linkedTaskTitleInput?.value);
+  operationsState.linkedTaskDraft.dueAt = normalizeOperationsDateTimeInput(operationsDom.linkedTaskDueInput?.value);
+  operationsState.linkedTaskDraft.priority = normalizeOperationsTaskPriority(operationsDom.linkedTaskPriorityInput?.value);
+  operationsState.linkedTaskDraft.notes = normalizeOperationsBody(operationsDom.linkedTaskNotesInput?.value);
+}
+
+function toggleOperationsLinkedTask() {
+  operationsState.linkedTaskEnabled = !operationsState.linkedTaskEnabled;
+
+  if (!operationsState.linkedTaskEnabled) {
+    operationsState.linkedTaskDraft = createBlankOperationsLinkedTaskDraft();
+  }
+
+  clearOperationsMessage();
+  renderOperationsLinkedTaskPanel();
+  syncOperationsActionState();
+
+  if (operationsState.linkedTaskEnabled) {
+    operationsDom.linkedTaskTitleInput?.focus();
+  }
 }
 
 function syncOperationsDirtyState(tabKey) {
@@ -815,6 +1379,25 @@ function isOperationsDraftDirty(tabKey) {
     || normalizeOperationsBody(draft.body) !== normalizeOperationsBody(persistedEntry.body)
     || normalizeOperationsDataUrl(draft.imageDataUrl) !== normalizeOperationsDataUrl(persistedEntry.imageDataUrl)
     || normalizeOperationsFilename(draft.imageName) !== normalizeOperationsFilename(persistedEntry.imageName);
+}
+
+function isOperationsTaskDraftDirty() {
+  const draft = operationsState.taskDraft;
+
+  if (!draft.selectedTaskId) {
+    return hasOperationsTaskDraftContent(draft);
+  }
+
+  const persistedTask = findOperationsTaskById(getOperationsTasks(), draft.selectedTaskId);
+
+  if (!persistedTask) {
+    return hasOperationsTaskDraftContent(draft);
+  }
+
+  return normalizeOperationsTitle(draft.title) !== normalizeOperationsTitle(persistedTask.title)
+    || normalizeOperationsBody(draft.notes) !== normalizeOperationsBody(persistedTask.notes)
+    || normalizeOperationsText(draft.dueAt) !== normalizeOperationsText(persistedTask.dueAt)
+    || normalizeOperationsTaskPriority(draft.priority) !== normalizeOperationsTaskPriority(persistedTask.priority);
 }
 
 function renderOperationsWorkspace() {
@@ -892,6 +1475,7 @@ function renderOperationsHabitTabs() {
 
 function renderOperationsEditor() {
   const tab = getActiveOperationsTab();
+  const isTaskWorkspace = tab.key === OPERATIONS_TASK_TAB_KEY;
   const draft = getOperationsDraft(getActiveOperationsScopeKey());
   const habitTab = operationsState.activeTab === OPERATIONS_HABIT_TAB_KEY
     ? getActiveOperationsHabitTab()
@@ -901,6 +1485,18 @@ function renderOperationsEditor() {
     operationsDom.activeTabLabel.textContent = habitTab
       ? `${tab.label} · ${habitTab.label}`
       : tab.label;
+  }
+
+  operationsDom.taskWorkspace?.classList.toggle("hidden", !isTaskWorkspace);
+  operationsDom.railSection?.classList.toggle("hidden", isTaskWorkspace);
+  operationsDom.form?.classList.toggle("hidden", isTaskWorkspace);
+  operationsDom.newEntryButton?.classList.toggle("hidden", isTaskWorkspace);
+  operationsDom.saveButton?.classList.toggle("hidden", isTaskWorkspace);
+  operationsDom.resetButton?.classList.toggle("hidden", isTaskWorkspace);
+
+  if (isTaskWorkspace) {
+    renderOperationsTaskWorkspace();
+    return;
   }
 
   if (operationsDom.titleInput) {
@@ -914,7 +1510,67 @@ function renderOperationsEditor() {
   }
 
   renderOperationsImagePreview();
+  renderOperationsLinkedTaskPanel();
   renderOperationsEntriesRail();
+}
+
+function renderOperationsTaskWorkspace() {
+  const draft = operationsState.taskDraft;
+
+  if (operationsDom.enableRemindersButton) {
+    operationsDom.enableRemindersButton.textContent = ("Notification" in window && Notification.permission === "granted")
+      ? "Reminders active"
+      : "Enable reminders";
+  }
+
+  if (operationsDom.taskTitleInput) {
+    operationsDom.taskTitleInput.value = draft.title || "";
+  }
+
+  if (operationsDom.taskDueInput) {
+    operationsDom.taskDueInput.value = formatOperationsDateTimeInput(draft.dueAt);
+  }
+
+  if (operationsDom.taskPriorityInput) {
+    operationsDom.taskPriorityInput.value = normalizeOperationsTaskPriority(draft.priority);
+  }
+
+  if (operationsDom.taskNotesInput) {
+    operationsDom.taskNotesInput.value = draft.notes || "";
+  }
+
+  renderOperationsTaskList();
+}
+
+function renderOperationsLinkedTaskPanel() {
+  const isTaskWorkspace = operationsState.activeTab === OPERATIONS_TASK_TAB_KEY;
+  const draft = operationsState.linkedTaskDraft;
+
+  operationsDom.linkedTaskPanel?.classList.toggle("hidden", isTaskWorkspace);
+  operationsDom.linkedTaskFields?.classList.toggle("hidden", !operationsState.linkedTaskEnabled || isTaskWorkspace);
+
+  if (operationsDom.toggleLinkedTaskButton) {
+    operationsDom.toggleLinkedTaskButton.textContent = operationsState.linkedTaskEnabled
+      ? "Close task"
+      : "Add task";
+    operationsDom.toggleLinkedTaskButton.setAttribute("aria-expanded", operationsState.linkedTaskEnabled ? "true" : "false");
+  }
+
+  if (operationsDom.linkedTaskTitleInput) {
+    operationsDom.linkedTaskTitleInput.value = draft.title || "";
+  }
+
+  if (operationsDom.linkedTaskDueInput) {
+    operationsDom.linkedTaskDueInput.value = formatOperationsDateTimeInput(draft.dueAt);
+  }
+
+  if (operationsDom.linkedTaskPriorityInput) {
+    operationsDom.linkedTaskPriorityInput.value = normalizeOperationsTaskPriority(draft.priority);
+  }
+
+  if (operationsDom.linkedTaskNotesInput) {
+    operationsDom.linkedTaskNotesInput.value = draft.notes || "";
+  }
 }
 
 function getOperationsTitlePlaceholder(tab) {
@@ -1035,8 +1691,129 @@ function renderOperationsEntriesRail() {
   }).join("");
 }
 
+function renderOperationsTaskList() {
+  const tasks = sortOperationsTasks(getOperationsTasks());
+  const openTasks = tasks.filter((task) => task.status !== "done");
+  const selectedTaskId = operationsState.taskDraft.selectedTaskId;
+
+  if (operationsDom.taskCount) {
+    const openText = `${openTasks.length} open`;
+    const doneText = `${tasks.length - openTasks.length} done`;
+    operationsDom.taskCount.textContent = `${tasks.length} task${tasks.length === 1 ? "" : "s"} · ${openText} · ${doneText}`;
+  }
+
+  if (operationsDom.taskReminderSummary) {
+    operationsDom.taskReminderSummary.textContent = buildOperationsTaskReminderSummary(tasks);
+  }
+
+  if (operationsDom.taskEmptyState) {
+    operationsDom.taskEmptyState.classList.toggle("hidden", tasks.length > 0);
+  }
+
+  if (!operationsDom.taskList) {
+    return;
+  }
+
+  if (!tasks.length) {
+    operationsDom.taskList.innerHTML = "";
+    return;
+  }
+
+  operationsDom.taskList.innerHTML = tasks.map((task) => {
+    const isSelected = selectedTaskId === task.id;
+    const isDone = task.status === "done";
+    const dueState = getOperationsTaskDueState(task);
+    const sourceLabel = buildOperationsTaskDisplaySource(task);
+    const priorityLabel = getOperationsTaskPriorityLabel(task.priority);
+    const taskIndex = openTasks.findIndex((openTask) => openTask.id === task.id);
+    const canMoveUp = !isDone && taskIndex > 0;
+    const canMoveDown = !isDone && taskIndex >= 0 && taskIndex < openTasks.length - 1;
+
+    return `
+      <article class="operations-task-card${isSelected ? " is-active" : ""}${isDone ? " is-done" : ""}">
+        <div class="operations-task-card-main">
+          <span class="operations-task-kicker">${escapeOperationsHtml(dueState.label)}</span>
+          <h4>${escapeOperationsHtml(task.title || "Untitled task")}</h4>
+          ${task.notes ? `<p>${escapeOperationsHtml(task.notes)}</p>` : ""}
+          <div class="operations-task-meta">
+            <span class="operations-task-priority is-${escapeOperationsHtml(task.priority)}">${escapeOperationsHtml(priorityLabel)}</span>
+            ${sourceLabel ? `<span>${escapeOperationsHtml(sourceLabel)}</span>` : ""}
+            ${task.updatedAt ? `<span>Updated ${escapeOperationsHtml(formatOperationsTimestamp(task.updatedAt, "compact"))}</span>` : ""}
+          </div>
+        </div>
+        <div class="operations-task-card-actions">
+          <button
+            type="button"
+            class="button button-ghost"
+            data-operations-task-action="edit"
+            data-operations-task-id="${escapeOperationsHtml(task.id)}"
+          >
+            Edit
+          </button>
+          <button
+            type="button"
+            class="button"
+            data-operations-task-action="${isDone ? "reopen" : "complete"}"
+            data-operations-task-id="${escapeOperationsHtml(task.id)}"
+          >
+            ${isDone ? "Reopen" : "Done"}
+          </button>
+          <button
+            type="button"
+            class="button button-muted"
+            data-operations-task-action="delete"
+            data-operations-task-id="${escapeOperationsHtml(task.id)}"
+          >
+            Delete
+          </button>
+          <div class="operations-task-move-actions">
+            <button
+              type="button"
+              class="button button-ghost"
+              data-operations-task-action="up"
+              data-operations-task-id="${escapeOperationsHtml(task.id)}"
+              ${canMoveUp ? "" : "disabled"}
+            >
+              Up
+            </button>
+            <button
+              type="button"
+              class="button button-ghost"
+              data-operations-task-action="down"
+              data-operations-task-id="${escapeOperationsHtml(task.id)}"
+              ${canMoveDown ? "" : "disabled"}
+            >
+              Down
+            </button>
+          </div>
+        </div>
+      </article>
+    `;
+  }).join("");
+}
+
 function renderOperationsStatus() {
   if (!operationsDom.updatedBadge) {
+    return;
+  }
+
+  if (operationsState.activeTab === OPERATIONS_TASK_TAB_KEY) {
+    const taskDirty = isOperationsTaskDraftDirty();
+    const persistedTask = findOperationsTaskById(getOperationsTasks(), operationsState.taskDraft.selectedTaskId);
+
+    operationsDom.updatedBadge.classList.toggle("is-draft", taskDirty);
+
+    if (taskDirty) {
+      operationsDom.updatedBadge.textContent = persistedTask ? "Unsaved task edits" : "Unsaved new task";
+      return;
+    }
+
+    if (persistedTask?.updatedAt) {
+      operationsDom.updatedBadge.textContent = `Task saved ${formatOperationsTimestamp(persistedTask.updatedAt, "compact")}`;
+      return;
+    }
+
+    operationsDom.updatedBadge.textContent = "New task";
     return;
   }
 
@@ -1069,38 +1846,43 @@ function renderOperationsStatus() {
 
 function syncOperationsActionState() {
   const canEdit = operationsState.isAdmin && !operationsState.isLoading;
+  const isTaskWorkspace = operationsState.activeTab === OPERATIONS_TASK_TAB_KEY;
   const activeScopeKey = getActiveOperationsScopeKey();
   const draft = getOperationsDraft(activeScopeKey);
   const hasContent = hasOperationsDraftContent(draft);
   const isDirty = operationsState.dirtyTabs.has(activeScopeKey);
   const isBusy = operationsState.isSaving || operationsState.isUploadingImage;
+  const taskHasTitle = Boolean(normalizeOperationsTitle(operationsState.taskDraft.title));
+  const taskDirty = isOperationsTaskDraftDirty();
 
   if (operationsDom.titleInput) {
-    operationsDom.titleInput.disabled = !canEdit || isBusy;
+    operationsDom.titleInput.disabled = !canEdit || isBusy || isTaskWorkspace;
   }
 
   if (operationsDom.bodyInput) {
-    operationsDom.bodyInput.disabled = !canEdit || isBusy;
+    operationsDom.bodyInput.disabled = !canEdit || isBusy || isTaskWorkspace;
   }
 
   if (operationsDom.imageInput) {
-    operationsDom.imageInput.disabled = !canEdit || isBusy;
+    operationsDom.imageInput.disabled = !canEdit || isBusy || isTaskWorkspace;
   }
 
   if (operationsDom.removePhotoButton) {
-    operationsDom.removePhotoButton.disabled = !canEdit || isBusy || !draft.imageDataUrl;
+    operationsDom.removePhotoButton.disabled = !canEdit || isBusy || isTaskWorkspace || !draft.imageDataUrl;
   }
 
   if (operationsDom.saveButton) {
-    operationsDom.saveButton.disabled = !canEdit || isBusy || !isDirty || !hasContent;
+    const linkedTaskReady = operationsState.linkedTaskEnabled
+      && hasOperationsLinkedTaskContent(operationsState.linkedTaskDraft);
+    operationsDom.saveButton.disabled = !canEdit || isBusy || isTaskWorkspace || ((!isDirty || !hasContent) && !linkedTaskReady);
   }
 
   if (operationsDom.resetButton) {
-    operationsDom.resetButton.disabled = !canEdit || isBusy || !isDirty;
+    operationsDom.resetButton.disabled = !canEdit || isBusy || isTaskWorkspace || !isDirty;
   }
 
   if (operationsDom.newEntryButton) {
-    operationsDom.newEntryButton.disabled = !canEdit || isBusy || (!draft.selectedEntryId && !hasContent);
+    operationsDom.newEntryButton.disabled = !canEdit || isBusy || isTaskWorkspace || (!draft.selectedEntryId && !hasContent);
   }
 
   if (operationsDom.createHabitTabButton) {
@@ -1115,6 +1897,50 @@ function syncOperationsActionState() {
       || operationsState.activeTab !== OPERATIONS_HABIT_TAB_KEY
       || operationsState.activeHabitTab === OPERATIONS_DEFAULT_HABIT_METHOD_TAB.key;
   }
+
+  if (operationsDom.taskTitleInput) {
+    operationsDom.taskTitleInput.disabled = !canEdit || isBusy || !isTaskWorkspace;
+  }
+
+  if (operationsDom.taskDueInput) {
+    operationsDom.taskDueInput.disabled = !canEdit || isBusy || !isTaskWorkspace;
+  }
+
+  if (operationsDom.taskPriorityInput) {
+    operationsDom.taskPriorityInput.disabled = !canEdit || isBusy || !isTaskWorkspace;
+  }
+
+  if (operationsDom.taskNotesInput) {
+    operationsDom.taskNotesInput.disabled = !canEdit || isBusy || !isTaskWorkspace;
+  }
+
+  if (operationsDom.taskSaveButton) {
+    operationsDom.taskSaveButton.disabled = !canEdit || isBusy || !isTaskWorkspace || !taskHasTitle || !taskDirty;
+  }
+
+  if (operationsDom.taskResetButton) {
+    operationsDom.taskResetButton.disabled = !canEdit || isBusy || !isTaskWorkspace || !taskDirty;
+  }
+
+  if (operationsDom.taskNewButton) {
+    operationsDom.taskNewButton.disabled = !canEdit || isBusy || !isTaskWorkspace || (!operationsState.taskDraft.selectedTaskId && !hasOperationsTaskDraftContent(operationsState.taskDraft));
+  }
+
+  if (operationsDom.enableRemindersButton) {
+    operationsDom.enableRemindersButton.disabled = !canEdit || !isTaskWorkspace || !("Notification" in window);
+  }
+
+  [
+    operationsDom.toggleLinkedTaskButton,
+    operationsDom.linkedTaskTitleInput,
+    operationsDom.linkedTaskDueInput,
+    operationsDom.linkedTaskPriorityInput,
+    operationsDom.linkedTaskNotesInput
+  ].forEach((element) => {
+    if (element) {
+      element.disabled = !canEdit || isBusy || isTaskWorkspace;
+    }
+  });
 }
 
 function scrollActiveOperationsTabIntoView() {
@@ -1209,6 +2035,10 @@ function ensureActiveOperationsHabitTab(habitTabs = getOperationsHabitTabs()) {
 }
 
 function isOperationsTopTabDirty(tabKey) {
+  if (tabKey === OPERATIONS_TASK_TAB_KEY) {
+    return operationsState.activeTab === OPERATIONS_TASK_TAB_KEY && isOperationsTaskDraftDirty();
+  }
+
   if (tabKey !== OPERATIONS_HABIT_TAB_KEY) {
     return operationsState.dirtyTabs.has(tabKey);
   }
@@ -1298,7 +2128,8 @@ function createEmptyOperationsSections() {
 function createEmptyOperationsSection() {
   return {
     entries: [],
-    habitTabs: []
+    habitTabs: [],
+    tasks: []
   };
 }
 
@@ -1368,6 +2199,9 @@ function cloneOperationsSections(source) {
         .filter(Boolean),
       habitTabs: tab.key === OPERATIONS_HABIT_TAB_KEY
         ? normalizeOperationsHabitTabs(source?.[tab.key]?.habitTabs)
+        : [],
+      tasks: tab.key === OPERATIONS_TASK_TAB_KEY
+        ? normalizeOperationsTasks(source?.[tab.key]?.tasks)
         : []
     };
     return accumulator;
@@ -1381,6 +2215,9 @@ function normalizeOperationsSections(source) {
     const habitTabs = tab.key === OPERATIONS_HABIT_TAB_KEY
       ? normalizeOperationsHabitTabs(rawSection?.habitTabs)
       : [];
+    const tasks = tab.key === OPERATIONS_TASK_TAB_KEY
+      ? normalizeOperationsTasks(rawSection?.tasks)
+      : [];
 
     if (!entries.length) {
       const legacyEntry = normalizeLegacyOperationsEntry(rawSection, tab.key);
@@ -1392,7 +2229,8 @@ function normalizeOperationsSections(source) {
 
     accumulator[tab.key] = {
       entries: sortOperationsEntries(entries),
-      habitTabs
+      habitTabs,
+      tasks
     };
     return accumulator;
   }, {});
@@ -1426,6 +2264,50 @@ function normalizeLegacyOperationsEntry(section, tabKey) {
     updatedAt: section.updatedAt,
     updatedBy: section.updatedBy
   }, `${tabKey}-legacy`);
+}
+
+function normalizeOperationsTasks(tasks) {
+  if (!Array.isArray(tasks)) {
+    return [];
+  }
+
+  return sortOperationsTasks(
+    tasks
+      .map((task, index) => normalizeOperationsTask(task, `task-${index}`))
+      .filter(Boolean)
+  );
+}
+
+function normalizeOperationsTask(task, fallbackSeed = "task") {
+  const title = normalizeOperationsTitle(task?.title);
+
+  if (!title) {
+    return null;
+  }
+
+  const createdAt = normalizeOperationsText(task?.createdAt) || new Date().toISOString();
+  const dueAt = normalizeOperationsDateTime(task?.dueAt);
+  const orderValue = Number(task?.order);
+
+  return {
+    id: normalizeOperationsText(task?.id) || createOperationsId(fallbackSeed),
+    title,
+    notes: normalizeOperationsBody(task?.notes),
+    dueAt,
+    priority: normalizeOperationsTaskPriority(task?.priority),
+    status: normalizeOperationsText(task?.status) === "done" ? "done" : "open",
+    sourceTabKey: normalizeOperationsText(task?.sourceTabKey),
+    sourceSubTabKey: normalizeOperationsText(task?.sourceSubTabKey),
+    sourceEntryId: normalizeOperationsText(task?.sourceEntryId),
+    sourceTitle: normalizeOperationsTitle(task?.sourceTitle),
+    createdAt,
+    updatedAt: normalizeOperationsText(task?.updatedAt) || createdAt,
+    completedAt: normalizeOperationsText(task?.completedAt),
+    updatedBy: normalizeOperationsText(task?.updatedBy),
+    order: Number.isFinite(orderValue)
+      ? orderValue
+      : createOperationsTaskOrderValue(dueAt, createdAt)
+  };
 }
 
 function normalizeOperationsHabitTabs(tabs) {
@@ -1523,6 +2405,47 @@ function sortOperationsEntries(entries) {
   });
 }
 
+function sortOperationsTasks(tasks) {
+  return [...tasks].sort((left, right) => {
+    const leftDone = left?.status === "done";
+    const rightDone = right?.status === "done";
+
+    if (leftDone !== rightDone) {
+      return leftDone ? 1 : -1;
+    }
+
+    const leftStoredOrder = Number(left?.order);
+    const rightStoredOrder = Number(right?.order);
+    const leftOrder = Number.isFinite(leftStoredOrder)
+      ? leftStoredOrder
+      : createOperationsTaskOrderValue(left?.dueAt, left?.createdAt);
+    const rightOrder = Number.isFinite(rightStoredOrder)
+      ? rightStoredOrder
+      : createOperationsTaskOrderValue(right?.dueAt, right?.createdAt);
+
+    if (leftOrder !== rightOrder) {
+      return leftOrder - rightOrder;
+    }
+
+    const priorityDifference = getOperationsTaskPriorityRank(left?.priority)
+      - getOperationsTaskPriorityRank(right?.priority);
+
+    if (priorityDifference !== 0) {
+      return priorityDifference;
+    }
+
+    return getOperationsSortTime(right) - getOperationsSortTime(left);
+  });
+}
+
+function getOperationsTasks() {
+  return getOperationsTasksFromSections(operationsState.persistedSections);
+}
+
+function getOperationsTasksFromSections(sections) {
+  return sortOperationsTasks(sections?.[OPERATIONS_TASK_TAB_KEY]?.tasks || []);
+}
+
 function getOperationsSortTime(entry) {
   const value = entry?.updatedAt || entry?.createdAt || "";
   const timestamp = Date.parse(value);
@@ -1535,6 +2458,35 @@ function findOperationsEntryById(entries, entryId) {
   }
 
   return entries.find((entry) => entry.id === entryId) || null;
+}
+
+function findOperationsTaskById(tasks, taskId) {
+  if (!taskId || !Array.isArray(tasks)) {
+    return null;
+  }
+
+  return tasks.find((task) => task.id === taskId) || null;
+}
+
+async function persistOperationsSections(sections) {
+  if (!operationsState.supabase) {
+    return new Error("Operations storage is not connected.");
+  }
+
+  const payload = {
+    key: OPERATIONS_SETTING_KEY,
+    value: {
+      sections
+    },
+    is_public: false,
+    updated_by: operationsState.profile?.id || null
+  };
+
+  const { error } = await operationsState.supabase
+    .from("site_settings")
+    .upsert(payload, { onConflict: "key" });
+
+  return error || null;
 }
 
 function setOperationsMessage(message, tone = "info") {
@@ -1570,6 +2522,241 @@ function isOperationsWorkspaceVisible() {
     operationsDom.workspace
     && !operationsDom.workspace.closest("[data-admin-view-panel]")?.classList.contains("hidden")
   );
+}
+
+function createBlankOperationsTaskDraft() {
+  return {
+    selectedTaskId: "",
+    title: "",
+    notes: "",
+    dueAt: "",
+    priority: "medium"
+  };
+}
+
+function createBlankOperationsLinkedTaskDraft() {
+  return {
+    title: "",
+    notes: "",
+    dueAt: "",
+    priority: "medium"
+  };
+}
+
+function createOperationsTaskDraftFromTask(task) {
+  return {
+    selectedTaskId: normalizeOperationsText(task?.id),
+    title: normalizeOperationsTitle(task?.title),
+    notes: normalizeOperationsBody(task?.notes),
+    dueAt: normalizeOperationsDateTime(task?.dueAt),
+    priority: normalizeOperationsTaskPriority(task?.priority)
+  };
+}
+
+function hasOperationsTaskDraftContent(draft) {
+  return Boolean(
+    normalizeOperationsTitle(draft?.title)
+    || normalizeOperationsBody(draft?.notes)
+    || normalizeOperationsText(draft?.dueAt)
+  );
+}
+
+function hasOperationsLinkedTaskContent(draft) {
+  return Boolean(
+    normalizeOperationsTitle(draft?.title)
+    || normalizeOperationsBody(draft?.notes)
+    || normalizeOperationsText(draft?.dueAt)
+  );
+}
+
+function createOperationsTaskOrderValue(dueAt, fallbackAt = "") {
+  const dueTime = Date.parse(dueAt || "");
+
+  if (!Number.isNaN(dueTime)) {
+    return dueTime;
+  }
+
+  const fallbackTime = Date.parse(fallbackAt || "");
+  const stableOffset = Number.isNaN(fallbackTime) ? Date.now() : fallbackTime;
+  return 4102444800000 + (stableOffset % 1000000);
+}
+
+function normalizeOperationsTaskPriority(priority) {
+  const normalized = normalizeOperationsText(priority).trim().toLowerCase();
+  return OPERATIONS_TASK_PRIORITIES.some((item) => item.key === normalized)
+    ? normalized
+    : "medium";
+}
+
+function getOperationsTaskPriorityLabel(priority) {
+  const normalized = normalizeOperationsTaskPriority(priority);
+  return OPERATIONS_TASK_PRIORITIES.find((item) => item.key === normalized)?.label || "Medium";
+}
+
+function getOperationsTaskPriorityRank(priority) {
+  const normalized = normalizeOperationsTaskPriority(priority);
+  const index = OPERATIONS_TASK_PRIORITIES.findIndex((item) => item.key === normalized);
+  return index >= 0 ? index : 2;
+}
+
+function buildOperationsTaskSourceLabel(tabKey, subTabKey, entry) {
+  const tab = OPERATIONS_TABS.find((item) => item.key === tabKey);
+  const tabLabel = tab?.label || "Operations";
+  const subTabLabel = tabKey === OPERATIONS_HABIT_TAB_KEY
+    ? getOperationsHabitTabs().find((item) => item.key === subTabKey)?.label
+    : "";
+  const entryTitle = normalizeOperationsTitle(entry?.title);
+
+  return [
+    tabLabel,
+    subTabLabel,
+    entryTitle
+  ].filter(Boolean).join(" · ");
+}
+
+function buildOperationsTaskDisplaySource(task) {
+  if (task?.sourceTitle) {
+    return `From ${task.sourceTitle}`;
+  }
+
+  const tab = OPERATIONS_TABS.find((item) => item.key === task?.sourceTabKey);
+  return tab ? `From ${tab.label}` : "";
+}
+
+function getOperationsTaskDueState(task) {
+  if (task?.status === "done") {
+    return { key: "done", label: "Completed" };
+  }
+
+  if (!task?.dueAt) {
+    return { key: "unscheduled", label: "No reminder set" };
+  }
+
+  const dueTime = Date.parse(task.dueAt);
+
+  if (Number.isNaN(dueTime)) {
+    return { key: "unscheduled", label: "No reminder set" };
+  }
+
+  const now = Date.now();
+  const today = new Date();
+  const dueDate = new Date(dueTime);
+  const sameDate = today.getFullYear() === dueDate.getFullYear()
+    && today.getMonth() === dueDate.getMonth()
+    && today.getDate() === dueDate.getDate();
+
+  if (dueTime < now) {
+    return { key: "overdue", label: `Overdue · ${formatOperationsTaskDue(task.dueAt)}` };
+  }
+
+  if (sameDate) {
+    return { key: "today", label: `Today · ${formatOperationsTaskDue(task.dueAt, "time")}` };
+  }
+
+  if (dueTime - now <= OPERATIONS_TASK_REMINDER_LEAD_MS) {
+    return { key: "soon", label: `Coming up · ${formatOperationsTaskDue(task.dueAt)}` };
+  }
+
+  return { key: "upcoming", label: formatOperationsTaskDue(task.dueAt) };
+}
+
+function buildOperationsTaskReminderSummary(tasks) {
+  const openTasks = tasks.filter((task) => task.status !== "done");
+  const overdueCount = openTasks.filter((task) => getOperationsTaskDueState(task).key === "overdue").length;
+  const todayCount = openTasks.filter((task) => getOperationsTaskDueState(task).key === "today").length;
+  const nextTask = openTasks.find((task) => task.dueAt);
+
+  if (overdueCount) {
+    return `${overdueCount} overdue`;
+  }
+
+  if (todayCount) {
+    return `${todayCount} due today`;
+  }
+
+  if (nextTask?.dueAt) {
+    return `Next ${formatOperationsTaskDue(nextTask.dueAt)}`;
+  }
+
+  return "No reminders due";
+}
+
+function formatOperationsTaskDue(value, mode = "date-time") {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "No reminder";
+  }
+
+  if (mode === "time") {
+    return new Intl.DateTimeFormat("en-IN", {
+      hour: "numeric",
+      minute: "2-digit"
+    }).format(date);
+  }
+
+  return new Intl.DateTimeFormat("en-IN", {
+    day: "numeric",
+    month: "short",
+    hour: "numeric",
+    minute: "2-digit"
+  }).format(date);
+}
+
+async function enableOperationsTaskReminders() {
+  if (!("Notification" in window)) {
+    setOperationsMessage("Browser reminders are not supported on this device. The task dates are still saved.", "error");
+    return;
+  }
+
+  let permission = Notification.permission;
+
+  if (permission === "default") {
+    permission = await Notification.requestPermission();
+  }
+
+  if (permission !== "granted") {
+    setOperationsMessage("Browser reminders are blocked. You can still use the due dates inside the Tasks tab.", "error");
+    return;
+  }
+
+  scheduleOperationsTaskReminderTimers();
+  setOperationsMessage("Browser reminders are active while this admin page stays open.", "success");
+}
+
+function scheduleOperationsTaskReminderTimers() {
+  clearOperationsTaskReminderTimers();
+
+  if (!("Notification" in window) || Notification.permission !== "granted") {
+    return;
+  }
+
+  const now = Date.now();
+
+  getOperationsTasks()
+    .filter((task) => task.status !== "done" && task.dueAt)
+    .forEach((task) => {
+      const dueTime = Date.parse(task.dueAt);
+
+      if (Number.isNaN(dueTime) || dueTime <= now) {
+        return;
+      }
+
+      const delay = Math.min(dueTime - now, 2147483647);
+      const timer = window.setTimeout(() => {
+        new Notification("CoreXformer task reminder", {
+          body: task.title,
+          tag: `corexformer-task-${task.id}`
+        });
+      }, delay);
+
+      operationsState.reminderTimers.push(timer);
+    });
+}
+
+function clearOperationsTaskReminderTimers() {
+  operationsState.reminderTimers.forEach((timer) => window.clearTimeout(timer));
+  operationsState.reminderTimers = [];
 }
 
 function formatOperationsTimestamp(value, mode = "default") {
@@ -1709,6 +2896,49 @@ function normalizeOperationsBody(value) {
 
 function normalizeOperationsFilename(value) {
   return normalizeOperationsText(value).trim();
+}
+
+function normalizeOperationsDateTime(value) {
+  const normalized = normalizeOperationsText(value).trim();
+
+  if (!normalized) {
+    return "";
+  }
+
+  const timestamp = Date.parse(normalized);
+
+  if (Number.isNaN(timestamp)) {
+    return "";
+  }
+
+  return new Date(timestamp).toISOString();
+}
+
+function normalizeOperationsDateTimeInput(value) {
+  const normalized = normalizeOperationsText(value).trim();
+
+  if (!normalized) {
+    return "";
+  }
+
+  const timestamp = Date.parse(normalized);
+
+  if (Number.isNaN(timestamp)) {
+    return "";
+  }
+
+  return new Date(timestamp).toISOString();
+}
+
+function formatOperationsDateTimeInput(value) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  const localDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
+  return localDate.toISOString().slice(0, 16);
 }
 
 function normalizeOperationsDataUrl(value) {

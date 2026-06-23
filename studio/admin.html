@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-  <link rel="stylesheet" href="styles.css?v=20260622-studio-admin-operations-8">
+  <link rel="stylesheet" href="styles.css?v=20260622-studio-admin-operations-9">
 </head>
 <body>
   <main class="studio-shell studio-shell-admin">
@@ -604,6 +604,70 @@
 
           <div id="operationsMessage" class="message-banner hidden"></div>
 
+          <div id="operationsTaskWorkspace" class="operations-task-workspace hidden">
+            <section class="operations-task-board">
+              <div class="operations-task-board-head">
+                <div>
+                  <p class="eyebrow">Task desk</p>
+                  <h3>Tasks to be done</h3>
+                </div>
+                <button id="operationsEnableRemindersButton" type="button" class="button button-ghost">Enable reminders</button>
+              </div>
+
+              <form id="operationsTaskForm" class="operations-task-form">
+                <label>
+                  <span>Task</span>
+                  <input id="operationsTaskTitleInput" type="text" placeholder="What needs to be done?">
+                </label>
+
+                <div class="operations-task-form-grid">
+                  <label>
+                    <span>Reminder date and time</span>
+                    <input id="operationsTaskDueInput" type="datetime-local">
+                  </label>
+
+                  <label>
+                    <span>Priority</span>
+                    <select id="operationsTaskPriorityInput">
+                      <option value="urgent">Urgent</option>
+                      <option value="high">High</option>
+                      <option value="medium">Medium</option>
+                      <option value="low">Low</option>
+                    </select>
+                  </label>
+                </div>
+
+                <label>
+                  <span>Notes</span>
+                  <textarea id="operationsTaskNotesInput" rows="5" placeholder="Context, next step, person to contact, or why this matters."></textarea>
+                </label>
+              </form>
+
+              <div class="editor-actions operations-task-actions">
+                <button id="operationsNewTaskButton" type="button" class="button button-ghost">New task</button>
+                <button id="operationsSaveTaskButton" type="button" class="button">Save task</button>
+                <button id="operationsResetTaskButton" type="button" class="button button-muted">Reset task</button>
+              </div>
+            </section>
+
+            <section class="operations-task-list-panel">
+              <div class="operations-task-list-head">
+                <div>
+                  <p class="eyebrow">Reminder sequence</p>
+                  <h3 id="operationsTaskCount">0 tasks</h3>
+                </div>
+                <span id="operationsTaskReminderSummary" class="status-pill">No reminders due</span>
+              </div>
+
+              <div id="operationsTaskList" class="operations-task-list"></div>
+
+              <div id="operationsTaskEmptyState" class="empty-state operations-empty-state">
+                <h3>No tasks yet</h3>
+                <p>Create a task here, or attach one while saving a rail in any other Operations tab.</p>
+              </div>
+            </section>
+          </div>
+
           <div id="operationsHabitTabPanel" class="operations-subtab-panel hidden">
             <div class="operations-subtab-head">
               <div>
@@ -658,6 +722,45 @@
               <span>Working window</span>
               <textarea id="operationsBodyInput" rows="18" placeholder="Write and update your working window here."></textarea>
             </label>
+
+            <div id="operationsLinkedTaskPanel" class="operations-linked-task-panel">
+              <div class="operations-linked-task-head">
+                <div>
+                  <p class="eyebrow">Follow-up task</p>
+                  <h3>Add a task with this rail</h3>
+                </div>
+                <button id="operationsToggleLinkedTaskButton" type="button" class="button button-ghost">Add task</button>
+              </div>
+
+              <div id="operationsLinkedTaskFields" class="operations-linked-task-fields hidden">
+                <label>
+                  <span>Task</span>
+                  <input id="operationsLinkedTaskTitleInput" type="text" placeholder="Follow-up task for this rail">
+                </label>
+
+                <div class="operations-task-form-grid">
+                  <label>
+                    <span>Reminder date and time</span>
+                    <input id="operationsLinkedTaskDueInput" type="datetime-local">
+                  </label>
+
+                  <label>
+                    <span>Priority</span>
+                    <select id="operationsLinkedTaskPriorityInput">
+                      <option value="urgent">Urgent</option>
+                      <option value="high">High</option>
+                      <option value="medium" selected>Medium</option>
+                      <option value="low">Low</option>
+                    </select>
+                  </label>
+                </div>
+
+                <label>
+                  <span>Task notes</span>
+                  <textarea id="operationsLinkedTaskNotesInput" rows="4" placeholder="Any reminder detail you want to carry into the main task window."></textarea>
+                </label>
+              </div>
+            </div>
           </form>
 
           <div class="editor-actions operations-editor-actions">
@@ -672,13 +775,13 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-  <script src="config.js?v=20260622-studio-admin-operations-8"></script>
-  <script src="session-auth.js?v=20260622-studio-admin-operations-8"></script>
-  <script src="admin.js?v=20260622-studio-admin-operations-8"></script>
-  <script src="applications.js?v=20260622-studio-admin-operations-8"></script>
-  <script src="website-insights.js?v=20260622-studio-admin-operations-8"></script>
-  <script src="feedback-admin.js?v=20260622-studio-admin-operations-8"></script>
-  <script src="lead-map.js?v=20260622-studio-admin-operations-8"></script>
-  <script src="operations-admin.js?v=20260622-studio-admin-operations-8"></script>
+  <script src="config.js?v=20260622-studio-admin-operations-9"></script>
+  <script src="session-auth.js?v=20260622-studio-admin-operations-9"></script>
+  <script src="admin.js?v=20260622-studio-admin-operations-9"></script>
+  <script src="applications.js?v=20260622-studio-admin-operations-9"></script>
+  <script src="website-insights.js?v=20260622-studio-admin-operations-9"></script>
+  <script src="feedback-admin.js?v=20260622-studio-admin-operations-9"></script>
+  <script src="lead-map.js?v=20260622-studio-admin-operations-9"></script>
+  <script src="operations-admin.js?v=20260622-studio-admin-operations-9"></script>
 </body>
 </html>
