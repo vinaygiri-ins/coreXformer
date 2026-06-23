@@ -1996,6 +1996,9 @@ a.journey-map-card:focus-visible {
 .feedback-module-head {
   display: grid;
   gap: 1.5rem;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   padding: 1.6rem;
   border-radius: var(--radius-xl);
   background:
@@ -2008,6 +2011,9 @@ a.journey-map-card:focus-visible {
 .feedback-tab-strip {
   display: flex;
   gap: 0.75rem;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   overflow-x: auto;
   padding-bottom: 0.15rem;
   scrollbar-width: thin;
@@ -2265,6 +2271,8 @@ a.journey-map-card:focus-visible {
 .feedback-library-shell {
   display: grid;
   gap: 1.5rem;
+  width: 100%;
+  max-width: 100%;
   padding: 1.7rem;
   border-radius: var(--radius-xl);
   background: rgba(255, 250, 241, 0.9);
@@ -2880,9 +2888,16 @@ a.journey-map-card:focus-visible {
     padding: 1.25rem;
   }
 
+  .feedback-view-panel {
+    width: calc(100vw - 2rem);
+    max-width: calc(100vw - 2rem);
+  }
+
   .feedback-module-head,
   .feedback-fieldset,
   .feedback-library-shell {
+    width: calc(100vw - 2rem);
+    max-width: calc(100vw - 2rem);
     padding: 1.25rem;
   }
 
