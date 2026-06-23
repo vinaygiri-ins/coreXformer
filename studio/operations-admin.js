@@ -29,6 +29,7 @@ const operationsDom = {
   habitTabPanel: document.getElementById("operationsHabitTabPanel"),
   habitTabList: document.getElementById("operationsHabitTabList"),
   createHabitTabButton: document.getElementById("operationsCreateHabitTabButton"),
+  deleteHabitTabButton: document.getElementById("operationsDeleteHabitTabButton"),
   form: document.getElementById("operationsEditorForm"),
   titleInput: document.getElementById("operationsTitleInput"),
   imageInput: document.getElementById("operationsImageInput"),
@@ -116,6 +117,10 @@ function bindOperationsAdminEvents() {
 
   operationsDom.createHabitTabButton?.addEventListener("click", () => {
     void createOperationsHabitTab();
+  });
+
+  operationsDom.deleteHabitTabButton?.addEventListener("click", () => {
+    void deleteOperationsHabitTab();
   });
 
   operationsDom.titleInput?.addEventListener("input", () => {
@@ -338,6 +343,87 @@ async function createOperationsHabitTab() {
   operationsState.activeHabitTab = habitTab.key;
   operationsState.draftsByTab[buildOperationsScopeKey(OPERATIONS_HABIT_TAB_KEY, habitTab.key)] = createBlankOperationsDraft();
   setOperationsMessage("Habit method tab generated. You can now save rails under it.", "success");
+  renderOperationsWorkspace();
+  scrollActiveOperationsHabitTabIntoView();
+}
+
+async function deleteOperationsHabitTab() {
+  if (
+    operationsState.activeTab !== OPERATIONS_HABIT_TAB_KEY
+    || operationsState.activeHabitTab === OPERATIONS_DEFAULT_HABIT_METHOD_TAB.key
+    || !operationsState.isAdmin
+    || !operationsState.supabase
+    || operationsState.isSaving
+  ) {
+    return;
+  }
+
+  const activeHabitTab = getActiveOperationsHabitTab();
+  const activeHabitTabKey = activeHabitTab?.key || "";
+
+  if (!activeHabitTabKey || activeHabitTabKey === OPERATIONS_DEFAULT_HABIT_METHOD_TAB.key) {
+    return;
+  }
+
+  const scopedEntries = getOperationsEntriesForScope(OPERATIONS_HABIT_TAB_KEY, activeHabitTabKey);
+  const railWarning = scopedEntries.length
+    ? ` This will also delete ${scopedEntries.length} saved rail${scopedEntries.length === 1 ? "" : "s"} under this method tab.`
+    : "";
+
+  if (!window.confirm(`Delete "${activeHabitTab.label}"?${railWarning} This cannot be undone.`)) {
+    return;
+  }
+
+  operationsState.isSaving = true;
+  syncOperationsActionState();
+  setOperationsMessage("Deleting this habit method tab...", "info");
+
+  const nextSections = cloneOperationsSections(operationsState.persistedSections);
+  const habitSection = nextSections[OPERATIONS_HABIT_TAB_KEY] || createEmptyOperationsSection();
+  const nextHabitTabs = normalizeOperationsHabitTabs(habitSection.habitTabs)
+    .filter((tab) => tab.key !== activeHabitTabKey);
+  const nextEntries = (habitSection.entries || []).filter((entry) => {
+    const entrySubTabKey = normalizeOperationsText(entry?.subTabKey).trim()
+      || OPERATIONS_DEFAULT_HABIT_METHOD_TAB.key;
+    return entrySubTabKey !== activeHabitTabKey;
+  });
+
+  habitSection.habitTabs = nextHabitTabs;
+  habitSection.entries = sortOperationsEntries(nextEntries);
+  nextSections[OPERATIONS_HABIT_TAB_KEY] = habitSection;
+
+  const payload = {
+    key: OPERATIONS_SETTING_KEY,
+    value: {
+      sections: nextSections
+    },
+    is_public: false,
+    updated_by: operationsState.profile?.id || null
+  };
+
+  const { error } = await operationsState.supabase
+    .from("site_settings")
+    .upsert(payload, { onConflict: "key" });
+
+  operationsState.isSaving = false;
+
+  if (error) {
+    setOperationsMessage(error.message || "This habit method tab could not be deleted right now.", "error");
+    renderOperationsStatus();
+    syncOperationsActionState();
+    return;
+  }
+
+  const deletedScopeKey = buildOperationsScopeKey(OPERATIONS_HABIT_TAB_KEY, activeHabitTabKey);
+  const normalizedSections = normalizeOperationsSections(nextSections);
+
+  delete operationsState.draftsByTab[deletedScopeKey];
+  operationsState.dirtyTabs.delete(deletedScopeKey);
+  operationsState.persistedSections = cloneOperationsSections(normalizedSections);
+  operationsState.draftsByTab = createDraftsFromSections(normalizedSections);
+  operationsState.activeHabitTab = OPERATIONS_DEFAULT_HABIT_METHOD_TAB.key;
+  ensureActiveOperationsHabitTab();
+  setOperationsMessage("Habit method tab deleted.", "success");
   renderOperationsWorkspace();
   scrollActiveOperationsHabitTabIntoView();
 }
@@ -588,9 +674,9 @@ async function deleteOperationsEntry(entryId) {
 
   const nextSections = cloneOperationsSections(operationsState.persistedSections);
   const nextEntries = (nextSections[activeKey]?.entries || []).filter((entry) => entry.id !== entryId);
-  nextSections[activeKey] = {
-    entries: sortOperationsEntries(nextEntries)
-  };
+  const nextSection = nextSections[activeKey] || createEmptyOperationsSection();
+  nextSection.entries = sortOperationsEntries(nextEntries);
+  nextSections[activeKey] = nextSection;
 
   const payload = {
     key: OPERATIONS_SETTING_KEY,
@@ -1021,6 +1107,13 @@ function syncOperationsActionState() {
     operationsDom.createHabitTabButton.disabled = !canEdit
       || isBusy
       || operationsState.activeTab !== OPERATIONS_HABIT_TAB_KEY;
+  }
+
+  if (operationsDom.deleteHabitTabButton) {
+    operationsDom.deleteHabitTabButton.disabled = !canEdit
+      || isBusy
+      || operationsState.activeTab !== OPERATIONS_HABIT_TAB_KEY
+      || operationsState.activeHabitTab === OPERATIONS_DEFAULT_HABIT_METHOD_TAB.key;
   }
 }
 

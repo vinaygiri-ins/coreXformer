@@ -531,6 +531,17 @@ button:disabled {
   margin-bottom: 0;
 }
 
+.operations-subtab-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.operations-subtab-actions .button {
+  flex: 0 0 auto;
+}
+
 .operations-subtab-bar {
   flex-wrap: nowrap;
   overflow-x: auto;
@@ -667,6 +678,7 @@ button:disabled {
   overflow-x: auto;
   padding: 2px 2px 10px;
   scroll-snap-type: x proximity;
+  overscroll-behavior-x: contain;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
 }
@@ -2394,6 +2406,10 @@ button:disabled {
     align-items: stretch;
   }
 
+  .operations-subtab-actions {
+    justify-content: flex-start;
+  }
+
   .operations-subtab-bar {
     margin: 0 -3px;
     padding: 0 3px 2px;
@@ -2555,7 +2571,12 @@ button:disabled {
     gap: 10px;
   }
 
-  .operations-subtab-head .button {
+  .operations-subtab-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .operations-subtab-actions .button {
     width: 100%;
   }
 
@@ -2595,6 +2616,11 @@ button:disabled {
     flex-basis: 84vw;
     padding: 12px;
     border-radius: 20px;
+  }
+
+  .operations-rail-head {
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .operations-entry-card-body h4 {
