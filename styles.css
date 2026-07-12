@@ -233,6 +233,11 @@ body[data-page-slug="home"] .container {
   --home-glow-b: rgba(47, 90, 67, 0.18);
 }
 
+.home-story[data-home-rail-theme="vision"] {
+  --home-glow-a: rgba(57, 94, 138, 0.2);
+  --home-glow-b: rgba(217, 150, 68, 0.18);
+}
+
 .home-story[data-home-rail-theme="concept"] {
   --home-glow-a: rgba(47, 90, 67, 0.22);
   --home-glow-b: rgba(134, 173, 141, 0.18);
