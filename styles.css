@@ -512,6 +512,53 @@ body[data-page-slug="home"] .container {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.home-story-card-vision {
+  background:
+    radial-gradient(circle at top left, rgba(57, 94, 138, 0.16), transparent 21rem),
+    linear-gradient(145deg, rgba(255, 250, 241, 0.95), rgba(236, 229, 205, 0.84));
+}
+
+.home-story-vision-body {
+  grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr);
+  align-items: center;
+}
+
+.home-story-vision-copy {
+  align-content: center;
+}
+
+.home-story-vision-copy h2 {
+  max-width: 13ch;
+}
+
+.vision-art-card {
+  position: relative;
+  min-width: 0;
+  margin: 0;
+  padding: clamp(0.45rem, 0.85vw, 0.75rem);
+  border-radius: calc(var(--radius-xl) + 2px);
+  background: rgba(255, 252, 244, 0.74);
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  box-shadow: 0 1.25rem 3rem rgba(47, 67, 52, 0.14);
+}
+
+.vision-art-card img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: calc(var(--radius-xl) - 4px);
+}
+
+.vision-art-card figcaption {
+  margin-top: 0.65rem;
+  color: var(--forest);
+  font-size: 0.92rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-align: center;
+}
+
 .home-story-grid-tight {
   grid-template-columns: 1fr;
 }
@@ -2776,6 +2823,11 @@ a.journey-map-card:focus-visible {
     min-width: 0;
   }
 
+  .home-story-vision-body {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
   .home-story-card.is-active {
     display: block;
   }
@@ -2795,6 +2847,7 @@ a.journey-map-card:focus-visible {
   .home-story-card-body,
   .home-story-primary,
   .home-story-support,
+  .vision-art-card,
   .home-story-primary h2,
   .home-story-primary > p:not(.eyebrow),
   .home-story .hero-actions,
@@ -2819,6 +2872,15 @@ a.journey-map-card:focus-visible {
   .home-story .hero-actions .button,
   .home-story .hero-actions .button-ghost {
     width: 100%;
+  }
+
+  .vision-art-card {
+    order: -1;
+    padding: 0.4rem;
+  }
+
+  .vision-art-card figcaption {
+    font-size: 0.84rem;
   }
 
   .home-story .hero-highlights {
