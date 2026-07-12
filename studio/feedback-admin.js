@@ -286,7 +286,20 @@ async function fetchFeedbackAdminRows() {
     throw result.error;
   }
 
-  return Array.isArray(result.data) ? result.data : [];
+  return Array.isArray(result.data) ? result.data.filter((row) => !isFeedbackAdminSmokeRow(row)) : [];
+}
+
+function isFeedbackAdminSmokeRow(row) {
+  const searchableText = [
+    row?.organization_name,
+    row?.display_name,
+    row?.session_title,
+    row?.facilitator_name
+  ].filter(Boolean).join(" ").toLowerCase();
+
+  return /\bsmoke\s*test\b/.test(searchableText)
+    || /\bsmoke\s*participant\b/.test(searchableText)
+    || /\bcodex\s*smoke\b/.test(searchableText);
 }
 
 function buildFeedbackAdminGroups(rows) {

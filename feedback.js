@@ -150,80 +150,7 @@ const FEEDBACK_SELECT_FIELDS_V2 = FEEDBACK_SELECT_FIELDS_BASE.concat([
   "session_date"
 ]);
 
-const LOCAL_PREVIEW_FEEDBACK_ROWS = [
-  {
-    id: "preview-school-public",
-    organization_name: "",
-    audience_type: "school",
-    product_slug: "belong-connect",
-    product_name: "Belong & Connect",
-    session_title: null,
-    facilitator_name: null,
-    safe_space_rating: 5,
-    activity_meaning_rating: 5,
-    reflection_value_rating: 5,
-    lasting_moment: "test",
-    teamwork_insight: "test2",
-    future_takeaway: "test3",
-    share_publicly: true,
-    display_name: "this product was excellent",
-    created_at: "2026-05-11T14:07:12.325798+00:00"
-  },
-  {
-    id: "preview-school-private",
-    organization_name: "APS",
-    audience_type: "school",
-    product_slug: "belong-connect",
-    product_name: "Belong & Connect",
-    session_title: null,
-    facilitator_name: null,
-    safe_space_rating: 5,
-    activity_meaning_rating: 5,
-    reflection_value_rating: 5,
-    lasting_moment: "test",
-    teamwork_insight: "test2",
-    future_takeaway: "test3",
-    share_publicly: false,
-    display_name: null,
-    created_at: "2026-05-11T14:05:36.713246+00:00"
-  },
-  {
-    id: "preview-corporate-public",
-    organization_name: "JPMC",
-    audience_type: "corporate",
-    product_slug: null,
-    product_name: null,
-    session_title: null,
-    facilitator_name: null,
-    safe_space_rating: 5,
-    activity_meaning_rating: 5,
-    reflection_value_rating: 5,
-    lasting_moment: "this is test",
-    teamwork_insight: "this is test",
-    future_takeaway: "this is test",
-    share_publicly: true,
-    display_name: "excellent",
-    created_at: "2026-05-06T07:31:14.043184+00:00"
-  },
-  {
-    id: "preview-teacher-private",
-    organization_name: "CoreXformer Smoke Test School",
-    audience_type: "teacher",
-    product_slug: "belong-connect",
-    product_name: "Belong & Connect",
-    session_title: "Smoke Test Session",
-    facilitator_name: "Codex Smoke Test",
-    safe_space_rating: 5,
-    activity_meaning_rating: 4,
-    reflection_value_rating: 5,
-    lasting_moment: "Smoke test reflection about how quickly people opened up.",
-    teamwork_insight: "Smoke test note that reflection helped reveal how small signals affect the whole group.",
-    future_takeaway: "Smoke test takeaway to pause and notice group energy earlier.",
-    share_publicly: false,
-    display_name: null,
-    created_at: "2026-05-26T04:09:59.090333+00:00"
-  }
-];
+const LOCAL_PREVIEW_FEEDBACK_ROWS = [];
 
 initCoreXformerFeedback();
 
@@ -399,7 +326,20 @@ async function fetchFeedbackRows(supabase) {
     return [];
   }
 
-  return Array.isArray(result.data) ? result.data : [];
+  return Array.isArray(result.data) ? result.data.filter((row) => !isSmokeFeedbackRow(row)) : [];
+}
+
+function isSmokeFeedbackRow(row) {
+  const searchableText = [
+    row?.organization_name,
+    row?.display_name,
+    row?.session_title,
+    row?.facilitator_name
+  ].filter(Boolean).join(" ").toLowerCase();
+
+  return /\bsmoke\s*test\b/.test(searchableText)
+    || /\bsmoke\s*participant\b/.test(searchableText)
+    || /\bcodex\s*smoke\b/.test(searchableText);
 }
 
 function renderFeedbackLibrary(feedbackState) {
