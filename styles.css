@@ -513,33 +513,51 @@ body[data-page-slug="home"] .container {
 }
 
 .home-story-card-vision {
+  padding: 0;
+  overflow: hidden;
   background:
     radial-gradient(circle at top left, rgba(57, 94, 138, 0.16), transparent 21rem),
     linear-gradient(145deg, rgba(255, 250, 241, 0.95), rgba(236, 229, 205, 0.84));
 }
 
 .home-story-vision-body {
-  grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr);
-  align-items: center;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+  align-items: stretch;
 }
 
-.home-story-vision-copy {
-  align-content: center;
+.home-story-vision-head {
+  display: grid;
+  gap: 0.45rem;
+  padding: clamp(1.25rem, 2.4vw, 2rem) clamp(1.25rem, 3vw, 3rem);
+  text-align: center;
+  border-bottom: 1px solid rgba(47, 90, 67, 0.18);
 }
 
-.home-story-vision-copy h2 {
-  max-width: 13ch;
+.home-story-vision-head .eyebrow {
+  margin: 0;
+}
+
+.home-story-vision-head h2 {
+  max-width: 23ch;
+  margin: 0 auto;
+}
+
+.home-story-vision-head p:not(.eyebrow) {
+  max-width: 70ch;
+  margin: 0 auto;
+  font-size: 1.02rem;
+  line-height: 1.64;
 }
 
 .vision-art-card {
   position: relative;
   min-width: 0;
   margin: 0;
-  padding: clamp(0.45rem, 0.85vw, 0.75rem);
-  border-radius: calc(var(--radius-xl) + 2px);
-  background: rgba(255, 252, 244, 0.74);
-  border: 1px solid rgba(255, 255, 255, 0.82);
-  box-shadow: 0 1.25rem 3rem rgba(47, 67, 52, 0.14);
+  padding: clamp(0.8rem, 1.4vw, 1.15rem) clamp(1rem, 2.4vw, 2rem);
+  background:
+    linear-gradient(180deg, rgba(255, 252, 244, 0.38), rgba(255, 252, 244, 0.14));
 }
 
 .vision-art-card img {
@@ -547,16 +565,53 @@ body[data-page-slug="home"] .container {
   width: 100%;
   aspect-ratio: 16 / 9;
   object-fit: cover;
-  border-radius: calc(var(--radius-xl) - 4px);
+  border-radius: calc(var(--radius-xl) - 6px);
+  box-shadow: 0 1rem 2.5rem rgba(47, 67, 52, 0.16);
 }
 
-.vision-art-card figcaption {
-  margin-top: 0.65rem;
+.vision-note-strip {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.85rem;
+  padding: clamp(1rem, 1.8vw, 1.35rem) clamp(1.25rem, 3vw, 3rem);
+  border-top: 1px solid rgba(47, 90, 67, 0.18);
+  background: rgba(255, 250, 241, 0.72);
+}
+
+.vision-note-strip article {
+  min-width: 0;
+}
+
+.vision-note-strip span {
+  display: block;
   color: var(--forest);
-  font-size: 0.92rem;
-  font-weight: 800;
-  letter-spacing: 0.02em;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+}
+
+.vision-note-strip p {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.vision-note-strip a {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 3rem;
+  padding: 0.75rem 1.05rem;
+  border-radius: 999px;
+  color: #fff;
+  background: linear-gradient(135deg, #2f5a43, #3e7557);
+  font-weight: 900;
   text-align: center;
+  white-space: nowrap;
+  box-shadow: 0 0.8rem 1.6rem rgba(47, 90, 67, 0.16);
 }
 
 .home-story-grid-tight {
@@ -2828,6 +2883,19 @@ a.journey-map-card:focus-visible {
     align-items: stretch;
   }
 
+  .home-story-vision-head {
+    padding: 1.15rem 1rem;
+  }
+
+  .home-story-vision-head h2 {
+    max-width: 14ch;
+  }
+
+  .home-story-vision-head p:not(.eyebrow) {
+    font-size: 0.96rem;
+    line-height: 1.58;
+  }
+
   .home-story-card.is-active {
     display: block;
   }
@@ -2848,6 +2916,7 @@ a.journey-map-card:focus-visible {
   .home-story-primary,
   .home-story-support,
   .vision-art-card,
+  .vision-note-strip,
   .home-story-primary h2,
   .home-story-primary > p:not(.eyebrow),
   .home-story .hero-actions,
@@ -2875,12 +2944,18 @@ a.journey-map-card:focus-visible {
   }
 
   .vision-art-card {
-    order: -1;
-    padding: 0.4rem;
+    padding: 0.75rem;
   }
 
-  .vision-art-card figcaption {
-    font-size: 0.84rem;
+  .vision-note-strip {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .vision-note-strip a {
+    width: 100%;
+    white-space: normal;
   }
 
   .home-story .hero-highlights {
