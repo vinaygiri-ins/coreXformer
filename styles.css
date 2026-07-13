@@ -513,6 +513,17 @@ body[data-page-slug="home"] .container {
 }
 
 .home-story-card-vision {
+  --vision-head-padding-y: clamp(0.62rem, 0.95vw, 0.88rem);
+  --vision-head-padding-x: clamp(1.1rem, 2.6vw, 2.4rem);
+  --vision-title-size: clamp(1.35rem, 1.55vw, 1.95rem);
+  --vision-title-measure: 48ch;
+  --vision-copy-size: 0.88rem;
+  --vision-copy-line: 1.46;
+  --vision-art-height: clamp(21rem, 52svh, 36rem);
+  --vision-art-padding-y: clamp(0.45rem, 0.85vw, 0.7rem);
+  --vision-art-padding-x: clamp(0.75rem, 1.45vw, 1.2rem);
+  --vision-note-padding-y: clamp(0.5rem, 0.75vw, 0.7rem);
+  --vision-note-padding-x: clamp(1rem, 2.6vw, 2.4rem);
   padding: 0;
   overflow: hidden;
   background:
@@ -530,7 +541,7 @@ body[data-page-slug="home"] .container {
 .home-story-vision-head {
   display: grid;
   gap: 0.28rem;
-  padding: clamp(0.62rem, 0.95vw, 0.88rem) clamp(1.1rem, 2.6vw, 2.4rem);
+  padding: var(--vision-head-padding-y) var(--vision-head-padding-x);
   text-align: center;
   border-bottom: 1px solid rgba(47, 90, 67, 0.18);
 }
@@ -540,17 +551,17 @@ body[data-page-slug="home"] .container {
 }
 
 .home-story-vision-head h2 {
-  max-width: 48ch;
+  max-width: var(--vision-title-measure);
   margin: 0 auto;
-  font-size: clamp(1.35rem, 1.55vw, 1.95rem);
+  font-size: var(--vision-title-size);
   line-height: 1.1;
 }
 
 .home-story-vision-head p:not(.eyebrow) {
   max-width: 76ch;
   margin: 0 auto;
-  font-size: 0.88rem;
-  line-height: 1.46;
+  font-size: var(--vision-copy-size);
+  line-height: var(--vision-copy-line);
 }
 
 .vision-art-card {
@@ -559,7 +570,7 @@ body[data-page-slug="home"] .container {
   position: relative;
   min-width: 0;
   margin: 0;
-  padding: clamp(0.45rem, 0.85vw, 0.7rem) clamp(0.75rem, 1.45vw, 1.2rem);
+  padding: var(--vision-art-padding-y) var(--vision-art-padding-x);
   background:
     linear-gradient(180deg, rgba(255, 252, 244, 0.38), rgba(255, 252, 244, 0.14));
 }
@@ -568,7 +579,7 @@ body[data-page-slug="home"] .container {
   display: block;
   width: auto;
   max-width: 100%;
-  height: clamp(21rem, 52vh, 36rem);
+  height: var(--vision-art-height);
   object-fit: contain;
   border-radius: calc(var(--radius-xl) - 6px);
   box-shadow: 0 1rem 2.5rem rgba(47, 67, 52, 0.16);
@@ -580,7 +591,7 @@ body[data-page-slug="home"] .container {
   justify-content: center;
   align-items: center;
   gap: 0.65rem;
-  padding: clamp(0.5rem, 0.75vw, 0.7rem) clamp(1rem, 2.6vw, 2.4rem);
+  padding: var(--vision-note-padding-y) var(--vision-note-padding-x);
   border-top: 1px solid rgba(47, 90, 67, 0.18);
   background: rgba(255, 250, 241, 0.72);
 }
@@ -2715,6 +2726,28 @@ a.journey-map-card:focus-visible {
   }
 }
 
+@media (min-width: 761px) and (max-height: 840px) {
+  .home-story-card-vision {
+    --vision-head-padding-y: 0.5rem;
+    --vision-title-size: clamp(1.22rem, 1.35vw, 1.58rem);
+    --vision-copy-size: 0.78rem;
+    --vision-copy-line: 1.32;
+    --vision-art-height: clamp(17rem, 45svh, 28rem);
+    --vision-art-padding-y: 0.42rem;
+    --vision-note-padding-y: 0.42rem;
+  }
+
+  .vision-note-strip span {
+    font-size: 0.7rem;
+  }
+
+  .vision-note-strip a {
+    min-height: 2.1rem;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.82rem;
+  }
+}
+
 @media (max-width: 760px) {
   body[data-page-slug="home"] .container {
     width: min(calc(100vw - 1rem), 100%);
@@ -2890,17 +2923,17 @@ a.journey-map-card:focus-visible {
     align-items: stretch;
   }
 
-  .home-story-vision-head {
-    padding: 1.15rem 1rem;
-  }
-
-  .home-story-vision-head h2 {
-    max-width: 22ch;
-  }
-
-  .home-story-vision-head p:not(.eyebrow) {
-    font-size: 0.96rem;
-    line-height: 1.58;
+  .home-story-card-vision {
+    --vision-head-padding-y: 0.95rem;
+    --vision-head-padding-x: 1rem;
+    --vision-title-size: clamp(1.38rem, 6vw, 2rem);
+    --vision-title-measure: 22ch;
+    --vision-copy-size: 0.92rem;
+    --vision-copy-line: 1.52;
+    --vision-art-padding-y: 0.6rem;
+    --vision-art-padding-x: 0.65rem;
+    --vision-note-padding-y: 0.8rem;
+    --vision-note-padding-x: 0.85rem;
   }
 
   .home-story-card.is-active {
@@ -2950,18 +2983,15 @@ a.journey-map-card:focus-visible {
     width: 100%;
   }
 
-  .vision-art-card {
-    padding: 0.75rem;
-  }
-
   .vision-art-card img {
-    height: clamp(12.5rem, 48vw, 18rem);
+    width: 100%;
+    height: auto;
+    max-height: none;
   }
 
   .vision-note-strip {
     grid-template-columns: 1fr;
     gap: 0.75rem;
-    padding: 1rem;
   }
 
   .vision-note-strip a {
@@ -3069,5 +3099,25 @@ a.journey-map-card:focus-visible {
 
   .module-nav {
     flex-wrap: nowrap;
+  }
+}
+
+@media (max-width: 420px) {
+  .home-story-card-vision {
+    --vision-title-size: clamp(1.2rem, 5.4vw, 1.55rem);
+    --vision-copy-size: 0.86rem;
+    --vision-copy-line: 1.46;
+    --vision-head-padding-y: 0.82rem;
+    --vision-note-padding-y: 0.68rem;
+  }
+
+  .vision-note-strip span {
+    font-size: 0.68rem;
+  }
+
+  .vision-note-strip a {
+    min-height: 2.2rem;
+    padding: 0.5rem 0.8rem;
+    font-size: 0.86rem;
   }
 }
