@@ -427,7 +427,7 @@ function renderApplicationCard(application) {
           <div class="application-chip-list">${audiences}</div>
         </div>
         <div class="application-field-block">
-          <strong>Product interest</strong>
+          <strong>Program interest</strong>
           <div class="application-chip-list">${products}</div>
         </div>
       </div>

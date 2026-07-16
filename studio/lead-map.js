@@ -3851,28 +3851,28 @@ function getLeadAudienceSiteLinks(category) {
 
   const categoryLinks = {
     schools: [
-      { label: "School experiences", url: buildCorexformerSiteUrl("/products-schools.html") },
-      { label: "Belong & Connect", url: buildCorexformerSiteUrl("/product-belong-connect.html") }
+      { label: "School experiences", url: buildCorexformerSiteUrl("/programs-schools.html") },
+      { label: "Belong & Connect", url: buildCorexformerSiteUrl("/program-belong-connect.html") }
     ],
     colleges: [
-      { label: "College experiences", url: buildCorexformerSiteUrl("/products-colleges.html") },
+      { label: "College experiences", url: buildCorexformerSiteUrl("/programs-colleges.html") },
       { label: "How it works", url: buildCorexformerSiteUrl("/how-it-works.html") }
     ],
     corporates: [
-      { label: "Corporate experiences", url: buildCorexformerSiteUrl("/products-corporates.html") },
+      { label: "Corporate experiences", url: buildCorexformerSiteUrl("/programs-corporates.html") },
       { label: "Why it matters", url: buildCorexformerSiteUrl("/why-it-matters.html") }
     ],
     communities: [
-      { label: "Community experiences", url: buildCorexformerSiteUrl("/products-communities.html") },
+      { label: "Community experiences", url: buildCorexformerSiteUrl("/programs-communities.html") },
       { label: "How it works", url: buildCorexformerSiteUrl("/how-it-works.html") }
     ],
     government: [
-      { label: "Government experiences", url: buildCorexformerSiteUrl("/products-government.html") },
+      { label: "Government experiences", url: buildCorexformerSiteUrl("/programs-government.html") },
       { label: "Why it matters", url: buildCorexformerSiteUrl("/why-it-matters.html") }
     ]
   };
 
-  return [...commonLinks, ...(categoryLinks[category] || [{ label: "Products", url: buildCorexformerSiteUrl("/products.html") }])];
+  return [...commonLinks, ...(categoryLinks[category] || [{ label: "Programs", url: buildCorexformerSiteUrl("/programs.html") }])];
 }
 
 function getLeadProposalObjectives(lead) {

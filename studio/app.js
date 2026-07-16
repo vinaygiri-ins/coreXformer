@@ -63,7 +63,7 @@ const STARTER_CONTENT = [
         label: "Programs and Formats",
         type: "cards",
         sortOrder: 6,
-        eyebrow: "Products and Offerings",
+        eyebrow: "Programs and Offerings",
         heading: "Start with a clear objective, then shape the experience around your group.",
         summary: "Instead of asking every school, college, department, team, or community group to imagine the session from scratch, CoreXformer can begin with clear objective-led offerings. Each one is still adapted to your audience, your space, and the real context behind the session.",
         body: ""
@@ -333,17 +333,17 @@ The session may be short, but the learning is meant to travel into future life s
     ]
   },
   {
-    slug: "products",
-    title: "CoreXformer | Products and Offerings",
-    navLabel: "Products",
+    slug: "programs",
+    title: "CoreXformer | Programs and Offerings",
+    navLabel: "Programs",
     templateKey: "deep-dive",
-    metaTitle: "CoreXformer | Products and Offerings",
-    metaDescription: "Explore CoreXformer products and offerings across trust, communication, leadership, adaptability, alignment, reset, and conflict navigation.",
+    metaTitle: "CoreXformer | Programs and Offerings",
+    metaDescription: "Explore CoreXformer programs and offerings across trust, communication, leadership, adaptability, alignment, reset, and conflict navigation.",
     sortOrder: 4,
     sections: [
       {
         slug: "page-hero",
-        label: "Products Hero",
+        label: "Programs Hero",
         type: "page-hero",
         sortOrder: 1,
         eyebrow: "Objective-led offerings",
@@ -358,10 +358,10 @@ The session may be short, but the learning is meant to travel into future life s
         sortOrder: 2,
         eyebrow: "How To Read These Offerings",
         heading: "Start with the objective that feels most alive in your group.",
-        summary: "Explains why the products are organized by objective.",
+        summary: "Explains why the programs are organized by objective.",
         body: `CoreXformer is capable of custom design, but most institutions do not want to begin by designing everything from zero. They want an offering they can understand quickly, a likely outcome they can hold onto, and a sense of how the experience might fit their people.
 
-That is why these products are organized around objective rather than around audience alone. The same core human dynamics, such as trust, communication, leadership, adaptability, and alignment, appear across schools, colleges, corporates, government spaces, and communities in different forms.
+That is why these programs are organized around objective rather than around audience alone. The same core human dynamics, such as trust, communication, leadership, adaptability, and alignment, appear across schools, colleges, corporates, government spaces, and communities in different forms.
 
 So the page helps you choose by asking a simpler question first: what kind of shift, awareness, or team movement does your group most need right now?`
       },
@@ -386,11 +386,11 @@ So the page helps you choose by asking a simpler question first: what kind of sh
         body: ""
       },
       {
-        slug: "core-products",
-        label: "Core Products",
+        slug: "core-programs",
+        label: "Core Programs",
         type: "cards",
         sortOrder: 5,
-        eyebrow: "Core Products",
+        eyebrow: "Core Programs",
         heading: "Eight clear ways to begin the journey.",
         summary: "These offerings are designed as strong starting points across different audiences, growth stages, and team realities. Each one can be delivered as a stand-alone session or adapted into a more customized journey over time.",
         body: ""
@@ -401,7 +401,7 @@ So the page helps you choose by asking a simpler question first: what kind of sh
         type: "rich-text",
         sortOrder: 6,
         eyebrow: "Standard format",
-        heading: "The product gives clarity. The format stays flexible.",
+        heading: "The program gives clarity. The format stays flexible.",
         summary: "The offering is not locked to one exact session length. What stays consistent is the intent, the use of purposeful activity, and the reflection process that helps the learning travel beyond the session itself.",
         body: `Typical session length is around 3 hours, but shorter and longer versions can be shaped from 90 minutes to half-day. The work is best suited for groups between 8 and 40 participants and is delivered at client locations or at a mutually identified suitable venue. Audience, space, movement comfort, and facilitation tone are aligned before the session.`
       },
@@ -413,7 +413,7 @@ So the page helps you choose by asking a simpler question first: what kind of sh
         eyebrow: "Need something more specific?",
         heading: "Later, your team will also be able to build a custom journey from the website.",
         summary: "For now, these eight offerings are the clearest way to begin. Over time, CoreXformer can also invite visitors to describe their own audience, time window, challenge, and intended outcomes so a tailored journey can be reviewed for possibility and fit.",
-        body: `Until that builder is live, the easiest path is to begin with the closest product and then discuss how it may be adapted for your context, language, venue, and deeper objective.`
+        body: `Until that builder is live, the easiest path is to begin with the closest program and then discuss how it may be adapted for your context, language, venue, and deeper objective.`
       }
     ]
   },
@@ -890,7 +890,7 @@ const dom = {
   productNoteTitleInput: document.getElementById("productNoteTitleInput"),
   productNoteScopeInput: document.getElementById("productNoteScopeInput"),
   productNoteBodyInput: document.getElementById("productNoteBodyInput"),
-  saveProductNoteButton: document.getElementById("saveProductNoteButton"),
+  saveProgramNoteButton: document.getElementById("saveProgramNoteButton"),
   productOpsMessage: document.getElementById("productOpsMessage"),
   productFeedbackCount: document.getElementById("productFeedbackCount"),
   productFeedbackShareable: document.getElementById("productFeedbackShareable"),
@@ -903,11 +903,11 @@ const dom = {
   productThreadStatusInput: document.getElementById("productThreadStatusInput"),
   productThreadTitleInput: document.getElementById("productThreadTitleInput"),
   productThreadBodyInput: document.getElementById("productThreadBodyInput"),
-  saveProductThreadButton: document.getElementById("saveProductThreadButton"),
+  saveProgramThreadButton: document.getElementById("saveProgramThreadButton"),
   productCommentList: document.getElementById("productCommentList"),
   productCommentEmptyState: document.getElementById("productCommentEmptyState"),
   productCommentInput: document.getElementById("productCommentInput"),
-  saveProductCommentButton: document.getElementById("saveProductCommentButton"),
+  saveProgramCommentButton: document.getElementById("saveProgramCommentButton"),
   sessionRoomMeta: document.getElementById("sessionRoomMeta"),
   sessionPostTypeInput: document.getElementById("sessionPostTypeInput"),
   sessionPostTitleInput: document.getElementById("sessionPostTitleInput"),
@@ -945,7 +945,7 @@ const state = {
     closed: 0
   },
   productOps: {
-    selectedProductSlug: PRODUCT_LIBRARY[0].slug,
+    selectedProgramSlug: PRODUCT_LIBRARY[0].slug,
     facilitators: [],
     selectedFacilitatorId: "",
     creatingFacilitator: false,
@@ -960,7 +960,7 @@ const state = {
   collaboration: {
     isAvailable: true,
     availabilityMessage: "",
-    selectedProductThreadId: "",
+    selectedProgramThreadId: "",
     productThreads: [],
     productComments: [],
     sessionPosts: [],
@@ -1048,16 +1048,16 @@ function bindEvents() {
   });
 
   dom.productSelector?.addEventListener("change", () => {
-    state.productOps.selectedProductSlug = dom.productSelector.value;
+    state.productOps.selectedProgramSlug = dom.productSelector.value;
     clearMessage(dom.productOpsMessage);
-    void loadProductOpsData();
+    void loadProgramOpsData();
   });
 
   dom.facilitatorProfileSelect?.addEventListener("change", () => {
     state.productOps.selectedFacilitatorId = dom.facilitatorProfileSelect.value;
     state.productOps.creatingFacilitator = !state.productOps.selectedFacilitatorId;
     clearMessage(dom.productOpsMessage);
-    void loadProductOpsData();
+    void loadProgramOpsData();
   });
 
   dom.newFacilitatorButton?.addEventListener("click", () => {
@@ -1068,19 +1068,19 @@ function bindEvents() {
   });
 
   dom.saveFacilitatorButton?.addEventListener("click", () => {
-    void saveProductFacilitator();
+    void saveProgramFacilitator();
   });
 
-  dom.saveProductNoteButton?.addEventListener("click", () => {
-    void saveProductNote();
+  dom.saveProgramNoteButton?.addEventListener("click", () => {
+    void saveProgramNote();
   });
 
-  dom.saveProductThreadButton?.addEventListener("click", () => {
-    void saveProductThread();
+  dom.saveProgramThreadButton?.addEventListener("click", () => {
+    void saveProgramThread();
   });
 
-  dom.saveProductCommentButton?.addEventListener("click", () => {
-    void saveProductComment();
+  dom.saveProgramCommentButton?.addEventListener("click", () => {
+    void saveProgramComment();
   });
 
   dom.saveSessionPostButton?.addEventListener("click", () => {
@@ -1141,7 +1141,7 @@ async function handleSession(session) {
       return;
     }
 
-    await Promise.all([loadPages(), loadInquiryCounts(), loadProductOpsData()]);
+    await Promise.all([loadPages(), loadInquiryCounts(), loadProgramOpsData()]);
     clearMessage(dom.authMessage);
     setAuthState(buildAuthSummary());
   } catch (error) {
@@ -1338,8 +1338,8 @@ async function loadInquiryCounts() {
   state.inquiryCounts = counts;
 }
 
-async function loadProductOpsData() {
-  const product = getSelectedProduct();
+async function loadProgramOpsData() {
+  const product = getSelectedProgram();
 
   state.productOps.facilitators = [];
   state.productOps.facilitatorProfile = null;
@@ -1454,15 +1454,15 @@ async function loadProductOpsData() {
     await loadCollaborationData();
     clearMessage(dom.productOpsMessage);
   } catch (error) {
-    showMessage(dom.productOpsMessage, error.message || "The product operations data could not be loaded yet.", "error");
+    showMessage(dom.productOpsMessage, error.message || "The program operations data could not be loaded yet.", "error");
   } finally {
     setBusy("productOps", false);
   }
 }
 
 async function loadCollaborationData() {
-  const product = getSelectedProduct();
-  const previouslySelectedThreadId = state.collaboration.selectedProductThreadId;
+  const product = getSelectedProgram();
+  const previouslySelectedThreadId = state.collaboration.selectedProgramThreadId;
 
   resetCollaborationState();
 
@@ -1516,16 +1516,16 @@ async function loadCollaborationData() {
       && state.collaboration.productThreads.some((thread) => thread.id === previouslySelectedThreadId);
 
     if (!validSelectedThread) {
-      state.collaboration.selectedProductThreadId = state.collaboration.productThreads[0]?.id || "";
+      state.collaboration.selectedProgramThreadId = state.collaboration.productThreads[0]?.id || "";
     } else {
-      state.collaboration.selectedProductThreadId = previouslySelectedThreadId;
+      state.collaboration.selectedProgramThreadId = previouslySelectedThreadId;
     }
 
-    if (state.collaboration.selectedProductThreadId) {
+    if (state.collaboration.selectedProgramThreadId) {
       const { data: commentData, error: commentError } = await state.supabase
         .from("product_discussion_comments")
         .select("id, thread_id, body, author_name, created_at, updated_at")
-        .eq("thread_id", state.collaboration.selectedProductThreadId)
+        .eq("thread_id", state.collaboration.selectedProgramThreadId)
         .order("created_at", { ascending: true });
 
       if (commentError) {
@@ -1548,9 +1548,9 @@ async function loadCollaborationData() {
   }
 }
 
-async function saveProductThread() {
+async function saveProgramThread() {
   if (!canEdit()) {
-    showMessage(dom.collaborationMessage, "Only owner or editor accounts can open product discussions right now.", "error");
+    showMessage(dom.collaborationMessage, "Only owner or editor accounts can open program discussions right now.", "error");
     return;
   }
 
@@ -1558,12 +1558,12 @@ async function saveProductThread() {
     return;
   }
 
-  const product = getSelectedProduct();
+  const product = getSelectedProgram();
   const title = dom.productThreadTitleInput.value.trim();
   const body = dom.productThreadBodyInput.value.trim();
 
   if (!product) {
-    showMessage(dom.collaborationMessage, "Choose a product before starting a product-room discussion.", "error");
+    showMessage(dom.collaborationMessage, "Choose a program before starting a program-room discussion.", "error");
     return;
   }
 
@@ -1573,7 +1573,7 @@ async function saveProductThread() {
   }
 
   setBusy("collaboration", true);
-  showMessage(dom.collaborationMessage, `Opening a product-room thread for ${product.name}...`);
+  showMessage(dom.collaborationMessage, `Opening a program-room thread for ${product.name}...`);
 
   const payload = {
     product_slug: product.slug,
@@ -1604,19 +1604,19 @@ async function saveProductThread() {
     return;
   }
 
-  state.collaboration.selectedProductThreadId = data?.id || "";
+  state.collaboration.selectedProgramThreadId = data?.id || "";
   dom.productThreadTitleInput.value = "";
   dom.productThreadBodyInput.value = "";
   dom.productThreadCategoryInput.value = "field_learning";
   dom.productThreadStatusInput.value = "open";
 
   await loadCollaborationData();
-  showMessage(dom.collaborationMessage, `The discussion thread for ${product.name} is now live in the product room.`, "success");
+  showMessage(dom.collaborationMessage, `The discussion thread for ${product.name} is now live in the program room.`, "success");
 }
 
-async function saveProductComment() {
+async function saveProgramComment() {
   if (!canEdit()) {
-    showMessage(dom.collaborationMessage, "Only owner or editor accounts can add product-room comments right now.", "error");
+    showMessage(dom.collaborationMessage, "Only owner or editor accounts can add program-room comments right now.", "error");
     return;
   }
 
@@ -1624,11 +1624,11 @@ async function saveProductComment() {
     return;
   }
 
-  const threadId = state.collaboration.selectedProductThreadId;
+  const threadId = state.collaboration.selectedProgramThreadId;
   const body = dom.productCommentInput.value.trim();
 
   if (!threadId) {
-    showMessage(dom.collaborationMessage, "Choose a product thread before adding a comment.", "error");
+    showMessage(dom.collaborationMessage, "Choose a program thread before adding a comment.", "error");
     return;
   }
 
@@ -1638,7 +1638,7 @@ async function saveProductComment() {
   }
 
   setBusy("collaboration", true);
-  showMessage(dom.collaborationMessage, "Adding the next product-room comment...");
+  showMessage(dom.collaborationMessage, "Adding the next program-room comment...");
 
   const { error: commentError } = await state.supabase
     .from("product_discussion_comments")
@@ -1680,7 +1680,7 @@ async function saveProductComment() {
 
   dom.productCommentInput.value = "";
   await loadCollaborationData();
-  showMessage(dom.collaborationMessage, "The comment was added to the selected product thread.", "success");
+  showMessage(dom.collaborationMessage, "The comment was added to the selected program thread.", "success");
 }
 
 async function saveSessionPost() {
@@ -1693,7 +1693,7 @@ async function saveSessionPost() {
     return;
   }
 
-  const product = getSelectedProduct();
+  const product = getSelectedProgram();
   const sessionRun = state.productOps.sessionRun;
   const body = dom.sessionPostBodyInput.value.trim();
 
@@ -1940,23 +1940,23 @@ async function importStarterContent() {
   }
 }
 
-async function saveProductFacilitator() {
+async function saveProgramFacilitator() {
   if (!canEdit()) {
     showMessage(dom.productOpsMessage, "Only owner or editor accounts can save facilitator assignments.", "error");
     return;
   }
 
-  const product = getSelectedProduct();
+  const product = getSelectedProgram();
 
   if (!product) {
-    showMessage(dom.productOpsMessage, "Choose a product before saving facilitator details.", "error");
+    showMessage(dom.productOpsMessage, "Choose a program before saving facilitator details.", "error");
     return;
   }
 
   const facilitatorName = dom.facilitatorNameInput.value.trim();
 
   if (!facilitatorName) {
-    showMessage(dom.productOpsMessage, "Add the facilitator name before saving this product assignment.", "error");
+    showMessage(dom.productOpsMessage, "Add the facilitator name before saving this program assignment.", "error");
     return;
   }
 
@@ -2131,7 +2131,7 @@ async function saveProductFacilitator() {
       userId
     });
 
-    await loadProductOpsData();
+    await loadProgramOpsData();
     showMessage(dom.productOpsMessage, `Facilitator setup for ${product.name} was saved successfully.`, "success");
   } catch (error) {
     showMessage(dom.productOpsMessage, error.message || "The facilitator setup could not be saved.", "error");
@@ -2140,16 +2140,16 @@ async function saveProductFacilitator() {
   }
 }
 
-async function saveProductNote() {
+async function saveProgramNote() {
   if (!canEdit()) {
-    showMessage(dom.productOpsMessage, "Only owner or editor accounts can save private product notes.", "error");
+    showMessage(dom.productOpsMessage, "Only owner or editor accounts can save private program notes.", "error");
     return;
   }
 
-  const product = getSelectedProduct();
+  const product = getSelectedProgram();
 
   if (!product) {
-    showMessage(dom.productOpsMessage, "Choose a product before saving private notes.", "error");
+    showMessage(dom.productOpsMessage, "Choose a program before saving private notes.", "error");
     return;
   }
 
@@ -2188,7 +2188,7 @@ async function saveProductNote() {
     return;
   }
 
-  await loadProductOpsData();
+  await loadProgramOpsData();
   showMessage(dom.productOpsMessage, `Private notes for ${product.name} were saved successfully.`, "success");
 }
 
@@ -2288,8 +2288,8 @@ function renderStudio() {
   renderPageList();
   renderSectionList();
   renderEditor();
-  renderProductOps();
-  renderProductFeedback();
+  renderProgramOps();
+  renderProgramFeedback();
   renderCollaboration();
   renderInquiryCounts();
 }
@@ -2447,11 +2447,11 @@ function renderEditor() {
   }
 }
 
-function renderProductOps() {
-  renderProductSelectorOptions();
+function renderProgramOps() {
+  renderProgramSelectorOptions();
   renderFacilitatorProfileOptions();
 
-  const selectedProduct = getSelectedProduct();
+  const selectedProgram = getSelectedProgram();
   const profile = getSelectedFacilitatorProfile();
   const link = state.productOps.productLink;
   const sessionRun = state.productOps.sessionRun;
@@ -2464,8 +2464,8 @@ function renderProductOps() {
   const editable = canEdit();
   const disabled = !editable || state.busy.productOps;
 
-  if (dom.productSelector && selectedProduct && dom.productSelector.value !== selectedProduct.slug) {
-    dom.productSelector.value = selectedProduct.slug;
+  if (dom.productSelector && selectedProgram && dom.productSelector.value !== selectedProgram.slug) {
+    dom.productSelector.value = selectedProgram.slug;
   }
 
   dom.productSelector.disabled = !editable;
@@ -2495,7 +2495,7 @@ function renderProductOps() {
   dom.productNoteTitleInput.disabled = disabled;
   dom.productNoteScopeInput.disabled = disabled;
   dom.productNoteBodyInput.disabled = disabled;
-  dom.saveProductNoteButton.disabled = disabled;
+  dom.saveProgramNoteButton.disabled = disabled;
 
   dom.facilitatorNameInput.value = profile?.full_name || "";
   dom.facilitatorDisplayNameInput.value = profile?.display_name || "";
@@ -2523,7 +2523,7 @@ function renderProductOps() {
   dom.productNoteBodyInput.value = note?.note_body || "";
 }
 
-function renderProductSelectorOptions() {
+function renderProgramSelectorOptions() {
   if (!dom.productSelector || dom.productSelector.dataset.optionsReady === "true") {
     return;
   }
@@ -2552,7 +2552,7 @@ function renderFacilitatorProfileOptions() {
   dom.facilitatorProfileSelect.value = state.productOps.selectedFacilitatorId || "";
 }
 
-function renderProductFeedback() {
+function renderProgramFeedback() {
   const feedbackRows = state.productOps.feedbackRows;
   const shareableCount = feedbackRows.filter((row) => row.share_publicly).length;
   const latestDate = feedbackRows[0]?.created_at ? new Date(feedbackRows[0].created_at) : null;
@@ -2602,9 +2602,9 @@ function renderCollaboration() {
   dom.productThreadStatusInput.disabled = disabled;
   dom.productThreadTitleInput.disabled = disabled;
   dom.productThreadBodyInput.disabled = disabled;
-  dom.saveProductThreadButton.disabled = disabled;
-  dom.productCommentInput.disabled = disabled || !state.collaboration.selectedProductThreadId;
-  dom.saveProductCommentButton.disabled = disabled || !state.collaboration.selectedProductThreadId;
+  dom.saveProgramThreadButton.disabled = disabled;
+  dom.productCommentInput.disabled = disabled || !state.collaboration.selectedProgramThreadId;
+  dom.saveProgramCommentButton.disabled = disabled || !state.collaboration.selectedProgramThreadId;
   dom.sessionPostTypeInput.disabled = disabled || !sessionRun?.id;
   dom.sessionPostTitleInput.disabled = disabled || !sessionRun?.id;
   dom.sessionPostBodyInput.disabled = disabled || !sessionRun?.id;
@@ -2615,13 +2615,13 @@ function renderCollaboration() {
   dom.commonsPinnedInput.disabled = disabled;
   dom.saveCommonsPostButton.disabled = disabled;
 
-  renderProductThreads();
-  renderProductComments();
+  renderProgramThreads();
+  renderProgramComments();
   renderSessionRoom();
   renderCommonsFeed();
 }
 
-function renderProductThreads() {
+function renderProgramThreads() {
   const threads = state.collaboration.productThreads;
   dom.productThreadList.innerHTML = "";
 
@@ -2633,26 +2633,26 @@ function renderProductThreads() {
   }
 
   dom.productThreadEmptyState.classList.toggle("hidden", threads.length > 0);
-  dom.productThreadEmptyState.querySelector("h3").textContent = "No product discussions yet";
-  dom.productThreadEmptyState.querySelector("p").textContent = "Start the first internal discussion for this product and build reusable knowledge from the field.";
+  dom.productThreadEmptyState.querySelector("h3").textContent = "No program discussions yet";
+  dom.productThreadEmptyState.querySelector("p").textContent = "Start the first internal discussion for this program and build reusable knowledge from the field.";
 
   threads.forEach((thread) => {
     const button = document.createElement("button");
     button.type = "button";
-    button.className = `thread-card${thread.id === state.collaboration.selectedProductThreadId ? " is-active" : ""}`;
+    button.className = `thread-card${thread.id === state.collaboration.selectedProgramThreadId ? " is-active" : ""}`;
     button.innerHTML = `
       <div class="thread-card-head">
         <div>
           <h3>${escapeHtml(thread.title)}</h3>
-          <p class="thread-card-meta">${escapeHtml(formatProductThreadMeta(thread))}</p>
+          <p class="thread-card-meta">${escapeHtml(formatProgramThreadMeta(thread))}</p>
         </div>
-        <span class="status-pill">${escapeHtml(humanizeProductThreadStatus(thread.status))}</span>
+        <span class="status-pill">${escapeHtml(humanizeProgramThreadStatus(thread.status))}</span>
       </div>
       <p class="thread-card-copy">${escapeHtml(thread.body)}</p>
     `;
 
     button.addEventListener("click", () => {
-      state.collaboration.selectedProductThreadId = thread.id;
+      state.collaboration.selectedProgramThreadId = thread.id;
       void loadCollaborationData();
     });
 
@@ -2660,15 +2660,15 @@ function renderProductThreads() {
   });
 }
 
-function renderProductComments() {
+function renderProgramComments() {
   const comments = state.collaboration.productComments;
-  const hasThread = Boolean(state.collaboration.selectedProductThreadId);
+  const hasThread = Boolean(state.collaboration.selectedProgramThreadId);
 
   dom.productCommentList.innerHTML = "";
 
   if (!state.collaboration.isAvailable) {
     dom.productCommentEmptyState.classList.remove("hidden");
-    dom.productCommentEmptyState.querySelector("h3").textContent = "Product-room comments are waiting on activation";
+    dom.productCommentEmptyState.querySelector("h3").textContent = "Program-room comments are waiting on activation";
     dom.productCommentEmptyState.querySelector("p").textContent = state.collaboration.availabilityMessage;
     return;
   }
@@ -2678,7 +2678,7 @@ function renderProductComments() {
   if (!hasThread) {
     dom.productCommentEmptyState.classList.remove("hidden");
     dom.productCommentEmptyState.querySelector("h3").textContent = "Choose a thread first";
-    dom.productCommentEmptyState.querySelector("p").textContent = "Select a product-room discussion above to read or add comments.";
+    dom.productCommentEmptyState.querySelector("p").textContent = "Select a program-room discussion above to read or add comments.";
     return;
   }
 
@@ -2731,12 +2731,12 @@ function renderSessionRoom() {
   if (!sessionRun) {
     dom.sessionPostEmptyState.classList.remove("hidden");
     dom.sessionPostEmptyState.querySelector("h3").textContent = "No session selected yet";
-    dom.sessionPostEmptyState.querySelector("p").textContent = "Create or save a session assignment in Product operations first. Then the session room can hold prep and debrief collaboration.";
+    dom.sessionPostEmptyState.querySelector("p").textContent = "Create or save a session assignment in Program operations first. Then the session room can hold prep and debrief collaboration.";
     return;
   }
 
   dom.sessionPostEmptyState.querySelector("h3").textContent = "No session-room notes yet";
-  dom.sessionPostEmptyState.querySelector("p").textContent = "Once a session is created for this product, preparation and debrief notes will collect here.";
+  dom.sessionPostEmptyState.querySelector("p").textContent = "Once a session is created for this program, preparation and debrief notes will collect here.";
 
   posts.forEach((post) => {
     const article = document.createElement("article");
@@ -2813,8 +2813,8 @@ function getCurrentSection() {
   return getCurrentPage()?.sections?.[state.currentSectionIndex] || null;
 }
 
-function getSelectedProduct() {
-  return PRODUCT_LIBRARY.find((product) => product.slug === state.productOps.selectedProductSlug) || PRODUCT_LIBRARY[0];
+function getSelectedProgram() {
+  return PRODUCT_LIBRARY.find((product) => product.slug === state.productOps.selectedProgramSlug) || PRODUCT_LIBRARY[0];
 }
 
 function getSelectedFacilitatorProfile() {
@@ -2989,7 +2989,7 @@ function buildAuthorName() {
 function resetCollaborationState() {
   state.collaboration.isAvailable = true;
   state.collaboration.availabilityMessage = "";
-  state.collaboration.selectedProductThreadId = "";
+  state.collaboration.selectedProgramThreadId = "";
   state.collaboration.productThreads = [];
   state.collaboration.productComments = [];
   state.collaboration.sessionPosts = [];
@@ -3008,7 +3008,7 @@ function ensureCollaborationWorkspaceEnabled() {
 function setCollaborationUnavailable() {
   state.collaboration.isAvailable = false;
   state.collaboration.availabilityMessage = collaborationUnavailableMessage();
-  state.collaboration.selectedProductThreadId = "";
+  state.collaboration.selectedProgramThreadId = "";
   state.collaboration.productThreads = [];
   state.collaboration.productComments = [];
   state.collaboration.sessionPosts = [];
@@ -3051,8 +3051,8 @@ function formatDateTimeMeta(value) {
   return formatShortDateTime(new Date(value));
 }
 
-function formatProductThreadMeta(thread) {
-  const category = humanizeProductThreadCategory(thread.category);
+function formatProgramThreadMeta(thread) {
+  const category = humanizeProgramThreadCategory(thread.category);
   const author = normalizeValue(thread.author_name) || "CoreXformer team";
   return `${category} · ${author} · ${formatDateTimeMeta(thread.updated_at || thread.created_at)}`;
 }
@@ -3086,7 +3086,7 @@ function formatSessionRoomMeta(sessionRun) {
   return parts.join(" · ");
 }
 
-function humanizeProductThreadCategory(category) {
+function humanizeProgramThreadCategory(category) {
   switch (category) {
     case "field_learning":
       return "Field learning";
@@ -3103,7 +3103,7 @@ function humanizeProductThreadCategory(category) {
   }
 }
 
-function humanizeProductThreadStatus(status) {
+function humanizeProgramThreadStatus(status) {
   switch (status) {
     case "open":
       return "Open";

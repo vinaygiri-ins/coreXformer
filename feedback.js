@@ -69,7 +69,7 @@ const FEEDBACK_AUDIENCE_LIBRARY = {
     title: "Reflections from school sessions.",
     summary:
       "Responses shared by school participants after CoreXformer sessions.",
-    pageHref: "products-schools.html",
+    pageHref: "programs-schools.html",
     pageLabel: "Explore school experiences"
   },
   college: {
@@ -77,7 +77,7 @@ const FEEDBACK_AUDIENCE_LIBRARY = {
     title: "Reflections from college sessions.",
     summary:
       "Responses shared by college participants around belonging, behavior, goals, and group life.",
-    pageHref: "products-colleges.html",
+    pageHref: "programs-colleges.html",
     pageLabel: "Explore college experiences"
   },
   corporate: {
@@ -85,7 +85,7 @@ const FEEDBACK_AUDIENCE_LIBRARY = {
     title: "Reflections from corporate sessions.",
     summary:
       "Responses shared by workplace teams around communication, ownership, collaboration, and leadership.",
-    pageHref: "products-corporates.html",
+    pageHref: "programs-corporates.html",
     pageLabel: "Explore corporate experiences"
   },
   teacher: {
@@ -93,7 +93,7 @@ const FEEDBACK_AUDIENCE_LIBRARY = {
     title: "Reflections from teacher groups.",
     summary:
       "Responses shared by teacher groups around classroom presence, connection, and shared educational purpose.",
-    pageHref: "products-teachers.html",
+    pageHref: "programs-teachers.html",
     pageLabel: "Explore teacher experiences"
   },
   community: {
@@ -101,7 +101,7 @@ const FEEDBACK_AUDIENCE_LIBRARY = {
     title: "Reflections from community sessions.",
     summary:
       "Responses shared by community groups around trust, dialogue, belonging, and participation.",
-    pageHref: "products-communities.html",
+    pageHref: "programs-communities.html",
     pageLabel: "Explore community experiences"
   },
   government: {
@@ -109,7 +109,7 @@ const FEEDBACK_AUDIENCE_LIBRARY = {
     title: "Reflections from government teams.",
     summary:
       "Responses shared by public teams around collaboration, responsibility, coordination, and human response inside institutions.",
-    pageHref: "products-government.html",
+    pageHref: "programs-government.html",
     pageLabel: "Explore government experiences"
   },
   all: {

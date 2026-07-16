@@ -17,7 +17,7 @@ const ACCESS_COPY = {
     sign_in: {
       label: "Facilitator access",
       heading: "Facilitator sign in",
-      note: "Sign in with your facilitator credentials to enter the private workspace for onboarding, assigned products, sessions, and collaboration. For privacy, studio access now ends after inactivity or when the browser tab is closed, so password entry is required again.",
+      note: "Sign in with your facilitator credentials to enter the private workspace for onboarding, assigned programs, sessions, and collaboration. For privacy, studio access now ends after inactivity or when the browser tab is closed, so password entry is required again.",
       emailPlaceholder: "facilitator@corexformer.com",
       state: "Signed out. Use your email and password to enter the private studio.",
       progress: "Signing you into the facilitator workspace...",

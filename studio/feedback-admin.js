@@ -560,7 +560,7 @@ function renderFeedbackAdminOverview() {
       {
         title: "How groups are built",
         meta: "Session or batch clustering",
-        copy: "Feedback responses are grouped by session run when available, or by the closest matching batch details such as session title, organization, facilitator, product, and date."
+        copy: "Feedback responses are grouped by session run when available, or by the closest matching batch details such as session title, organization, facilitator, program, and date."
       },
       {
         title: "Current received window",
@@ -674,7 +674,7 @@ function renderFeedbackAdminSessionDetail() {
       <div class="detail-list feedback-admin-detail-list">
         ${renderFeedbackAdminDetailRow("Organization", group.organizationName || "Not added")}
         ${renderFeedbackAdminDetailRow("Audience", humanizeFeedbackAdminAudience(group.audienceType) || "Mixed group")}
-        ${renderFeedbackAdminDetailRow("Product", group.productName || "Not linked")}
+        ${renderFeedbackAdminDetailRow("Program", group.productName || "Not linked")}
         ${renderFeedbackAdminDetailRow("Facilitator", group.facilitatorName || "Not added")}
         ${renderFeedbackAdminDetailRow("Session date", group.sessionDate ? formatFeedbackAdminDate(group.sessionDate) : "Not added")}
         ${renderFeedbackAdminDetailRow("Latest submission", formatFeedbackAdminDateTime(group.lastSubmittedAt))}
@@ -969,7 +969,7 @@ function appendFeedbackAdminGroupPdf(state, group, options = {}) {
   writeFeedbackAdminPdfSection(state, "Session summary");
   writeFeedbackAdminPdfBullet(state, `Organization: ${group.organizationName || "Not added"}`);
   writeFeedbackAdminPdfBullet(state, `Audience: ${humanizeFeedbackAdminAudience(group.audienceType) || "Mixed group"}`);
-  writeFeedbackAdminPdfBullet(state, `Product: ${group.productName || "Not linked"}`);
+  writeFeedbackAdminPdfBullet(state, `Program: ${group.productName || "Not linked"}`);
   writeFeedbackAdminPdfBullet(state, `Facilitator: ${group.facilitatorName || "Not added"}`);
   writeFeedbackAdminPdfBullet(state, `Session date: ${group.sessionDate ? formatFeedbackAdminDate(group.sessionDate) : "Not added"}`);
   writeFeedbackAdminPdfBullet(state, `Responses in this file: ${group.responseCount}`);

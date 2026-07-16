@@ -14,8 +14,8 @@ const JOURNEY_STEPS = [
   },
   {
     key: "product_path",
-    title: "Product familiarization",
-    summary: "The facilitator starts mapping which products they are interested in, shadowing, or approved for."
+    title: "Program familiarization",
+    summary: "The facilitator starts mapping which programs they are interested in, shadowing, or approved for."
   },
   {
     key: "shadowing",
@@ -25,7 +25,7 @@ const JOURNEY_STEPS = [
   {
     key: "approval",
     title: "Approval into live work",
-    summary: "The facilitator becomes approved and then active for selected products and real session assignments."
+    summary: "The facilitator becomes approved and then active for selected programs and real session assignments."
   }
 ];
 
@@ -33,7 +33,7 @@ const FOUNDATION_POINTS = [
   "Hold a safe, non-judgmental space before trying to extract learning.",
   "Let reflection grow from the participant's own experience rather than forcing conclusions.",
   "Notice emotions, behavior, and group patterns without shaming or rushing people.",
-  "Treat every product as a living practice that can deepen through field learning.",
+  "Treat every program as a living practice that can deepen through field learning.",
   "Care for the objective, the people, and the integrity of the process at the same time."
 ];
 
@@ -361,9 +361,9 @@ async function loadWorkspaceData() {
 
     state.productLinks = Array.isArray(linkResult.data) ? linkResult.data : [];
 
-    const allowedProductSlugs = new Set(state.productLinks.map((link) => link.product_slug));
+    const allowedProgramSlugs = new Set(state.productLinks.map((link) => link.product_slug));
     state.productNotes = (Array.isArray(noteResult.data) ? noteResult.data : [])
-      .filter((note) => allowedProductSlugs.has(note.product_slug));
+      .filter((note) => allowedProgramSlugs.has(note.product_slug));
 
     const assignments = Array.isArray(assignmentResult.data) ? assignmentResult.data : [];
     const sessionRunIds = assignments.map((row) => row.session_run_id).filter(Boolean);
@@ -389,7 +389,7 @@ async function loadWorkspaceData() {
       }))
       .sort(compareAssignments);
 
-    await loadCollaborationSummaries(allowedProductSlugs, sessionRunIds);
+    await loadCollaborationSummaries(allowedProgramSlugs, sessionRunIds);
     clearMessage(dom.workspaceMessage);
   } finally {
     setBusy("data", false);
@@ -423,14 +423,14 @@ async function loadFacilitatorProfiles() {
   return Array.isArray(data) ? data : [];
 }
 
-async function loadCollaborationSummaries(allowedProductSlugs, sessionRunIds) {
+async function loadCollaborationSummaries(allowedProgramSlugs, sessionRunIds) {
   state.collaboration.isAvailable = true;
   state.collaboration.availabilityMessage = "";
   state.productThreads = [];
   state.sessionPosts = [];
   state.commonsPosts = [];
 
-  const productSlugList = Array.from(allowedProductSlugs);
+  const productSlugList = Array.from(allowedProgramSlugs);
 
   try {
     const [threadResult, commonsResult, sessionPostResult] = await Promise.all([
@@ -513,13 +513,13 @@ function renderWorkspace() {
   renderJourneyStats();
   renderProfileDetails();
   renderOnboardingChecklist();
-  renderProductPath();
+  renderProgramPath();
   renderJourneyNextStep();
   renderCandidateActionPlan();
   renderWorkStats();
   renderSessionBrief();
   renderSessionList();
-  renderProductNotes();
+  renderProgramNotes();
   renderCollaborationSummary();
   renderCommonsFeed();
 
@@ -569,7 +569,7 @@ function renderIdentity() {
   const bio = escapeHtml(normalizeValue(state.activeFacilitator.public_bio_short) || "No public-facing facilitator introduction has been written yet.");
   const rolePill = isCandidateView() ? "Candidate onboarding" : role;
   const bioCopy = isCandidateView()
-    ? "This account is in the onboarding-side facilitator journey. The main focus right now is profile, foundations, and product-path readiness before live work expands."
+    ? "This account is in the onboarding-side facilitator journey. The main focus right now is profile, foundations, and program-path readiness before live work expands."
     : bio;
 
   dom.facilitatorIdentity.innerHTML = `
@@ -615,7 +615,7 @@ function renderCandidateWelcome() {
       <h3>${name}, this stage is about readiness, not rush.</h3>
       <p>
         You are inside the private facilitator workspace as a candidate. Right now the goal is to complete your
-        onboarding, understand how CoreXformer works, and begin a thoughtful product path before live delivery opens up.
+        onboarding, understand how CoreXformer works, and begin a thoughtful program path before live delivery opens up.
       </p>
     </div>
     <div class="candidate-welcome-meta">
@@ -652,12 +652,12 @@ function renderCandidateAccessMap() {
     {
       label: "Available now",
       state: "Open",
-      copy: "My Journey, profile details, CoreXformer foundations, your first product path, and onboarding guidance."
+      copy: "My Journey, profile details, CoreXformer foundations, your first program path, and onboarding guidance."
     },
     {
       label: "Opens with shadowing",
       state: "Next",
-      copy: "Product-specific notes, guided observation, product-room context, and supported learning from real sessions."
+      copy: "Program-specific notes, guided observation, program-room context, and supported learning from real sessions."
     },
     {
       label: "Opens after approval",
@@ -690,7 +690,7 @@ function renderJourneyStats() {
   dom.journeyStats.innerHTML = [
     renderMetricCard("Status", statusLabel, state.activeFacilitator ? "Current placement in the facilitator lifecycle." : "Sign in and connect a facilitator record first."),
     renderMetricCard("Availability", state.activeFacilitator ? humanizeAvailability(state.activeFacilitator.availability_status) : "Unknown", state.activeFacilitator ? "What scheduling currently looks like for this facilitator." : "Availability appears after the facilitator record is ready."),
-    renderMetricCard("Approved products", String(approvedCount), approvedCount ? "Products this facilitator can currently hold with confidence." : "Approved product readiness will gather here."),
+    renderMetricCard("Approved programs", String(approvedCount), approvedCount ? "Programs this facilitator can currently hold with confidence." : "Approved program readiness will gather here."),
     renderMetricCard("Next step", nextStep, shadowingCount ? "The next growth move comes from current shadowing and approval signals." : "Use this to orient the facilitator toward their next development action.")
   ].join("");
 }
@@ -736,7 +736,7 @@ function renderOnboardingChecklist() {
   `)).join("");
 }
 
-function renderProductPath() {
+function renderProgramPath() {
   const groups = [
     { key: "interested", label: "Interested" },
     { key: "shadowing", label: "Shadowing" },
@@ -745,7 +745,7 @@ function renderProductPath() {
   ];
 
   dom.productPathGrid.innerHTML = groups.map((group) => {
-    const items = getProductPathItems(group.key);
+    const items = getProgramPathItems(group.key);
     return `
       <div class="path-column">
         <div class="path-column-head">
@@ -754,8 +754,8 @@ function renderProductPath() {
         </div>
         ${items.length ? items.map((item) => `
           <article class="path-card">
-            <h4>${escapeHtml(item.product_name || humanizeProductSlug(item.product_slug))}</h4>
-            <p>${escapeHtml(buildProductPathMeta(item))}</p>
+            <h4>${escapeHtml(item.product_name || humanizeProgramSlug(item.product_slug))}</h4>
+            <p>${escapeHtml(buildProgramPathMeta(item))}</p>
           </article>
         `).join("") : `<div class="empty-inline">Nothing in this lane yet.</div>`}
       </div>
@@ -797,15 +797,15 @@ function renderCandidateActionPlan() {
 
 function renderWorkStats() {
   const upcoming = getUpcomingAssignments();
-  const activeProducts = state.productLinks.filter((link) => link.is_active_for_scheduling).length;
+  const activePrograms = state.productLinks.filter((link) => link.is_active_for_scheduling).length;
   const leadRoles = state.productLinks.filter((link) => link.delivery_role === "lead_facilitator").length;
   const collaborationLabel = state.collaboration.isAvailable ? "Live" : "Staged";
 
   dom.workStats.innerHTML = [
     renderMetricCard("Upcoming sessions", String(upcoming.length), upcoming.length ? "Assigned work that still needs preparation or delivery attention." : "No live delivery work has been attached yet."),
-    renderMetricCard("Active products", String(activeProducts), activeProducts ? "Products currently marked as schedulable for this facilitator." : "Scheduling-ready products will appear here."),
-    renderMetricCard("Lead roles", String(leadRoles), leadRoles ? "Products this facilitator is positioned to hold as lead." : "Lead-ready roles will gather here over time."),
-    renderMetricCard("Collaboration", collaborationLabel, state.collaboration.isAvailable ? "Private product and session collaboration can surface inside this workspace." : "The collaboration database still needs its live backend activation.")
+    renderMetricCard("Active programs", String(activePrograms), activePrograms ? "Programs currently marked as schedulable for this facilitator." : "Scheduling-ready programs will appear here."),
+    renderMetricCard("Lead roles", String(leadRoles), leadRoles ? "Programs this facilitator is positioned to hold as lead." : "Lead-ready roles will gather here over time."),
+    renderMetricCard("Collaboration", collaborationLabel, state.collaboration.isAvailable ? "Private program and session collaboration can surface inside this workspace." : "The collaboration database still needs its live backend activation.")
   ].join("");
 }
 
@@ -821,7 +821,7 @@ function renderSessionBrief() {
   }
 
   const sessionRun = nextAssignment.sessionRun;
-  const sessionTitle = normalizeValue(sessionRun?.session_title) || humanizeProductSlug(sessionRun?.product_slug || nextAssignment.product_slug);
+  const sessionTitle = normalizeValue(sessionRun?.session_title) || humanizeProgramSlug(sessionRun?.product_slug || nextAssignment.product_slug);
   const organization = normalizeValue(sessionRun?.organization_name) || "Organization not added yet";
   const dateLabel = sessionRun?.session_date ? formatShortDateTime(new Date(sessionRun.session_date)) : "Date not added yet";
 
@@ -834,7 +834,7 @@ function renderSessionBrief() {
       <span class="status-pill">${escapeHtml(humanizeAssignmentStatus(nextAssignment.assignment_status))}</span>
     </div>
     <div class="detail-list">
-      <div class="detail-row"><strong>Product</strong><span>${escapeHtml(sessionRun?.product_name || humanizeProductSlug(sessionRun?.product_slug))}</span></div>
+      <div class="detail-row"><strong>Program</strong><span>${escapeHtml(sessionRun?.product_name || humanizeProgramSlug(sessionRun?.product_slug))}</span></div>
       <div class="detail-row"><strong>Organization</strong><span>${escapeHtml(organization)}</span></div>
       <div class="detail-row"><strong>Date and time</strong><span>${escapeHtml(dateLabel)}</span></div>
       <div class="detail-row"><strong>Role</strong><span>${escapeHtml(humanizeStudioRole(nextAssignment.assignment_role))}</span></div>
@@ -855,7 +855,7 @@ function renderSessionList() {
     article.innerHTML = `
       <div class="session-card-head">
         <div>
-          <h3>${escapeHtml(normalizeValue(sessionRun?.session_title) || humanizeProductSlug(sessionRun?.product_slug))}</h3>
+          <h3>${escapeHtml(normalizeValue(sessionRun?.session_title) || humanizeProgramSlug(sessionRun?.product_slug))}</h3>
           <p class="session-meta">${escapeHtml(buildSessionMeta(assignment))}</p>
         </div>
         <span class="status-pill">${escapeHtml(humanizeAssignmentStatus(assignment.assignment_status))}</span>
@@ -877,7 +877,7 @@ function renderSessionFeedbackActions(assignment) {
   `;
 }
 
-function renderProductNotes() {
+function renderProgramNotes() {
   dom.productNotesList.innerHTML = "";
   dom.productNotesEmptyState.classList.toggle("hidden", state.productNotes.length > 0);
 
@@ -887,8 +887,8 @@ function renderProductNotes() {
     article.innerHTML = `
       <div class="session-card-head">
         <div>
-          <h3>${escapeHtml(note.note_title || "Product note")}</h3>
-          <p class="session-meta">${escapeHtml(note.product_name || humanizeProductSlug(note.product_slug))}</p>
+          <h3>${escapeHtml(note.note_title || "Program note")}</h3>
+          <p class="session-meta">${escapeHtml(note.product_name || humanizeProgramSlug(note.product_slug))}</p>
         </div>
       </div>
       <p>${escapeHtml(note.note_body || "No note body yet.")}</p>
@@ -993,20 +993,20 @@ function getSelectedFacilitator() {
 
 function buildJourneyStepStates() {
   const hasProfile = Boolean(state.activeFacilitator && normalizeValue(state.activeFacilitator.full_name) && normalizeValue(state.activeFacilitator.email));
-  const hasProductPath = state.productLinks.length > 0;
+  const hasProgramPath = state.productLinks.length > 0;
   const hasShadowing = countLinksByStatus("shadowing") > 0;
   const hasApproval = countLinksByStatus("approved") > 0;
 
   return {
     profile: hasProfile ? "done" : "current",
     foundations: hasProfile ? "current" : "upcoming",
-    product_path: hasProductPath ? "done" : hasProfile ? "current" : "upcoming",
-    shadowing: hasShadowing ? "done" : hasProductPath ? "current" : "upcoming",
+    product_path: hasProgramPath ? "done" : hasProfile ? "current" : "upcoming",
+    shadowing: hasShadowing ? "done" : hasProgramPath ? "current" : "upcoming",
     approval: hasApproval ? "done" : hasShadowing ? "current" : "upcoming"
   };
 }
 
-function getProductPathItems(groupKey) {
+function getProgramPathItems(groupKey) {
   switch (groupKey) {
     case "interested":
       return state.productLinks.filter((link) => link.interest_status === "interested" || link.interest_status === "under_review");
@@ -1039,7 +1039,7 @@ function getNextJourneyStepLabel() {
   }
 
   if (!state.productLinks.length) {
-    return "Choose products";
+    return "Choose programs";
   }
 
   if (!countLinksByStatus("shadowing") && !countLinksByStatus("approved")) {
@@ -1060,19 +1060,19 @@ function getNextJourneyStepLabel() {
 function buildNextStepCopy() {
   switch (getNextJourneyStepLabel()) {
     case "Complete onboarding":
-      return "This account is in the candidate stage. The best use of the workspace right now is to complete profile details, understand CoreXformer foundations, and begin the first product path before live delivery expands.";
+      return "This account is in the candidate stage. The best use of the workspace right now is to complete profile details, understand CoreXformer foundations, and begin the first program path before live delivery expands.";
     case "Create facilitator record":
       return "An admin should first create the private facilitator record, because that is what anchors everything else in this workspace.";
     case "Complete profile":
       return "The next best move is to finish the personal record with location, contact, and availability so the organization can place this facilitator well.";
-    case "Choose products":
-      return "The facilitator now needs a first product path: what they are interested in, what they may shadow, and what might become their early area of strength.";
+    case "Choose programs":
+      return "The facilitator now needs a first program path: what they are interested in, what they may shadow, and what might become their early area of strength.";
     case "Begin shadowing":
-      return "The facilitator is ready to move from profile setup into supported product learning and field observation.";
+      return "The facilitator is ready to move from profile setup into supported program learning and field observation.";
     case "Move into approval":
-      return "The facilitator already has product exposure. The next step is product-specific approval rather than one broad generic approval.";
+      return "The facilitator already has program exposure. The next step is program-specific approval rather than one broad generic approval.";
     case "Await assignment":
-      return "The facilitator has product approval in place. What comes next is the first clean session assignment with a structured brief.";
+      return "The facilitator has program approval in place. What comes next is the first clean session assignment with a structured brief.";
     default:
       return "The facilitator has live work ahead. This page should now help them prepare, collaborate, and learn from real delivery.";
   }
@@ -1082,7 +1082,7 @@ function getCandidateActionItems() {
   const items = [];
   const hasLocation = Boolean(normalizeValue(state.activeFacilitator?.base_location));
   const hasPhone = Boolean(normalizeValue(state.activeFacilitator?.phone));
-  const hasProducts = state.productLinks.length > 0;
+  const hasPrograms = state.productLinks.length > 0;
   const hasShadowing = countLinksByStatus("shadowing") > 0;
   const hasApproval = countLinksByStatus("approved") > 0;
 
@@ -1101,11 +1101,11 @@ function getCandidateActionItems() {
   });
 
   items.push({
-    title: hasProducts ? "Deepen your first product lane" : "Choose your first product lane",
-    state: hasProducts ? "In motion" : "Next",
-    copy: hasProducts
-      ? "You already have an early product path. Use this stage to understand where you are only interested, where you may shadow, and where you could grow into real readiness."
-      : "Pick the first products you want to learn through. A clear first lane is more helpful than trying to hold every product at once."
+    title: hasPrograms ? "Deepen your first program lane" : "Choose your first program lane",
+    state: hasPrograms ? "In motion" : "Next",
+    copy: hasPrograms
+      ? "You already have an early program path. Use this stage to understand where you are only interested, where you may shadow, and where you could grow into real readiness."
+      : "Pick the first programs you want to learn through. A clear first lane is more helpful than trying to hold every program at once."
   });
 
   items.push({
@@ -1113,15 +1113,15 @@ function getCandidateActionItems() {
     state: hasShadowing ? "In place" : "Later",
     copy: hasShadowing
       ? "Once shadowing is visible here, this workspace can start connecting you to real delivery context in a guided way."
-      : "After the first product path is clear, the next meaningful step is supported observation or co-facilitation rather than immediate full delivery."
+      : "After the first program path is clear, the next meaningful step is supported observation or co-facilitation rather than immediate full delivery."
   });
 
   items.push({
     title: hasApproval ? "Approval is beginning to open" : "Work access opens after approval",
     state: hasApproval ? "Emerging" : "Later",
     copy: hasApproval
-      ? "As product approvals gather, the My Work side will start becoming more useful with live assignments and session preparation."
-      : "Your operations side stays intentionally quiet until product-specific approval exists. That keeps the workspace calm and prevents premature overload."
+      ? "As program approvals gather, the My Work side will start becoming more useful with live assignments and session preparation."
+      : "Your operations side stays intentionally quiet until program-specific approval exists. That keeps the workspace calm and prevents premature overload."
   });
 
   return items;
@@ -1144,7 +1144,7 @@ function getPrimaryAssignment() {
   return state.sessionAssignments[0] || null;
 }
 
-function buildProductPathMeta(item) {
+function buildProgramPathMeta(item) {
   const role = humanizeStudioRole(item.delivery_role);
   const scheduling = item.is_active_for_scheduling ? "Scheduling active" : "Not active for scheduling";
   return `${role} · ${scheduling}`;
@@ -1212,7 +1212,7 @@ function buildSessionFeedbackUrl(assignment) {
   }
 
   const url = new URL("feedback.html", ensureFacilitatorTrailingSlash(resolveFacilitatorPublicOrigin()));
-  const sessionTitle = normalizeValue(sessionRun.session_title) || humanizeProductSlug(sessionRun.product_slug || assignment.product_slug);
+  const sessionTitle = normalizeValue(sessionRun.session_title) || humanizeProgramSlug(sessionRun.product_slug || assignment.product_slug);
   const organizationName = normalizeValue(sessionRun.organization_name);
   const facilitatorName = normalizeValue(state.activeFacilitator?.display_name)
     || normalizeValue(state.activeFacilitator?.full_name)
@@ -1292,9 +1292,9 @@ function buildCollaborationCards() {
 
   state.productThreads.forEach((thread) => {
     cards.push({
-      title: thread.title || thread.product_name || "Product discussion",
-      meta: `${thread.product_name || humanizeProductSlug(thread.product_slug)} · ${humanizeProductThreadCategory(thread.category)} · ${formatShortDateTime(new Date(thread.updated_at))}`,
-      tag: humanizeProductThreadStatus(thread.status),
+      title: thread.title || thread.product_name || "Program discussion",
+      meta: `${thread.product_name || humanizeProgramSlug(thread.product_slug)} · ${humanizeProgramThreadCategory(thread.category)} · ${formatShortDateTime(new Date(thread.updated_at))}`,
+      tag: humanizeProgramThreadStatus(thread.status),
       copy: normalizeValue(thread.author_name) ? `Latest update by ${thread.author_name}.` : "Latest update from the CoreXformer team."
     });
   });
@@ -1557,7 +1557,7 @@ function humanizeCommonsPostType(type) {
   }
 }
 
-function humanizeProductThreadCategory(category) {
+function humanizeProgramThreadCategory(category) {
   switch (category) {
     case "field_learning":
       return "Field learning";
@@ -1574,7 +1574,7 @@ function humanizeProductThreadCategory(category) {
   }
 }
 
-function humanizeProductThreadStatus(status) {
+function humanizeProgramThreadStatus(status) {
   switch (status) {
     case "open":
       return "Open";
@@ -1589,9 +1589,9 @@ function humanizeProductThreadStatus(status) {
   }
 }
 
-function humanizeProductSlug(slug) {
+function humanizeProgramSlug(slug) {
   if (!slug) {
-    return "Product";
+    return "Program";
   }
 
   return slug

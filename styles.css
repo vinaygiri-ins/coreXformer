@@ -258,7 +258,7 @@ body[data-page-slug="home"] .container {
   --home-glow-b: rgba(217, 150, 68, 0.18);
 }
 
-.home-story[data-home-rail-theme="products"] {
+.home-story[data-home-rail-theme="programs"] {
   --home-glow-a: rgba(103, 139, 113, 0.22);
   --home-glow-b: rgba(217, 150, 68, 0.16);
 }
