@@ -243,6 +243,11 @@ body[data-page-slug="home"] .container {
   --home-glow-b: rgba(217, 150, 68, 0.18);
 }
 
+.home-story[data-home-rail-theme="mission"] {
+  --home-glow-a: rgba(57, 94, 138, 0.2);
+  --home-glow-b: rgba(47, 90, 67, 0.2);
+}
+
 .home-story[data-home-rail-theme="concept"] {
   --home-glow-a: rgba(47, 90, 67, 0.22);
   --home-glow-b: rgba(134, 173, 141, 0.18);
@@ -635,6 +640,220 @@ body[data-page-slug="home"] .container {
   text-align: center;
   white-space: nowrap;
   box-shadow: 0 0.8rem 1.6rem rgba(47, 90, 67, 0.16);
+}
+
+.home-story-card-mission {
+  background:
+    radial-gradient(circle at top left, rgba(57, 94, 138, 0.14), transparent 21rem),
+    linear-gradient(145deg, rgba(255, 250, 241, 0.94), rgba(224, 236, 227, 0.84));
+}
+
+.mission-chapter-rail {
+  display: grid;
+  align-content: start;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.mission-chapter-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 0.55fr) minmax(0, 1fr);
+  gap: 0.8rem;
+  align-items: center;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(39, 55, 42, 0.1);
+  border-radius: 1.25rem;
+  background: rgba(255, 255, 255, 0.62);
+  box-shadow: 0 0.75rem 1.8rem rgba(66, 43, 22, 0.07);
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.mission-chapter-card:hover,
+.mission-chapter-card:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(47, 90, 67, 0.26);
+  background: rgba(255, 255, 255, 0.84);
+}
+
+.mission-chapter-card span {
+  color: var(--clay);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.mission-chapter-card strong {
+  color: var(--ink);
+  font-family: "Fraunces", serif;
+  font-size: clamp(1rem, 1.2vw, 1.18rem);
+}
+
+.mission-chapter-card small {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.mission-page {
+  padding: 2rem 0 4rem;
+}
+
+.mission-page-shell {
+  display: grid;
+  gap: 1rem;
+}
+
+.mission-page-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.72fr);
+  gap: clamp(1rem, 2vw, 1.5rem);
+  align-items: start;
+  padding: clamp(1.5rem, 3vw, 2.4rem);
+  border: 1px solid rgba(255, 255, 255, 0.76);
+  border-radius: calc(var(--radius-xl) + 8px);
+  background:
+    radial-gradient(circle at top right, rgba(57, 94, 138, 0.16), transparent 22rem),
+    radial-gradient(circle at bottom left, rgba(47, 90, 67, 0.14), transparent 22rem),
+    linear-gradient(145deg, rgba(255, 250, 241, 0.95), rgba(224, 236, 227, 0.82));
+  box-shadow: var(--shadow);
+}
+
+.mission-page-intro {
+  display: grid;
+  align-content: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.mission-page-intro h1 {
+  max-width: 15ch;
+  margin-bottom: 0;
+  font-size: clamp(2.8rem, 4.8vw, 4.8rem);
+  line-height: 0.96;
+}
+
+.mission-page-intro .hero-text {
+  max-width: 58ch;
+  margin: 0;
+}
+
+.mission-page-summary {
+  display: grid;
+  align-content: start;
+  gap: 0.9rem;
+  padding: clamp(1.25rem, 2vw, 1.65rem);
+  border: 1px solid rgba(47, 90, 67, 0.13);
+  border-radius: var(--radius-xl);
+  background: rgba(255, 255, 255, 0.54);
+  box-shadow: 0 1.1rem 2.8rem rgba(66, 43, 22, 0.08);
+}
+
+.mission-page-summary .panel-label {
+  margin: 0;
+}
+
+.mission-page-summary h2 {
+  max-width: 12ch;
+  margin: 0;
+  font-size: clamp(2rem, 3.2vw, 3.1rem);
+  line-height: 0.98;
+}
+
+.mission-chapter-nav {
+  position: sticky;
+  top: 5rem;
+  z-index: 8;
+  display: flex;
+  gap: 0.65rem;
+  overflow-x: auto;
+  padding: 0.35rem;
+  border: 1px solid rgba(39, 55, 42, 0.08);
+  border-radius: 999px;
+  background: rgba(248, 242, 230, 0.92);
+  box-shadow: 0 0.85rem 2rem rgba(66, 43, 22, 0.08);
+  scrollbar-width: none;
+}
+
+.mission-chapter-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.mission-chapter-nav a {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.55rem;
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.7);
+  font-weight: 900;
+  text-align: center;
+  white-space: nowrap;
+  transition: transform 160ms ease, background 160ms ease, color 160ms ease;
+}
+
+.mission-chapter-nav a:hover,
+.mission-chapter-nav a:focus-visible {
+  transform: translateY(-1px);
+  color: #fff;
+  background: linear-gradient(135deg, var(--forest), #6a8f79);
+}
+
+.mission-vertical-rail {
+  display: grid;
+  gap: 1rem;
+}
+
+.mission-rail-card {
+  display: grid;
+  grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr);
+  gap: clamp(1rem, 2vw, 1.5rem);
+  align-items: stretch;
+  min-width: 0;
+  padding: clamp(1.35rem, 2.5vw, 2.2rem);
+  scroll-margin-top: 7.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.76);
+  border-radius: calc(var(--radius-xl) + 4px);
+  background:
+    radial-gradient(circle at top left, rgba(217, 150, 68, 0.12), transparent 21rem),
+    linear-gradient(145deg, rgba(255, 250, 241, 0.95), rgba(224, 236, 227, 0.82));
+  box-shadow: var(--shadow);
+}
+
+.mission-rail-card-main {
+  display: grid;
+  align-content: start;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.mission-rail-card-main .hero-actions {
+  margin: 0.5rem 0 0;
+}
+
+.mission-rail-card h2 {
+  max-width: 14ch;
+  margin: 0;
+  font-size: clamp(2rem, 3.4vw, 3.7rem);
+  line-height: 0.98;
+  text-align: left;
+}
+
+.mission-rail-card .eyebrow,
+.mission-rail-card h3 {
+  text-align: left;
+  margin-inline: 0;
+}
+
+.mission-rail-card p:not(.eyebrow),
+.mission-rail-card li,
+.mission-rail-card small {
+  text-wrap: pretty;
+}
+
+.mission-rail-card .home-story-grid,
+.mission-rail-card .home-story-flow {
+  align-content: start;
 }
 
 .home-story-grid-tight {
@@ -2759,6 +2978,11 @@ a.journey-map-card:focus-visible {
     margin: 0 auto;
   }
 
+  body[data-page-slug="mission"] .container {
+    width: min(calc(100vw - 1rem), 100%);
+    margin: 0 auto;
+  }
+
   .site-nav {
     position: absolute;
     top: calc(100% + 0.8rem);
@@ -3094,6 +3318,112 @@ a.journey-map-card:focus-visible {
     justify-content: center;
     gap: 0.7rem;
     padding: 0 0.2rem;
+  }
+
+  .mission-chapter-card {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    padding: 0.78rem 0.85rem;
+  }
+
+  .mission-chapter-card small {
+    grid-column: 2;
+  }
+
+  .mission-page {
+    padding: 0.9rem 0 3rem;
+  }
+
+  .mission-page-shell {
+    gap: 0.75rem;
+  }
+
+  .mission-page-head {
+    grid-template-columns: 1fr;
+    padding: 1.15rem;
+    border-radius: 1.6rem;
+  }
+
+  .mission-page-intro,
+  .mission-page-summary {
+    text-align: center;
+  }
+
+  .mission-page-intro h1 {
+    max-width: min(15ch, 100%);
+    margin-inline: auto;
+    font-size: clamp(1.85rem, 7.2vw, 2.35rem);
+    line-height: 1;
+    overflow-wrap: break-word;
+    word-break: normal;
+  }
+
+  .mission-page-intro .hero-text,
+  .mission-page-summary .checklist {
+    margin-inline: auto;
+  }
+
+  .mission-page-intro .hero-text {
+    max-width: min(100%, 31ch);
+    overflow-wrap: break-word;
+  }
+
+  .mission-page-summary .checklist {
+    width: min(100%, 24rem);
+    text-align: left;
+  }
+
+  .mission-page-summary {
+    padding: 1rem;
+  }
+
+  .mission-page-summary h2 {
+    margin-inline: auto;
+    font-size: clamp(1.65rem, 7vw, 2.25rem);
+  }
+
+  .mission-chapter-nav {
+    top: 4.65rem;
+    border-radius: 1.3rem;
+    scroll-padding-inline: 0.35rem;
+  }
+
+  .mission-chapter-nav a {
+    min-height: 2.45rem;
+    padding: 0.55rem 0.85rem;
+  }
+
+  .mission-rail-card {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+    padding: 1rem;
+    border-radius: 1.6rem;
+    scroll-margin-top: 8rem;
+  }
+
+  .mission-rail-card .home-story-grid,
+  .mission-rail-card .home-story-flow {
+    grid-template-columns: 1fr;
+  }
+
+  .mission-rail-card h2,
+  .mission-rail-card .eyebrow,
+  .mission-rail-card h3 {
+    text-align: center;
+    margin-inline: auto;
+  }
+
+  .mission-rail-card h2 {
+    max-width: 13ch;
+    font-size: clamp(1.8rem, 7.4vw, 2.55rem);
+  }
+
+  .mission-rail-card-main > p:not(.eyebrow) {
+    text-align: center;
+  }
+
+  .mission-rail-card-main .hero-actions {
+    align-items: stretch;
   }
 
   .founder-column {
