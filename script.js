@@ -39,6 +39,7 @@ if (navToggle && siteNav) {
 }
 
 initHomeStoryRail();
+initNestedStoryRails();
 
 function createNoopAnalytics() {
   return {
@@ -312,6 +313,133 @@ function initHomeStoryRail() {
   if (!handleHomeStoryHash(initialHash, "auto")) {
     goToPanel(0, "auto");
   }
+}
+
+function initNestedStoryRails() {
+  const rails = [...document.querySelectorAll("[data-nested-story-rail]")];
+
+  if (!rails.length) {
+    return;
+  }
+
+  rails.forEach((shell) => {
+    const track = shell.querySelector("[data-nested-story-track]");
+    const panels = track ? [...track.querySelectorAll("[data-nested-story-panel]")] : [];
+    const previousButton = shell.querySelector("[data-nested-story-prev]");
+    const nextButton = shell.querySelector("[data-nested-story-next]");
+    const progress = shell.querySelector("[data-nested-story-progress]");
+    const dotContainer = shell.querySelector("[data-nested-story-dots]");
+
+    if (!track || !panels.length) {
+      return;
+    }
+
+    let activeIndex = 0;
+    let scrollFrame = 0;
+    const dots = [];
+
+    if (dotContainer) {
+      dotContainer.removeAttribute("aria-hidden");
+      dotContainer.innerHTML = "";
+
+      panels.forEach((panel, index) => {
+        const dot = document.createElement("button");
+        dot.type = "button";
+        dot.setAttribute("aria-label", `Go to story ${index + 1}`);
+        dot.addEventListener("click", () => {
+          goToPanel(index);
+        });
+        dotContainer.append(dot);
+        dots.push(dot);
+      });
+    }
+
+    function setActiveState(nextIndex) {
+      const clampedIndex = Math.max(0, Math.min(nextIndex, panels.length - 1));
+      activeIndex = clampedIndex;
+
+      panels.forEach((panel, index) => {
+        panel.classList.toggle("is-active", index === clampedIndex);
+      });
+
+      dots.forEach((dot, index) => {
+        dot.classList.toggle("is-active", index === clampedIndex);
+        dot.setAttribute("aria-current", index === clampedIndex ? "true" : "false");
+      });
+
+      if (progress) {
+        progress.textContent = `${clampedIndex + 1} / ${panels.length}`;
+      }
+
+      if (previousButton) {
+        previousButton.disabled = clampedIndex === 0;
+      }
+
+      if (nextButton) {
+        nextButton.disabled = clampedIndex === panels.length - 1;
+      }
+    }
+
+    function getNearestIndex() {
+      const trackLeft = track.scrollLeft;
+      let bestIndex = 0;
+      let bestDistance = Number.POSITIVE_INFINITY;
+
+      panels.forEach((panel, index) => {
+        const distance = Math.abs(panel.offsetLeft - trackLeft);
+
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          bestIndex = index;
+        }
+      });
+
+      return bestIndex;
+    }
+
+    function goToPanel(nextIndex, behavior = "smooth") {
+      const clampedIndex = Math.max(0, Math.min(nextIndex, panels.length - 1));
+      const targetPanel = panels[clampedIndex];
+
+      if (!targetPanel) {
+        return;
+      }
+
+      setActiveState(clampedIndex);
+      track.scrollTo({
+        left: targetPanel.offsetLeft,
+        behavior
+      });
+    }
+
+    previousButton?.addEventListener("click", () => {
+      goToPanel(activeIndex - 1);
+    });
+
+    nextButton?.addEventListener("click", () => {
+      goToPanel(activeIndex + 1);
+    });
+
+    track.addEventListener("scroll", () => {
+      window.cancelAnimationFrame(scrollFrame);
+      scrollFrame = window.requestAnimationFrame(() => {
+        const nearestIndex = getNearestIndex();
+
+        if (nearestIndex !== activeIndex) {
+          setActiveState(nearestIndex);
+        }
+      });
+    });
+
+    window.addEventListener("resize", () => {
+      window.cancelAnimationFrame(scrollFrame);
+      scrollFrame = window.requestAnimationFrame(() => {
+        goToPanel(activeIndex, "auto");
+      });
+    });
+
+    goToPanel(0, "auto");
+  });
 }
 
 function createCoreXformerAnalytics(supabase) {

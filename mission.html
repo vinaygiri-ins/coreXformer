@@ -94,7 +94,7 @@
   <main id="top">
     <section class="mission-page" data-section-slug="mission">
       <div class="container mission-page-shell">
-        <header class="mission-page-head">
+        <header class="mission-page-head mission-page-head-compact">
           <div class="mission-page-intro">
             <p class="eyebrow">Mission</p>
             <h1>Helping people understand themselves, understand others, and grow through shared experience.</h1>
@@ -129,163 +129,655 @@
           <a href="#why-it-matters">Why It Matters</a>
         </nav>
 
-        <div class="mission-vertical-rail story-rail">
-          <article class="mission-rail-card story-box story-box-concept" id="concept">
-            <header class="story-box-head">
+        <section class="mission-story-module mission-master-module" aria-labelledby="mission-master-title" data-nested-story-rail>
+          <header class="mission-story-module-head">
+            <p class="eyebrow">Mission journey</p>
+            <h2 id="mission-master-title">Five connected stories, one learning journey.</h2>
+            <p>
+              The mission moves through five linked questions. Each chapter begins with a short story and keeps the
+              deeper writing available when someone wants to read more.
+            </p>
+          </header>
+
+          <div class="nested-story-window">
+            <button class="nested-story-arrow nested-story-arrow-prev" type="button" data-nested-story-prev aria-label="Previous mission point">
+              <span aria-hidden="true">&lsaquo;</span>
+            </button>
+            <div class="nested-story-track mission-index-track" data-nested-story-track tabindex="0">
+              <a class="mission-index-card story-box-concept" href="#concept" data-nested-story-panel>
+                <span class="mission-index-number">01</span>
+                <strong>Concept</strong>
+                <small>Self-discovery, human understanding, and stronger team ecosystems.</small>
+              </a>
+              <a class="mission-index-card story-box-approach" href="#approach" data-nested-story-panel>
+                <span class="mission-index-number">02</span>
+                <strong>Approach</strong>
+                <small>Short activity-led situations that make real behavior visible.</small>
+              </a>
+              <a class="mission-index-card story-box-audience" href="#who-it-is-for" data-nested-story-panel>
+                <span class="mission-index-number">03</span>
+                <strong>Who It Is For</strong>
+                <small>Schools, teachers, colleges, corporates, government teams, and communities.</small>
+              </a>
+              <a class="mission-index-card story-box-flow" href="#how-it-works" data-nested-story-panel>
+                <span class="mission-index-number">04</span>
+                <strong>How It Works</strong>
+                <small>Welcome, activity, pause, reflection, and takeaway.</small>
+              </a>
+              <a class="mission-index-card story-box-matters" href="#why-it-matters" data-nested-story-panel>
+                <span class="mission-index-number">05</span>
+                <strong>Why It Matters</strong>
+                <small>Awareness that continues after the activity is over.</small>
+              </a>
+            </div>
+            <button class="nested-story-arrow nested-story-arrow-next" type="button" data-nested-story-next aria-label="Next mission point">
+              <span aria-hidden="true">&rsaquo;</span>
+            </button>
+          </div>
+          <div class="nested-story-footer">
+            <span data-nested-story-progress>1 / 5</span>
+            <div class="nested-story-dots" data-nested-story-dots aria-hidden="true"></div>
+          </div>
+        </section>
+
+        <div class="mission-story-stack">
+          <section class="mission-story-module story-box-concept" id="concept" aria-labelledby="concept-title" data-nested-story-rail>
+            <header class="mission-story-module-head">
               <p class="eyebrow">01 / Concept</p>
-              <h2>Self-discovery becomes possible when experience acts like a mirror.</h2>
+              <h2 id="concept-title">Self-discovery becomes possible when experience acts like a mirror.</h2>
               <p>
                 The concept begins with hidden capacities: observation, empathy, courage, adaptation, and growth.
                 Shared experience helps those capacities become visible.
               </p>
             </header>
 
-            <div class="story-picture story-picture-concept" role="img" aria-label="Symbolic story image showing hidden inner roots becoming visible through a shared circle.">
-              <span class="story-sun"></span>
-              <span class="story-line story-line-left"></span>
-              <span class="story-line story-line-right"></span>
-              <span class="story-orbit story-orbit-one"></span>
-              <span class="story-orbit story-orbit-two"></span>
-              <span class="story-node story-node-a"></span>
-              <span class="story-node story-node-b"></span>
-              <span class="story-node story-node-c"></span>
-              <span class="story-root story-root-a"></span>
-              <span class="story-root story-root-b"></span>
-            </div>
+            <div class="nested-story-window">
+              <button class="nested-story-arrow nested-story-arrow-prev" type="button" data-nested-story-prev aria-label="Previous Concept story">
+                <span aria-hidden="true">&lsaquo;</span>
+              </button>
+              <div class="nested-story-track" data-nested-story-track tabindex="0">
+                <article class="mission-story-card" data-nested-story-panel>
+                  <div class="story-picture story-picture-concept" role="img" aria-label="Hidden inner roots becoming visible through a shared circle.">
+                    <span class="story-sun"></span>
+                    <span class="story-line story-line-left"></span>
+                    <span class="story-line story-line-right"></span>
+                    <span class="story-orbit story-orbit-one"></span>
+                    <span class="story-orbit story-orbit-two"></span>
+                    <span class="story-node story-node-a"></span>
+                    <span class="story-node story-node-b"></span>
+                    <span class="story-node story-node-c"></span>
+                    <span class="story-root story-root-a"></span>
+                    <span class="story-root story-root-b"></span>
+                  </div>
+                  <div class="mission-story-card-copy">
+                    <p class="eyebrow">Deeper purpose</p>
+                    <h3>Why CoreXformer exists beyond activities and reflection.</h3>
+                    <p>
+                      CoreXformer is not only about activities and reflection. It is about rebuilding human
+                      understanding, meeting difference with openness, and creating team spaces where people can
+                      discover themselves and one another more honestly.
+                    </p>
+                    <details class="story-read-more">
+                      <summary>Read more</summary>
+                      <p>
+                        The deeper purpose of CoreXformer goes beyond activities and reflection alone. In today&apos;s
+                        world, many people are increasingly isolated in subtle ways, even while surrounded by
+                        technology and constant connection. As a result, the ability to understand our own behavior,
+                        recognize the behavior of others, and relate meaningfully in shared situations has become weaker.
+                      </p>
+                      <p>
+                        CoreXformer creates spaces where people come together around a common objective and experience
+                        what happens when different mindsets, emotions, habits, and perspectives meet in one place.
+                      </p>
+                    </details>
+                  </div>
+                </article>
 
-            <div class="story-note-strip">
-              <article>
-                <span>Self-discovery</span>
-                <p>Participants notice reactions, emotions, hesitation, confidence, and habits in live situations.</p>
-              </article>
-              <article>
-                <span>Team ecosystem</span>
-                <p>The aim is a stronger human system, not only a completed task or one-time activity.</p>
-              </article>
-              <a class="button" href="concept.html">Explore more about Concept</a>
-            </div>
-          </article>
+                <article class="mission-story-card mission-story-card-text" data-nested-story-panel>
+                  <div class="mission-story-card-copy">
+                    <p class="eyebrow">Human gap</p>
+                    <h3>Natural capacities often remain underused or blocked.</h3>
+                    <p>
+                      Human beings are already gifted with the ability to observe, feel, reflect, and adapt, yet
+                      conditioning, rigid mindsets, self-doubt, and unspoken emotional habits often reduce this potential.
+                    </p>
+                    <details class="story-read-more">
+                      <summary>Read more</summary>
+                      <p>
+                        This initiative creates space for self-discovery and for reconnecting with the power of
+                        observation. It invites people to notice what they carry within themselves, including
+                        hesitation, fear, doubt, emotional suppression, and fixed ways of thinking.
+                      </p>
+                      <p>
+                        CoreXformer is also about recognizing that self-discovery is not a journey of perfection. It
+                        is a journey of meeting one&apos;s own flaws, limits, and patterns honestly, and learning to see
+                        them as places from which change, learning, and adaptation can begin.
+                      </p>
+                      <p>
+                        By offering a safe and reflective space, CoreXformer allows people to acknowledge emotions
+                        more honestly and to see them as part of being human rather than something to suppress or deny.
+                      </p>
+                    </details>
+                  </div>
+                </article>
 
-          <article class="mission-rail-card story-box story-box-approach" id="approach">
-            <header class="story-box-head">
+                <article class="mission-story-card mission-story-card-text" data-nested-story-panel>
+                  <div class="mission-story-card-copy">
+                    <p class="eyebrow">Understanding self and others</p>
+                    <h3>Every person brings an inner picture of the world.</h3>
+                    <p>
+                      When people with different inner worlds come together around a common objective, they bring
+                      assumptions, emotional tendencies, habits, perspectives, and ways of responding to situations.
+                    </p>
+                    <details class="story-read-more">
+                      <summary>Read more</summary>
+                      <p>
+                        CoreXformer creates space to observe what happens when these different ways of being meet in
+                        one team situation. How do people understand each other&apos;s perspective? How do they respond
+                        when someone thinks or behaves differently from them?
+                      </p>
+                      <p>
+                        The deeper the reflection, the more people begin to discover not only their own perspective,
+                        but also the many possible perspectives that can exist within the same situation.
+                      </p>
+                    </details>
+                  </div>
+                </article>
+
+                <article class="mission-story-card mission-story-card-text" data-nested-story-panel>
+                  <div class="mission-story-card-copy">
+                    <p class="eyebrow">Stronger ecosystem</p>
+                    <h3>Team strength is not only about getting a result.</h3>
+                    <p>
+                      A stronger team ecosystem is created when people understand each other&apos;s differences and
+                      limitations with greater honesty and acceptance.
+                    </p>
+                    <details class="story-read-more">
+                      <summary>Read more</summary>
+                      <p>
+                        It grows when individuals and groups learn how to adapt in varied situations, give one another
+                        room to grow, and gradually shed ego-based blockages in order to move toward a shared objective.
+                      </p>
+                      <p>
+                        A stronger team does not treat failure as an ending, but as a stepping stone for improvement.
+                        Rather than breaking under difficulty, it learns, regroups, and responds with greater maturity.
+                      </p>
+                      <p>
+                        At its best, team effectiveness is also about allowing perspectives to coexist, evolve, and be
+                        heard rather than discarded too quickly.
+                      </p>
+                    </details>
+                    <a class="button" href="concept.html">Explore more about Concept</a>
+                  </div>
+                </article>
+              </div>
+              <button class="nested-story-arrow nested-story-arrow-next" type="button" data-nested-story-next aria-label="Next Concept story">
+                <span aria-hidden="true">&rsaquo;</span>
+              </button>
+            </div>
+            <div class="nested-story-footer">
+              <span data-nested-story-progress>1 / 4</span>
+              <div class="nested-story-dots" data-nested-story-dots aria-hidden="true"></div>
+            </div>
+          </section>
+
+          <section class="mission-story-module story-box-approach" id="approach" aria-labelledby="approach-title" data-nested-story-rail>
+            <header class="mission-story-module-head">
               <p class="eyebrow">02 / Approach</p>
-              <h2>A purposeful challenge reveals what ordinary conversation cannot.</h2>
+              <h2 id="approach-title">A purposeful challenge reveals what ordinary conversation cannot.</h2>
               <p>
                 CoreXformer uses short activity-led situations to reveal real responses. The activity is not the
                 destination. It is the mirror through which learning becomes possible.
               </p>
             </header>
 
-            <div class="story-picture story-picture-approach" role="img" aria-label="Symbolic story image showing a group moving through challenge, pressure, pause, and reflection.">
-              <span class="story-track"></span>
-              <span class="story-step story-step-one">01</span>
-              <span class="story-step story-step-two">02</span>
-              <span class="story-step story-step-three">03</span>
-              <span class="story-step story-step-four">04</span>
-              <span class="story-pressure"></span>
-              <span class="story-pause"></span>
-            </div>
+            <div class="nested-story-window">
+              <button class="nested-story-arrow nested-story-arrow-prev" type="button" data-nested-story-prev aria-label="Previous Approach story">
+                <span aria-hidden="true">&lsaquo;</span>
+              </button>
+              <div class="nested-story-track" data-nested-story-track tabindex="0">
+                <article class="mission-story-card" data-nested-story-panel>
+                  <div class="story-picture story-picture-approach" role="img" aria-label="Group moving through challenge, pressure, pause, and reflection.">
+                    <span class="story-track"></span>
+                    <span class="story-step story-step-one">01</span>
+                    <span class="story-step story-step-two">02</span>
+                    <span class="story-step story-step-three">03</span>
+                    <span class="story-step story-step-four">04</span>
+                    <span class="story-pressure"></span>
+                    <span class="story-pause"></span>
+                  </div>
+                  <div class="mission-story-card-copy">
+                    <p class="eyebrow">Why activities exist</p>
+                    <h3>The activity is a mirror for real human situations.</h3>
+                    <p>
+                      The deeper purpose of the activities is to create a simulated space that reflects real-life
+                      human situations within a shorter and more focused time frame.
+                    </p>
+                    <details class="story-read-more">
+                      <summary>Read more</summary>
+                      <p>
+                        In everyday life, people respond to pressure, uncertainty, relationships, expectations, and
+                        shared objectives in ways that reveal their habits, emotions, and patterns of behavior.
+                      </p>
+                      <p>
+                        Although CoreXformer activities happen in a shorter span of time, the responses that emerge
+                        are often closely connected to how people behave in real situations.
+                      </p>
+                    </details>
+                  </div>
+                </article>
 
-            <div class="story-note-strip story-note-strip-four">
-              <article><span>Enter</span><p>A focused objective and enough complexity to make behavior visible.</p></article>
-              <article><span>Feel</span><p>Urgency reveals communication, assumptions, leadership, and silence.</p></article>
-              <article><span>Reflect</span><p>Participants name what happened without judgment.</p></article>
-              <a class="button" href="approach.html">Explore more about Approach</a>
-            </div>
-          </article>
+                <article class="mission-story-card mission-story-card-text" data-nested-story-panel>
+                  <div class="mission-story-card-copy">
+                    <p class="eyebrow">Short activity arcs</p>
+                    <h3>Ten to twenty minutes keeps energy alive.</h3>
+                    <p>
+                      Shorter activities respect the time windows of schools, colleges, corporates, communities, and
+                      government organizations while keeping participation fresh.
+                    </p>
+                    <details class="story-read-more">
+                      <summary>Read more</summary>
+                      <p>
+                        A shorter activity arc allows people to enter a situation fully without losing freshness or
+                        involvement. It also creates room for multiple experiences within one session.
+                      </p>
+                    </details>
+                  </div>
+                </article>
 
-          <article class="mission-rail-card story-box story-box-audience" id="who-it-is-for">
-            <header class="story-box-head">
+                <article class="mission-story-card mission-story-card-text" data-nested-story-panel>
+                  <div class="mission-story-card-copy">
+                    <p class="eyebrow">Pressure and reflection</p>
+                    <h3>Urgency makes natural responses visible.</h3>
+                    <p>
+                      Time pressure is not used to create stress for its own sake. It helps participants notice how
+                      urgency affects communication, decisions, emotion, and team behavior.
+                    </p>
+                    <details class="story-read-more">
+                      <summary>Read more</summary>
+                      <p>
+                        Reflection is the collaborative part of the process where participants bring diverse
+                        perspectives to the same situation. They explore how different people experienced the
+                        activity, what reactions appeared, and what may have been functional or non-functional.
+                      </p>
+                      <p>
+                        The space is meant to be safe. It invites people to understand one another without harming,
+                        dismissing, or judging each other.
+                      </p>
+                    </details>
+                  </div>
+                </article>
+
+                <article class="mission-story-card mission-story-card-text" data-nested-story-panel>
+                  <div class="mission-story-card-copy">
+                    <p class="eyebrow">Awareness over winning</p>
+                    <h3>The task is not the only measure.</h3>
+                    <p>
+                      What matters most is not only whether the task was completed, but what became visible about
+                      behavior, communication, emotion, adaptability, and team functioning.
+                    </p>
+                    <details class="story-read-more">
+                      <summary>Read more</summary>
+                      <p>
+                        The learning from the session is meant to stay with participants beyond the experience itself.
+                        It can support them in future situations where they need to lead, collaborate, or respond to
+                        challenges with greater awareness.
+                      </p>
+                    </details>
+                    <a class="button" href="approach.html">Explore more about Approach</a>
+                  </div>
+                </article>
+              </div>
+              <button class="nested-story-arrow nested-story-arrow-next" type="button" data-nested-story-next aria-label="Next Approach story">
+                <span aria-hidden="true">&rsaquo;</span>
+              </button>
+            </div>
+            <div class="nested-story-footer">
+              <span data-nested-story-progress>1 / 4</span>
+              <div class="nested-story-dots" data-nested-story-dots aria-hidden="true"></div>
+            </div>
+          </section>
+
+          <section class="mission-story-module story-box-audience" id="who-it-is-for" aria-labelledby="audience-title" data-nested-story-rail>
+            <header class="mission-story-module-head">
               <p class="eyebrow">03 / Who It Is For</p>
-              <h2>Different spaces meet the same human need for trust and awareness.</h2>
+              <h2 id="audience-title">Different spaces meet the same human need for trust and awareness.</h2>
               <p>
                 The work adapts across learning spaces, workplaces, public systems, and communities because people
                 everywhere carry the need to understand themselves and each other.
               </p>
             </header>
 
-            <div class="story-picture story-picture-audience" role="img" aria-label="Symbolic story image showing six paths meeting in one shared learning circle.">
-              <span class="story-hub">CX</span>
-              <span class="story-path story-path-a">Schools</span>
-              <span class="story-path story-path-b">Teachers</span>
-              <span class="story-path story-path-c">Colleges</span>
-              <span class="story-path story-path-d">Teams</span>
-              <span class="story-path story-path-e">Govt</span>
-              <span class="story-path story-path-f">Community</span>
-            </div>
+            <div class="nested-story-window">
+              <button class="nested-story-arrow nested-story-arrow-prev" type="button" data-nested-story-prev aria-label="Previous audience story">
+                <span aria-hidden="true">&lsaquo;</span>
+              </button>
+              <div class="nested-story-track" data-nested-story-track tabindex="0">
+                <article class="mission-story-card" data-nested-story-panel>
+                  <div class="story-picture story-picture-audience" role="img" aria-label="Six paths meeting in one shared learning circle.">
+                    <span class="story-hub">CX</span>
+                    <span class="story-path story-path-a">Schools</span>
+                    <span class="story-path story-path-b">Teachers</span>
+                    <span class="story-path story-path-c">Colleges</span>
+                    <span class="story-path story-path-d">Teams</span>
+                    <span class="story-path story-path-e">Govt</span>
+                    <span class="story-path story-path-f">Community</span>
+                  </div>
+                  <div class="mission-story-card-copy">
+                    <p class="eyebrow">Audience fit</p>
+                    <h3>Different spaces, one continuing human need.</h3>
+                    <p>
+                      CoreXformer is organized around six audience worlds because the same reflective method shows up
+                      differently depending on the group.
+                    </p>
+                    <details class="story-read-more">
+                      <summary>Read more</summary>
+                      <p>
+                        A school needs one kind of language, a college another, a corporate team another, and a
+                        community another, even when the deeper human work overlaps. The aim is to help each visitor
+                        recognize the most relevant starting point for their group.
+                      </p>
+                    </details>
+                  </div>
+                </article>
 
-            <div class="story-note-strip">
-              <article>
-                <span>Learning spaces</span>
-                <p>Schools, teachers, and colleges use the work for belonging, readiness, and reflective growth.</p>
-              </article>
-              <article>
-                <span>Shared systems</span>
-                <p>Teams, government units, and communities use it for trust, coordination, and participation.</p>
-              </article>
-              <a class="button" href="who-it-is-for.html">Explore more about Who It Is For</a>
-            </div>
-          </article>
+                <article class="mission-story-card mission-story-card-text" data-nested-story-panel>
+                  <div class="mission-story-card-copy">
+                    <p class="eyebrow">Schools and teachers</p>
+                    <h3>Belonging, confidence, classroom climate, and connection.</h3>
+                    <p>
+                      In school settings, experiential learning can support growth that is hard to teach through
+                      instruction alone: belonging, confidence, teamwork, emotional awareness, and healthier peer
+                      connection.
+                    </p>
+                    <details class="story-read-more">
+                      <summary>Read more</summary>
+                      <p>
+                        Teachers hold energy, tone, trust, pressure, and human relationship in a room every day.
+                        CoreXformer&apos;s teacher line is designed for stronger classroom presence, better student
+                        connection, conscious responses under pressure, and healthier renewal over time.
+                      </p>
+                    </details>
+                  </div>
+                </article>
 
-          <article class="mission-rail-card story-box story-box-flow" id="how-it-works">
-            <header class="story-box-head">
+                <article class="mission-story-card mission-story-card-text" data-nested-story-panel>
+                  <div class="mission-story-card-copy">
+                    <p class="eyebrow">Colleges and corporates</p>
+                    <h3>Readiness, teamwork, pressure, trust, and ownership.</h3>
+                    <p>
+                      College spaces sit between student life and workplace life. Corporate spaces need trust,
+                      communication, ownership, and steadier work under pressure.
+                    </p>
+                    <details class="story-read-more">
+                      <summary>Read more</summary>
+                      <p>
+                        The college program line is useful where a campus wants students to become more self-aware,
+                        collaborative, resilient, and workplace-ready through lived experience rather than advice alone.
+                      </p>
+                      <p>
+                        In workplace settings, CoreXformer becomes useful when a team is looking for clearer human
+                        functioning under real pressure: new teams, first-time managers, cross-functional friction,
+                        low trust, or change fatigue.
+                      </p>
+                    </details>
+                  </div>
+                </article>
+
+                <article class="mission-story-card mission-story-card-text" data-nested-story-panel>
+                  <div class="mission-story-card-copy">
+                    <p class="eyebrow">Government and communities</p>
+                    <h3>Coordination, participation, trust repair, and local ownership.</h3>
+                    <p>
+                      Public systems and communities need language that respects responsibility, participation,
+                      dialogue, cohesion, and local leadership.
+                    </p>
+                    <details class="story-read-more">
+                      <summary>Read more</summary>
+                      <p>
+                        Government spaces often need stronger team cohesion, reliable follow-through, healthier
+                        supervisory transition, and better coordination across units or departments.
+                      </p>
+                      <p>
+                        Community spaces often need stronger participation, healthier dialogue across difference,
+                        more shared ownership, and better ways of staying together when fatigue or mistrust appears.
+                      </p>
+                    </details>
+                    <a class="button" href="who-it-is-for.html">Explore more about Who It Is For</a>
+                  </div>
+                </article>
+              </div>
+              <button class="nested-story-arrow nested-story-arrow-next" type="button" data-nested-story-next aria-label="Next audience story">
+                <span aria-hidden="true">&rsaquo;</span>
+              </button>
+            </div>
+            <div class="nested-story-footer">
+              <span data-nested-story-progress>1 / 4</span>
+              <div class="nested-story-dots" data-nested-story-dots aria-hidden="true"></div>
+            </div>
+          </section>
+
+          <section class="mission-story-module story-box-flow" id="how-it-works" aria-labelledby="flow-title" data-nested-story-rail>
+            <header class="mission-story-module-head">
               <p class="eyebrow">04 / How It Works</p>
-              <h2>A session moves like a living arc: welcome, action, pause, reflection.</h2>
+              <h2 id="flow-title">A session moves like a living arc: welcome, action, pause, reflection.</h2>
               <p>
                 People arrive, engage, feel what appears, pause, make meaning, and leave with insight they can
                 apply elsewhere.
               </p>
             </header>
 
-            <div class="story-picture story-picture-flow" role="img" aria-label="Symbolic story image showing the session flow from warm welcome to shared action, pause, reflection, and takeaway.">
-              <span class="story-flow-river"></span>
-              <span class="story-flow-point story-flow-one">Welcome</span>
-              <span class="story-flow-point story-flow-two">Activity</span>
-              <span class="story-flow-point story-flow-three">Pause</span>
-              <span class="story-flow-point story-flow-four">Reflect</span>
-              <span class="story-flow-point story-flow-five">Takeaway</span>
-            </div>
+            <div class="nested-story-window">
+              <button class="nested-story-arrow nested-story-arrow-prev" type="button" data-nested-story-prev aria-label="Previous session flow story">
+                <span aria-hidden="true">&lsaquo;</span>
+              </button>
+              <div class="nested-story-track" data-nested-story-track tabindex="0">
+                <article class="mission-story-card" data-nested-story-panel>
+                  <div class="story-picture story-picture-flow" role="img" aria-label="Session flow from warm welcome to shared action, pause, reflection, and takeaway.">
+                    <span class="story-flow-river"></span>
+                    <span class="story-flow-point story-flow-one">Welcome</span>
+                    <span class="story-flow-point story-flow-two">Activity</span>
+                    <span class="story-flow-point story-flow-three">Pause</span>
+                    <span class="story-flow-point story-flow-four">Reflect</span>
+                    <span class="story-flow-point story-flow-five">Takeaway</span>
+                  </div>
+                  <div class="mission-story-card-copy">
+                    <p class="eyebrow">Beginning</p>
+                    <h3>Warm welcome, lightness, and non-judgmental entry.</h3>
+                    <p>
+                      A CoreXformer session begins with a warm human welcome. People are received with simple
+                      greetings, light humor, and an energy that helps them feel at ease.
+                    </p>
+                    <details class="story-read-more">
+                      <summary>Read more</summary>
+                      <p>
+                        Participants begin by introducing themselves and sharing names. This helps the group start
+                        seeing one another as people rather than roles, titles, or positions.
+                      </p>
+                      <p>
+                        The intention is to create a space where participants feel they can show up as they are,
+                        without fear of being quickly evaluated or dismissed.
+                      </p>
+                    </details>
+                  </div>
+                </article>
 
-            <div class="story-note-strip story-note-strip-four">
-              <article><span>Warm start</span><p>Lightness and non-judgment help people settle into the room.</p></article>
-              <article><span>Shared action</span><p>A task invites real responses and group behavior.</p></article>
-              <article><span>Meaning</span><p>The group explores what happened and what can shift.</p></article>
-              <a class="button" href="how-it-works.html">Explore more about How It Works</a>
-            </div>
-          </article>
+                <article class="mission-story-card mission-story-card-text" data-nested-story-panel>
+                  <div class="mission-story-card-copy">
+                    <p class="eyebrow">Entering the activity</p>
+                    <h3>Clarity, co-creation, and willingness to participate.</h3>
+                    <p>
+                      Participants are introduced to the structure of the game or exercise so the task, flow, and
+                      shared objective are clear.
+                    </p>
+                    <details class="story-read-more">
+                      <summary>Read more</summary>
+                      <p>
+                        Participants are also given room to contribute ideas about how the activity can become more
+                        fun, engaging, or alive. This creates ownership from the beginning.
+                      </p>
+                    </details>
+                  </div>
+                </article>
 
-          <article class="mission-rail-card story-box story-box-matters" id="why-it-matters">
-            <header class="story-box-head">
+                <article class="mission-story-card mission-story-card-text" data-nested-story-panel>
+                  <div class="mission-story-card-copy">
+                    <p class="eyebrow">During the activity</p>
+                    <h3>Body, mind, heart, and group connection all come alive.</h3>
+                    <p>
+                      Participants act, react, coordinate, hesitate, support, lead, follow, and adapt in real time,
+                      not only as an idea but as lived experience.
+                    </p>
+                    <details class="story-read-more">
+                      <summary>Read more</summary>
+                      <p>
+                        Emotions, habits, patterns, and team behaviors become visible. These responses are natural
+                        because each participant meets the same situation through their own background, conditioning,
+                        and perception.
+                      </p>
+                    </details>
+                  </div>
+                </article>
+
+                <article class="mission-story-card mission-story-card-text" data-nested-story-panel>
+                  <div class="mission-story-card-copy">
+                    <p class="eyebrow">Pause and reflection</p>
+                    <h3>The break is part of the process.</h3>
+                    <p>
+                      Right after the activity, a short break helps the experience settle before deeper reflection begins.
+                    </p>
+                    <details class="story-read-more">
+                      <summary>Read more</summary>
+                      <p>
+                        The break allows the immediate intensity of the experience to come down gently. After that,
+                        the session re-establishes safety so participants can express what they experienced without
+                        pressure to say the right thing.
+                      </p>
+                    </details>
+                    <a class="button" href="how-it-works.html">Explore more about How It Works</a>
+                  </div>
+                </article>
+              </div>
+              <button class="nested-story-arrow nested-story-arrow-next" type="button" data-nested-story-next aria-label="Next session flow story">
+                <span aria-hidden="true">&rsaquo;</span>
+              </button>
+            </div>
+            <div class="nested-story-footer">
+              <span data-nested-story-progress>1 / 4</span>
+              <div class="nested-story-dots" data-nested-story-dots aria-hidden="true"></div>
+            </div>
+          </section>
+
+          <section class="mission-story-module story-box-matters" id="why-it-matters" aria-labelledby="matters-title" data-nested-story-rail>
+            <header class="mission-story-module-head">
               <p class="eyebrow">05 / Why It Matters</p>
-              <h2>The activity ends, but awareness can continue travelling.</h2>
+              <h2 id="matters-title">The activity ends, but awareness can continue travelling.</h2>
               <p>
                 CoreXformer matters because it does not stop at engagement. It helps people become more aware,
                 more understanding, and more capable in the shared spaces that shape life and work.
               </p>
             </header>
 
-            <div class="story-picture story-picture-matters" role="img" aria-label="Symbolic story image showing awareness ripples travelling beyond the session room.">
-              <span class="story-room"></span>
-              <span class="story-ripple story-ripple-one"></span>
-              <span class="story-ripple story-ripple-two"></span>
-              <span class="story-ripple story-ripple-three"></span>
-              <span class="story-seed story-seed-a"></span>
-              <span class="story-seed story-seed-b"></span>
-              <span class="story-seed story-seed-c"></span>
-            </div>
+            <div class="nested-story-window">
+              <button class="nested-story-arrow nested-story-arrow-prev" type="button" data-nested-story-prev aria-label="Previous Why It Matters story">
+                <span aria-hidden="true">&lsaquo;</span>
+              </button>
+              <div class="nested-story-track" data-nested-story-track tabindex="0">
+                <article class="mission-story-card" data-nested-story-panel>
+                  <div class="story-picture story-picture-matters" role="img" aria-label="Awareness ripples travelling beyond the session room.">
+                    <span class="story-room"></span>
+                    <span class="story-ripple story-ripple-one"></span>
+                    <span class="story-ripple story-ripple-two"></span>
+                    <span class="story-ripple story-ripple-three"></span>
+                    <span class="story-seed story-seed-a"></span>
+                    <span class="story-seed story-seed-b"></span>
+                    <span class="story-seed story-seed-c"></span>
+                  </div>
+                  <div class="mission-story-card-copy">
+                    <p class="eyebrow">Beyond training</p>
+                    <h3>This is not learning by instruction alone.</h3>
+                    <p>
+                      CoreXformer creates a different kind of learning environment where people participate, notice,
+                      reflect, and make meaning for themselves.
+                    </p>
+                    <details class="story-read-more">
+                      <summary>Read more</summary>
+                      <p>
+                        Human change rarely happens only because something was explained clearly. It often happens
+                        when a person lives through a situation, feels something real, sees their own pattern within it,
+                        and arrives at insight from the inside.
+                      </p>
+                    </details>
+                  </div>
+                </article>
 
-            <div class="story-note-strip">
-              <article>
-                <span>What stays</span>
-                <p>Reflection turns activity into meaning and helps people meet mistakes without shame.</p>
-              </article>
-              <article>
-                <span>What travels</span>
-                <p>Awareness shapes how people lead, listen, respond, repair, and work toward shared objectives.</p>
-              </article>
-              <a class="button" href="why-it-matters.html">Explore more about Why It Matters</a>
+                <article class="mission-story-card mission-story-card-text" data-nested-story-panel>
+                  <div class="mission-story-card-copy">
+                    <p class="eyebrow">Experience and reflection</p>
+                    <h3>People remember what they live more deeply than what they only hear.</h3>
+                    <p>
+                      Experience has a way of revealing truths that explanation alone cannot reach. Reflection turns
+                      that event into insight.
+                    </p>
+                    <details class="story-read-more">
+                      <summary>Read more</summary>
+                      <p>
+                        Reflection helps participants pause, look back, and understand what was happening inside them
+                        and around them while they were in action. Without reflection, experience can fade. With
+                        reflection, experience can become wisdom.
+                      </p>
+                    </details>
+                  </div>
+                </article>
+
+                <article class="mission-story-card mission-story-card-text" data-nested-story-panel>
+                  <div class="mission-story-card-copy">
+                    <p class="eyebrow">Shared objectives</p>
+                    <h3>Teams need more than competence alone.</h3>
+                    <p>
+                      A team does not function only through technical ability. It also functions through how people
+                      respond to pressure, difference, uncertainty, and one another.
+                    </p>
+                    <details class="story-read-more">
+                      <summary>Read more</summary>
+                      <p>
+                        Many team difficulties come from unseen patterns: misinterpretation, emotional reactivity,
+                        silence, defensiveness, impatience, control, or the inability to understand another
+                        person&apos;s perspective.
+                      </p>
+                    </details>
+                  </div>
+                </article>
+
+                <article class="mission-story-card mission-story-card-text" data-nested-story-panel>
+                  <div class="mission-story-card-copy">
+                    <p class="eyebrow">What travels</p>
+                    <h3>Awareness matters more because it travels.</h3>
+                    <p>
+                      It influences how a person leads, listens, responds under pressure, handles difference, and
+                      works toward future objectives.
+                    </p>
+                    <details class="story-read-more">
+                      <summary>Read more</summary>
+                      <p>
+                        The insight gathered in one reflective session can return later in classrooms, meetings,
+                        relationships, conflicts, transitions, and moments of choice. It is not only about what
+                        happened in the activity. It is about what becomes possible in life after the activity.
+                      </p>
+                    </details>
+                    <a class="button" href="why-it-matters.html">Explore more about Why It Matters</a>
+                  </div>
+                </article>
+              </div>
+              <button class="nested-story-arrow nested-story-arrow-next" type="button" data-nested-story-next aria-label="Next Why It Matters story">
+                <span aria-hidden="true">&rsaquo;</span>
+              </button>
             </div>
-          </article>
+            <div class="nested-story-footer">
+              <span data-nested-story-progress>1 / 4</span>
+              <div class="nested-story-dots" data-nested-story-dots aria-hidden="true"></div>
+            </div>
+          </section>
         </div>
       </div>
     </section>
