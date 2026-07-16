@@ -46,6 +46,10 @@ body[data-page-slug="home"] {
   overflow-x: clip;
 }
 
+body[data-page-slug="mission"] {
+  overflow-x: clip;
+}
+
 img {
   max-width: 100%;
 }
