@@ -1130,7 +1130,7 @@ body[data-page-slug="home"] .container {
 }
 
 .mission-index-track {
-  grid-auto-columns: minmax(min(88vw, 18rem), 27rem);
+  grid-auto-columns: 100%;
 }
 
 .mission-index-card {
@@ -1141,7 +1141,7 @@ body[data-page-slug="home"] .container {
   display: grid;
   align-content: space-between;
   gap: 1rem;
-  min-height: clamp(18rem, 40svh, 26rem);
+  min-height: clamp(16rem, 34svh, 24rem);
   padding: clamp(1.2rem, 2vw, 1.65rem);
   border: 1px solid rgba(255, 255, 255, 0.78);
   border-radius: calc(var(--radius-xl) + 6px);
@@ -1169,7 +1169,7 @@ body[data-page-slug="home"] .container {
 
 .mission-index-card strong {
   display: block;
-  max-width: 9ch;
+  max-width: 14ch;
   color: var(--ink);
   font-family: "Fraunces", serif;
   font-size: clamp(2.1rem, 3.6vw, 3.6rem);
@@ -1186,11 +1186,15 @@ body[data-page-slug="home"] .container {
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
   gap: clamp(0.75rem, 1.5vw, 1rem);
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   min-height: clamp(31rem, calc(100svh - 11.5rem), 47rem);
   padding: clamp(0.82rem, 1.5vw, 1.05rem);
   border: 1px solid rgba(255, 255, 255, 0.78);
   border-radius: calc(var(--radius-xl) + 4px);
   background: rgba(255, 255, 255, 0.42);
+  overflow: hidden;
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.38),
     0 1rem 2.8rem rgba(66, 43, 22, 0.09);
@@ -1201,6 +1205,14 @@ body[data-page-slug="home"] .container {
   align-content: stretch;
 }
 
+.mission-story-card-cover {
+  grid-template-columns: 1fr;
+  grid-template-rows: auto minmax(22rem, 1fr) auto;
+  gap: clamp(0.8rem, 1.45vw, 1.1rem);
+  min-height: clamp(40rem, calc(100svh - 9rem), 55rem);
+  padding: clamp(0.85rem, 1.5vw, 1.15rem);
+}
+
 .mission-story-card .story-picture {
   min-height: 100%;
 }
@@ -1209,11 +1221,28 @@ body[data-page-slug="home"] .container {
   display: grid;
   align-content: center;
   gap: 0.65rem;
+  width: 100%;
+  max-width: 100%;
   min-width: 0;
   padding: clamp(0.85rem, 1.4vw, 1.1rem);
   border: 1px solid rgba(39, 55, 42, 0.08);
   border-radius: var(--radius-xl);
   background: rgba(255, 255, 255, 0.68);
+}
+
+.mission-story-card-intro {
+  align-content: center;
+  justify-items: center;
+  text-align: center;
+  padding: clamp(0.9rem, 1.45vw, 1.25rem);
+}
+
+.mission-story-card-intro h3 {
+  max-width: min(20ch, calc(100vw - 5.5rem));
+}
+
+.mission-story-card-intro p:not(.eyebrow) {
+  max-width: 62ch;
 }
 
 .mission-story-card-copy .eyebrow {
@@ -1242,6 +1271,11 @@ body[data-page-slug="home"] .container {
   border: 1px solid rgba(47, 90, 67, 0.12);
   border-radius: 1.2rem;
   background: rgba(248, 242, 230, 0.78);
+}
+
+.story-read-more-standalone {
+  align-self: end;
+  background: rgba(255, 250, 241, 0.88);
 }
 
 .story-read-more summary {
@@ -1456,6 +1490,107 @@ body[data-page-slug="home"] .container {
 .story-line-right {
   right: 19%;
   transform: rotate(-9deg);
+}
+
+.story-picture-concept-cover {
+  min-height: clamp(24rem, 50svh, 36rem);
+  border-color: rgba(47, 90, 67, 0.16);
+  background:
+    radial-gradient(circle at 50% 42%, rgba(255, 248, 223, 0.92), transparent 9rem),
+    radial-gradient(circle at 18% 26%, rgba(255, 255, 255, 0.86), transparent 15rem),
+    radial-gradient(circle at 82% 72%, rgba(47, 90, 67, 0.16), transparent 19rem),
+    linear-gradient(145deg, #fff8e9 0%, #f4ecd7 43%, #e6efe4 100%);
+}
+
+.story-picture-concept-cover::before {
+  inset: 9% 12% 13%;
+  border: 2px solid rgba(47, 90, 67, 0.18);
+  border-radius: 44% 56% 48% 52%;
+  background:
+    linear-gradient(110deg, transparent 0 20%, rgba(255, 255, 255, 0.38) 20% 22%, transparent 22% 42%, rgba(255, 255, 255, 0.28) 42% 44%, transparent 44%),
+    radial-gradient(circle at 50% 44%, rgba(255, 255, 255, 0.28), transparent 15rem);
+  box-shadow:
+    inset 0 0 5rem rgba(255, 255, 255, 0.34),
+    0 1.2rem 3.2rem rgba(66, 43, 22, 0.08);
+}
+
+.story-picture-concept-cover::after {
+  left: 12%;
+  right: 12%;
+  bottom: 8%;
+  height: 18%;
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(47, 90, 67, 0.2), transparent 55%),
+    linear-gradient(90deg, rgba(154, 99, 61, 0.05), rgba(217, 150, 68, 0.16), rgba(47, 90, 67, 0.08));
+  filter: blur(16px);
+}
+
+.story-picture-concept-cover .story-sun {
+  top: 45%;
+  width: clamp(5.6rem, 10vw, 8.8rem);
+  background:
+    radial-gradient(circle at 34% 30%, #fffbe8, #e2a24e 54%, #8e5d3c 100%);
+  box-shadow:
+    0 0 0 1.4rem rgba(255, 255, 255, 0.16),
+    0 0 4.5rem rgba(217, 150, 68, 0.48);
+}
+
+.story-picture-concept-cover .story-orbit {
+  top: 45%;
+  border-style: solid;
+}
+
+.story-picture-concept-cover .story-orbit-one {
+  width: min(72%, 42rem);
+  height: 56%;
+}
+
+.story-picture-concept-cover .story-orbit-two {
+  width: min(52%, 28rem);
+  height: 34%;
+}
+
+.story-picture-concept-cover .story-node {
+  background:
+    radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.74));
+}
+
+.story-picture-concept-cover .story-node-a {
+  left: 19%;
+  top: 30%;
+}
+
+.story-picture-concept-cover .story-node-b {
+  right: 19%;
+  top: 30%;
+}
+
+.story-picture-concept-cover .story-node-c {
+  bottom: 17%;
+}
+
+.story-picture-concept-cover .story-root {
+  bottom: 15%;
+  height: 29%;
+  background: linear-gradient(rgba(47, 90, 67, 0.5), rgba(154, 99, 61, 0.12));
+}
+
+.story-picture-concept-cover .story-root-a {
+  transform: translateX(-0.85rem) rotate(-29deg);
+}
+
+.story-picture-concept-cover .story-root-b {
+  transform: translateX(0.85rem) rotate(29deg);
+}
+
+.story-picture-concept-cover .story-line-left {
+  left: 16%;
+  width: 32%;
+}
+
+.story-picture-concept-cover .story-line-right {
+  right: 16%;
+  width: 32%;
 }
 
 .story-track {
@@ -4120,7 +4255,7 @@ a.journey-map-card:focus-visible {
     margin-inline: auto;
     font-size: clamp(1.65rem, 7.4vw, 2.05rem);
     line-height: 1;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
     word-break: normal;
   }
 
@@ -4377,11 +4512,11 @@ a.journey-map-card:focus-visible {
   }
 
   .nested-story-track {
-    grid-auto-columns: minmax(0, calc((100% - 1rem) / 2));
+    grid-auto-columns: 100%;
   }
 
   .mission-index-track {
-    grid-auto-columns: minmax(22rem, 30rem);
+    grid-auto-columns: 100%;
   }
 }
 
@@ -4462,6 +4597,11 @@ a.journey-map-card:focus-visible {
     border-radius: 1.4rem;
   }
 
+  .mission-story-card-cover {
+    grid-template-rows: auto minmax(13.5rem, 38svh) auto;
+    min-height: auto;
+  }
+
   .mission-story-card-text {
     grid-template-rows: 1fr;
   }
@@ -4471,6 +4611,10 @@ a.journey-map-card:focus-visible {
     height: 100%;
   }
 
+  .mission-story-card-cover .story-picture {
+    min-height: 13.5rem;
+  }
+
   .mission-story-card-copy {
     align-content: start;
     gap: 0.48rem;
@@ -4478,9 +4622,22 @@ a.journey-map-card:focus-visible {
     border-radius: 1.2rem;
   }
 
+  .mission-story-card-intro {
+    width: 100%;
+    padding: 0.75rem;
+    overflow: hidden;
+  }
+
+  .mission-story-card-intro p:not(.eyebrow) {
+    max-width: min(100%, 30ch);
+    justify-self: center;
+  }
+
   .mission-story-card-copy h3 {
+    max-width: 100%;
     font-size: clamp(1.35rem, 6.4vw, 2rem);
     line-height: 1;
+    overflow-wrap: break-word;
   }
 
   .mission-story-card-copy p {
@@ -4500,6 +4657,10 @@ a.journey-map-card:focus-visible {
 
   .story-read-more[open] {
     max-height: 16rem;
+  }
+
+  .story-read-more-standalone[open] {
+    max-height: 12.5rem;
   }
 
   .story-read-more p + p {
@@ -4562,12 +4723,30 @@ a.journey-map-card:focus-visible {
     padding: 0.55rem;
   }
 
+  .mission-story-card-cover {
+    grid-template-rows: auto minmax(12rem, 34svh) auto;
+    min-height: auto;
+  }
+
   .mission-story-card-copy {
     padding: 0.62rem;
   }
 
+  .mission-story-card-intro {
+    padding-inline: 0.55rem;
+  }
+
+  .mission-story-card-intro p:not(.eyebrow) {
+    max-width: min(100%, 28ch);
+  }
+
+  .mission-story-card-cover .story-picture {
+    min-height: 12rem;
+  }
+
   .mission-story-card-copy h3 {
-    font-size: clamp(1.18rem, 6.2vw, 1.65rem);
+    font-size: clamp(1.1rem, 5.8vw, 1.5rem);
+    line-height: 1.03;
   }
 
   .mission-story-card-copy p {
