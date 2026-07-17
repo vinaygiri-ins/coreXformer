@@ -54,6 +54,10 @@ body[data-page-slug="concept"] {
   overflow-x: clip;
 }
 
+body[data-page-slug="approach"] {
+  overflow-x: clip;
+}
+
 img {
   max-width: 100%;
 }
@@ -3354,6 +3358,10 @@ a.journey-map-card:focus-visible {
 
 .concept-story-callout {
   margin-top: 0;
+}
+
+body[data-page-slug="approach"] .approach-story-section .concept-story-head {
+  display: none;
 }
 
 .product-grid {

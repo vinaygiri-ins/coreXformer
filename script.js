@@ -388,11 +388,61 @@ function initMissionChapterNav() {
     });
   }
 
+  function scrollToChapter(chapter, behavior = "smooth") {
+    const sectionTop = chapter.section.getBoundingClientRect().top + window.scrollY;
+    const scrollMarginTop = Number.parseFloat(window.getComputedStyle(chapter.section).scrollMarginTop) || 0;
+    const targetTop = Math.max(0, sectionTop - scrollMarginTop);
+
+    if (behavior === "auto") {
+      window.scrollTo(0, targetTop);
+    } else {
+      window.scrollTo({ top: targetTop, behavior });
+    }
+
+    setActiveChapter(chapter.id, behavior === "auto" ? "auto" : "smooth", true);
+  }
+
+  function stabilizeHashChapter(chapter) {
+    const realign = () => scrollToChapter(chapter, "auto");
+    const restoreHash = () => {
+      if (window.COREXFORMER_PENDING_MISSION_HASH && window.history?.replaceState) {
+        window.history.replaceState(null, "", window.COREXFORMER_PENDING_MISSION_HASH);
+      }
+    };
+
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        realign();
+        restoreHash();
+      });
+    });
+
+    [240, 700, 1200].forEach((delay) => {
+      window.setTimeout(() => {
+        realign();
+        restoreHash();
+      }, delay);
+    });
+
+    if (document.readyState === "complete") {
+      window.setTimeout(() => {
+        realign();
+        restoreHash();
+      }, 0);
+      return;
+    }
+
+    window.addEventListener("load", () => {
+      realign();
+      restoreHash();
+      window.setTimeout(realign, 260);
+    }, { once: true });
+  }
+
   chapters.forEach(({ id, link, section }) => {
     link.addEventListener("click", (event) => {
       event.preventDefault();
-      setActiveChapter(id);
-      section.scrollIntoView({ behavior: "smooth", block: "start" });
+      scrollToChapter({ id, section }, "smooth");
 
       if (window.history?.pushState) {
         window.history.pushState(null, "", `#${id}`);
@@ -403,14 +453,12 @@ function initMissionChapterNav() {
   window.addEventListener("scroll", () => updateActiveChapter(), { passive: true });
   window.addEventListener("resize", () => updateActiveChapter("auto"));
 
-  const hashChapter = chapters.find(({ id }) => `#${id}` === window.location.hash);
+  const requestedHash = window.COREXFORMER_PENDING_MISSION_HASH || window.location.hash;
+  const hashChapter = chapters.find(({ id }) => `#${id}` === requestedHash);
   setActiveChapter(hashChapter?.id || getChapterNearestViewportCenter(), "auto");
 
   if (hashChapter) {
-    window.setTimeout(() => {
-      hashChapter.section.scrollIntoView({ behavior: "auto", block: "start" });
-      setActiveChapter(hashChapter.id, "auto", true);
-    }, 0);
+    stabilizeHashChapter(hashChapter);
   }
 }
 

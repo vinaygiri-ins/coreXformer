@@ -3,6 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>
+    (() => {
+      const missionChapters = new Set(["concept", "approach", "who-it-is-for", "how-it-works", "why-it-matters"]);
+      const requestedChapter = window.location.hash.replace(/^#/, "");
+
+      if (!missionChapters.has(requestedChapter) || !window.history?.replaceState) {
+        return;
+      }
+
+      window.COREXFORMER_PENDING_MISSION_HASH = window.location.hash;
+      window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+    })();
+  </script>
   <title>CoreXformer Mission | Concept, Approach and Human Learning Journey</title>
   <meta
     name="description"
@@ -376,98 +389,284 @@
               </p>
             </header>
 
-            <div class="nested-story-window">
+            <div class="nested-story-window concept-story-window">
               <button class="nested-story-arrow nested-story-arrow-prev" type="button" data-nested-story-prev aria-label="Previous Approach story">
                 <span aria-hidden="true">&lsaquo;</span>
               </button>
-              <div class="nested-story-track" data-nested-story-track tabindex="0">
-                <article class="mission-story-card" data-nested-story-panel>
-                  <div class="story-picture story-picture-approach" role="img" aria-label="Group moving through challenge, pressure, pause, and reflection.">
-                    <span class="story-track"></span>
-                    <span class="story-step story-step-one">01</span>
-                    <span class="story-step story-step-two">02</span>
-                    <span class="story-step story-step-three">03</span>
-                    <span class="story-step story-step-four">04</span>
-                    <span class="story-pressure"></span>
-                    <span class="story-pause"></span>
+              <div class="nested-story-track concept-story-track" data-nested-story-track tabindex="0">
+                <article class="concept-story-card" id="mission-approach-activities" data-section-slug="why-activities-exist" data-nested-story-panel>
+                  <div class="concept-story-card-head">
+                    <p class="eyebrow">01 / Activities As Mirror</p>
+                    <h3>Why the activities exist at all</h3>
                   </div>
-                  <div class="mission-story-card-copy">
-                    <p class="eyebrow">Why activities exist</p>
-                    <h3>The activity is a mirror for real human situations.</h3>
+                  <figure class="concept-story-image">
+                    <img
+                      src="images/approach-stories/activities-as-mirror.jpg"
+                      alt="Pencil color story artwork of a group using an activity as a mirror for real human situations"
+                      loading="lazy"
+                    >
+                  </figure>
+                  <div class="concept-story-copy">
                     <p>
-                      The deeper purpose of the activities is to create a simulated space that reflects real-life
-                      human situations within a shorter and more focused time frame.
+                      Activities create a short, focused simulation of real life. They help participants see how they respond
+                      to pressure, uncertainty, relationships, difference, and shared responsibility.
                     </p>
-                    <details class="story-read-more">
+                    <details class="story-read-more concept-story-read-more">
                       <summary>Read more</summary>
-                      <p>
-                        In everyday life, people respond to pressure, uncertainty, relationships, expectations, and
-                        shared objectives in ways that reveal their habits, emotions, and patterns of behavior.
-                      </p>
-                      <p>
-                        Although CoreXformer activities happen in a shorter span of time, the responses that emerge
-                        are often closely connected to how people behave in real situations.
-                      </p>
+                      <div class="concept-story-full-copy">
+                        <p>
+                          The deeper purpose of the activities is to create a simulated space that reflects real-life human
+                          situations within a shorter and more focused time frame. In everyday life, people are shaped and
+                          challenged by situations. They respond to pressure, uncertainty, relationships, expectations, and
+                          shared objectives in ways that reveal their habits, emotions, and patterns of behavior.
+                        </p>
+                        <p>
+                          The activities in CoreXformer are designed to recreate situations that are similar in nature to real-world
+                          experiences. Although they happen in a shorter span of time, the responses that emerge within them are
+                          often closely connected to how people behave in real situations. In this way, the activity is not the
+                          final goal. It is a mirror that helps participants see how they respond when faced with challenge,
+                          coordination, difference, and shared responsibility.
+                        </p>
+                      </div>
                     </details>
                   </div>
                 </article>
 
-                <article class="mission-story-card mission-story-card-text" data-nested-story-panel>
-                  <div class="mission-story-card-copy">
-                    <p class="eyebrow">Short activity arcs</p>
-                    <h3>Ten to twenty minutes keeps energy alive.</h3>
+                <article class="concept-story-card" id="mission-approach-short-arcs" data-section-slug="why-short-activities" data-nested-story-panel>
+                  <div class="concept-story-card-head">
+                    <p class="eyebrow">02 / Short Activity Arcs</p>
+                    <h3>Why most activities stay within 10 to 20 minutes</h3>
+                  </div>
+                  <figure class="concept-story-image">
+                    <img
+                      src="images/approach-stories/short-activity-arcs.jpg"
+                      alt="Pencil color story artwork of groups moving through short focused experiential activity arcs"
+                      loading="lazy"
+                    >
+                  </figure>
+                  <div class="concept-story-copy">
                     <p>
-                      Shorter activities respect the time windows of schools, colleges, corporates, communities, and
-                      government organizations while keeping participation fresh.
+                      Short activity arcs respect real institutional time limits while keeping energy alive. They allow
+                      participants to enter fully, stay fresh, and experience multiple learning moments in one session.
                     </p>
-                    <details class="story-read-more">
+                    <details class="story-read-more concept-story-read-more">
                       <summary>Read more</summary>
-                      <p>
-                        A shorter activity arc allows people to enter a situation fully without losing freshness or
-                        involvement. It also creates room for multiple experiences within one session.
-                      </p>
+                      <div class="concept-story-full-copy">
+                        <p>
+                          The activities are intentionally kept short, usually within 10 to 20 minutes, for two important reasons.
+                          The first is practical: many schools, colleges, corporates, communities, and government organizations
+                          work within limited time windows, so the format needs to respect those constraints. The second is
+                          experiential: shorter activities help keep the energy, attention, and engagement of participants more alive.
+                        </p>
+                        <p>
+                          A shorter activity arc allows people to enter a situation fully without losing freshness or involvement.
+                          It also creates room for multiple experiences within one session, which means participants can encounter
+                          different kinds of situations, responses, and learning moments in a single engagement. This helps maintain
+                          participation, curiosity, and openness throughout the process.
+                        </p>
+                      </div>
                     </details>
                   </div>
                 </article>
 
-                <article class="mission-story-card mission-story-card-text" data-nested-story-panel>
-                  <div class="mission-story-card-copy">
-                    <p class="eyebrow">Pressure and reflection</p>
-                    <h3>Urgency makes natural responses visible.</h3>
+                <article class="concept-story-card" id="mission-approach-time-pressure" data-section-slug="time-pressure" data-nested-story-panel>
+                  <div class="concept-story-card-head">
+                    <p class="eyebrow">03 / Time Pressure</p>
+                    <h3>Why urgency is part of the learning design</h3>
+                  </div>
+                  <figure class="concept-story-image">
+                    <img
+                      src="images/approach-stories/time-pressure.jpg"
+                      alt="Pencil color story artwork of a team working under gentle time pressure during an activity"
+                      loading="lazy"
+                    >
+                  </figure>
+                  <div class="concept-story-copy">
                     <p>
-                      Time pressure is not used to create stress for its own sake. It helps participants notice how
-                      urgency affects communication, decisions, emotion, and team behavior.
+                      Time pressure is used carefully because urgency makes natural responses more visible. It helps people
+                      notice what happens to communication, decision-making, emotion, and team behavior under pressure.
                     </p>
-                    <details class="story-read-more">
+                    <details class="story-read-more concept-story-read-more">
                       <summary>Read more</summary>
-                      <p>
-                        Reflection is the collaborative part of the process where participants bring diverse
-                        perspectives to the same situation. They explore how different people experienced the
-                        activity, what reactions appeared, and what may have been functional or non-functional.
-                      </p>
-                      <p>
-                        The space is meant to be safe. It invites people to understand one another without harming,
-                        dismissing, or judging each other.
-                      </p>
+                      <div class="concept-story-full-copy">
+                        <p>
+                          Many challenges in life come with a time factor. Time pressure often brings out inner behavior more
+                          clearly in a given situation. When people are working toward an objective within limited time, their
+                          natural reactions, emotions, communication patterns, and decision-making styles become more visible.
+                        </p>
+                        <p>
+                          In CoreXformer, time pressure is not used to create stress for its own sake. It is used to help
+                          participants see how they respond when urgency is present. This makes reflection deeper, because people
+                          are able to notice what happens to them under pressure and how that affects the team and the outcome.
+                        </p>
+                        <p>
+                          Over time, this also creates the possibility for participants to grow beyond the immediate pressure of
+                          time. Instead of being controlled by urgency, they begin to observe it, understand it, and respond with
+                          greater awareness.
+                        </p>
+                      </div>
                     </details>
                   </div>
                 </article>
 
-                <article class="mission-story-card mission-story-card-text" data-nested-story-panel>
-                  <div class="mission-story-card-copy">
-                    <p class="eyebrow">Awareness over winning</p>
-                    <h3>The task is not the only measure.</h3>
+                <article class="concept-story-card" id="mission-approach-reflection" data-section-slug="reflection-meaning" data-nested-story-panel>
+                  <div class="concept-story-card-head">
+                    <p class="eyebrow">04 / Reflection Space</p>
+                    <h3>How meaning is created after the activity</h3>
+                  </div>
+                  <figure class="concept-story-image">
+                    <img
+                      src="images/approach-stories/reflection-space.jpg"
+                      alt="Pencil color story artwork of participants reflecting together after an activity"
+                      loading="lazy"
+                    >
+                  </figure>
+                  <div class="concept-story-copy">
                     <p>
-                      What matters most is not only whether the task was completed, but what became visible about
-                      behavior, communication, emotion, adaptability, and team functioning.
+                      Reflection turns the activity into meaning. Participants compare perspectives, notice reactions,
+                      understand what helped or blocked the group, and begin to see the experience as a doorway into awareness.
                     </p>
-                    <details class="story-read-more">
+                    <details class="story-read-more concept-story-read-more">
                       <summary>Read more</summary>
-                      <p>
-                        The learning from the session is meant to stay with participants beyond the experience itself.
-                        It can support them in future situations where they need to lead, collaborate, or respond to
-                        challenges with greater awareness.
-                      </p>
+                      <div class="concept-story-full-copy">
+                        <p>
+                          The reflection space is a collaborative part of the process where participants bring diverse perspectives
+                          to the same situation. They explore how different people experienced the activity, what reactions and
+                          behaviors appeared, and what may have been functional or non-functional in that moment. This allows the
+                          same experience to open up in many directions, making the learning richer and more human.
+                        </p>
+                        <p>
+                          Reflection also creates space for inner realization. Participants begin to ask themselves why they behaved
+                          in a certain way, what influenced their response, and whether any change may be needed in similar
+                          situations in the future. In this way, the activity becomes more than an event. It becomes a doorway into
+                          self-awareness.
+                        </p>
+                        <p>
+                          Just as importantly, the reflection space is meant to be safe. It invites people to understand one
+                          another without harming, dismissing, or judging each other. It gives room and respect for both self and
+                          others to express thoughts, feelings, and experiences honestly. That sense of safety is what allows
+                          insight to deepen.
+                        </p>
+                      </div>
+                    </details>
+                  </div>
+                </article>
+
+                <article class="concept-story-card" id="mission-approach-safe-space" data-section-slug="safe-space" data-nested-story-panel>
+                  <div class="concept-story-card-head">
+                    <p class="eyebrow">05 / Safe Space</p>
+                    <h3>How openness becomes possible</h3>
+                  </div>
+                  <figure class="concept-story-image">
+                    <img
+                      src="images/approach-stories/safe-space.jpg"
+                      alt="Pencil color story artwork of a safe group space where mistakes are held as learning"
+                      loading="lazy"
+                    >
+                  </figure>
+                  <div class="concept-story-copy">
+                    <p>
+                      Safe space is created by the whole group. It allows people to express what they felt, meet
+                      difference with grace, and treat mistakes as part of growth rather than personal weakness.
+                    </p>
+                    <details class="story-read-more concept-story-read-more">
+                      <summary>Read more</summary>
+                      <div class="concept-story-full-copy">
+                        <p>
+                          A safe space is not created by the facilitator alone. It is a shared effort of the whole group. It begins
+                          when participants understand that this is a space where they can express what they genuinely felt in a
+                          situation without fear of judgment. That understanding makes reflection possible in a deeper way.
+                        </p>
+                        <p>
+                          In this space, differences of opinion are not treated as threats. They are received with greater grace,
+                          respect, and openness. Even when a task is not completed, or when failure appears, the experience is held
+                          as part of learning rather than something to hide or feel ashamed of.
+                        </p>
+                        <p>
+                          A safe space also includes the freedom to make mistakes. People are allowed to try, fail, reflect, and
+                          still remain accepted within the process. When mistakes are seen as steps in growth rather than personal
+                          weakness, participants are more able to open up honestly and learn meaningfully.
+                        </p>
+                      </div>
+                    </details>
+                  </div>
+                </article>
+
+                <article class="concept-story-card" id="mission-approach-awareness" data-section-slug="awareness-over-winning" data-nested-story-panel>
+                  <div class="concept-story-card-head">
+                    <p class="eyebrow">06 / Awareness Over Winning</p>
+                    <h3>Why completion is not the only measure</h3>
+                  </div>
+                  <figure class="concept-story-image">
+                    <img
+                      src="images/approach-stories/awareness-over-winning.jpg"
+                      alt="Pencil color story artwork of a team reflecting around an unfinished task"
+                      loading="lazy"
+                    >
+                  </figure>
+                  <div class="concept-story-copy">
+                    <p>
+                      The shared objective matters, but winning is not the only measure. The deeper value is what becomes
+                      visible about behavior, communication, emotion, adaptability, and team functioning.
+                    </p>
+                    <details class="story-read-more concept-story-read-more">
+                      <summary>Read more</summary>
+                      <div class="concept-story-full-copy">
+                        <p>
+                          Winning an activity is not the sole purpose of this process. The deeper purpose is to create awareness
+                          within the situation. When participants begin to discover more about themselves and others through the
+                          experience, they become more functional, more aware, and more capable in similar situations in life.
+                        </p>
+                        <p>
+                          The activity offers a shared objective, but the true learning lies in how people move toward that
+                          objective together. What matters most is not only whether the task was completed, but what became visible
+                          about behavior, communication, emotion, adaptability, and team functioning along the way.
+                        </p>
+                        <p>
+                          In this sense, awareness has greater value than winning. A completed task may end in the moment, but
+                          awareness can continue to shape how people respond in future relationships, teams, and real-life objectives.
+                        </p>
+                      </div>
+                    </details>
+                  </div>
+                </article>
+
+                <article class="concept-story-card" id="mission-approach-learning-forward" data-section-slug="learning-forward" data-nested-story-panel>
+                  <div class="concept-story-card-head">
+                    <p class="eyebrow">07 / After The Session</p>
+                    <h3>How the learning is meant to travel forward</h3>
+                  </div>
+                  <figure class="concept-story-image">
+                    <img
+                      src="images/approach-stories/learning-forward.jpg"
+                      alt="Pencil color story artwork of participants carrying learning forward into future paths"
+                      loading="lazy"
+                    >
+                  </figure>
+                  <div class="concept-story-copy">
+                    <p>
+                      The session may be short, but the learning is meant to travel. Participants carry awareness into
+                      future leadership, collaboration, communication, adaptation, and real-life challenges.
+                    </p>
+                    <details class="story-read-more concept-story-read-more">
+                      <summary>Read more</summary>
+                      <div class="concept-story-full-copy">
+                        <p>
+                          The learning from the session is meant to stay with participants beyond the experience itself. It can
+                          support them in future situations where they need to lead a team, work within a leadership group,
+                          collaborate with others, or respond to new challenges in life with greater awareness.
+                        </p>
+                        <p>
+                          As participants carry the learning forward, they may begin to respond better in unfamiliar or demanding
+                          situations. They can become more conscious in how they communicate, adapt, make decisions, and work with
+                          other people. Over time, this can help them function more effectively and grow into stronger, more
+                          grounded versions of themselves.
+                        </p>
+                        <p>
+                          The session may be short, but the learning is meant to travel into future life situations where better
+                          awareness can lead to better action.
+                        </p>
+                      </div>
                     </details>
                     <a class="button" href="approach.html">Explore more about Approach</a>
                   </div>
@@ -478,7 +677,7 @@
               </button>
             </div>
             <div class="nested-story-footer">
-              <span data-nested-story-progress>1 / 4</span>
+              <span data-nested-story-progress>1 / 7</span>
               <div class="nested-story-dots" data-nested-story-dots aria-hidden="true"></div>
             </div>
           </section>
