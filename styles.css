@@ -66,6 +66,10 @@ body[data-page-slug="how-it-works"] {
   overflow-x: clip;
 }
 
+body[data-page-slug="why-it-matters"] {
+  overflow-x: clip;
+}
+
 img {
   max-width: 100%;
 }
@@ -3380,6 +3384,16 @@ body[data-page-slug="how-it-works"] .flow-story-section .concept-story-head {
   display: none;
 }
 
+body[data-page-slug="why-it-matters"] .matters-story-section .concept-story-head {
+  display: none;
+}
+
+.matters-story-section .concept-story-card-head h3,
+.story-box-matters .concept-story-card-head h3 {
+  max-width: min(22ch, 100%);
+  font-size: clamp(1.7rem, 3.15vw, 3.65rem);
+}
+
 .product-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -4124,6 +4138,32 @@ body[data-page-slug="how-it-works"] .flow-story-section .concept-story-head {
   body[data-page-slug="mission"] .container {
     width: min(calc(100vw - 1rem), 100%);
     margin: 0 auto;
+  }
+
+  body[data-page-slug="why-it-matters"] .container {
+    width: min(calc(100vw - 1rem), 100%);
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  body[data-page-slug="why-it-matters"] .page-hero-grid,
+  body[data-page-slug="why-it-matters"] .page-intro,
+  body[data-page-slug="why-it-matters"] .quote-card {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  body[data-page-slug="why-it-matters"] .page-intro h1 {
+    max-width: min(8.5ch, 100%);
+    font-size: clamp(2.12rem, 9.4vw, 3rem);
+  }
+
+  body[data-page-slug="why-it-matters"] .page-intro .hero-text,
+  body[data-page-slug="why-it-matters"] .quote-card blockquote,
+  body[data-page-slug="why-it-matters"] .quote-card p {
+    width: 100%;
+    max-width: min(100%, 34ch);
   }
 
   .site-nav {
@@ -5096,6 +5136,34 @@ body[data-page-slug="how-it-works"] .flow-story-section .concept-story-head {
     word-break: break-word;
   }
 
+  body[data-page-slug="why-it-matters"] .page-hero {
+    padding-top: 3rem;
+  }
+
+  body[data-page-slug="why-it-matters"] .page-intro,
+  body[data-page-slug="why-it-matters"] .quote-card {
+    min-width: 0;
+    max-width: min(100%, 24rem);
+  }
+
+  body[data-page-slug="why-it-matters"] .page-intro h1 {
+    max-width: min(8.5ch, 100%);
+    font-size: clamp(2.12rem, 7vw, 3rem);
+    line-height: 1.02;
+    text-wrap: wrap;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  body[data-page-slug="why-it-matters"] .page-intro .hero-text,
+  body[data-page-slug="why-it-matters"] .quote-card blockquote,
+  body[data-page-slug="why-it-matters"] .quote-card p {
+    max-width: min(100%, 34ch);
+    text-wrap: pretty;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
   .concept-story-section {
     padding-top: 1.5rem;
   }
@@ -5140,6 +5208,12 @@ body[data-page-slug="how-it-works"] .flow-story-section .concept-story-head {
     font-size: clamp(1.25rem, 5.9vw, 1.85rem);
     line-height: 1.02;
     overflow-wrap: anywhere;
+  }
+
+  .matters-story-section .concept-story-card-head h3,
+  .story-box-matters .concept-story-card-head h3 {
+    max-width: min(18ch, calc(100vw - 3rem));
+    font-size: clamp(1.12rem, 5.1vw, 1.62rem);
   }
 
   .concept-story-image {
