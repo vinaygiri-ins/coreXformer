@@ -3562,6 +3562,224 @@ body[data-page-slug="why-it-matters"] .matters-story-section .concept-story-head
   font-weight: 700;
 }
 
+.programs-story-page {
+  padding: clamp(1rem, 2vw, 1.5rem) 0 clamp(0.25rem, 1vw, 0.75rem);
+}
+
+.program-hero-card {
+  display: grid;
+  grid-template-columns: minmax(0, 0.82fr) minmax(18rem, 1fr);
+  gap: clamp(1rem, 2.6vw, 2rem);
+  align-items: stretch;
+  min-height: min(42rem, calc(100svh - 8rem));
+  padding: clamp(1rem, 2.4vw, 2rem);
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  border-radius: calc(var(--radius-xl) + 10px);
+  background:
+    radial-gradient(circle at 8% 8%, rgba(255, 255, 255, 0.9), transparent 18rem),
+    radial-gradient(circle at 88% 76%, rgba(47, 90, 67, 0.15), transparent 24rem),
+    linear-gradient(135deg, rgba(255, 250, 241, 0.9), rgba(229, 239, 225, 0.82));
+  box-shadow: 0 1.4rem 4.8rem rgba(66, 43, 22, 0.12);
+}
+
+.program-hero-copy {
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: clamp(0.75rem, 1.4vw, 1.1rem);
+  min-width: 0;
+}
+
+.program-hero-copy .breadcrumb {
+  margin-bottom: clamp(0.35rem, 1vw, 0.75rem);
+}
+
+.program-hero-copy h1 {
+  max-width: 11ch;
+  margin: 0;
+  font-size: clamp(3rem, 7vw, 7rem);
+  line-height: 0.92;
+  text-wrap: balance;
+}
+
+.program-tagline {
+  margin: 0;
+  color: var(--clay);
+  font-size: clamp(1.15rem, 2vw, 1.9rem);
+  font-weight: 900;
+  letter-spacing: 0.01em;
+}
+
+.program-hero-copy .hero-text {
+  max-width: 34rem;
+  margin: 0;
+}
+
+.program-hero-image {
+  display: grid;
+  place-items: center;
+  min-height: clamp(22rem, 58svh, 36rem);
+  margin: 0;
+  padding: clamp(0.5rem, 1vw, 0.9rem);
+  border: 1px solid rgba(47, 90, 67, 0.1);
+  border-radius: calc(var(--radius-xl) + 2px);
+  background:
+    radial-gradient(circle at 18% 10%, rgba(255, 255, 255, 0.82), transparent 15rem),
+    linear-gradient(145deg, rgba(255, 250, 241, 0.76), rgba(232, 239, 225, 0.84));
+  overflow: hidden;
+}
+
+.program-hero-image img {
+  width: 100%;
+  height: 100%;
+  max-height: clamp(21rem, 58svh, 35rem);
+  object-fit: contain;
+  border-radius: calc(var(--radius-xl) - 4px);
+  box-shadow: 0 1rem 2.8rem rgba(66, 43, 22, 0.12);
+}
+
+.program-library-section {
+  padding-top: clamp(1.25rem, 2vw, 2rem);
+}
+
+.program-library-card {
+  display: block;
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  border-radius: calc(var(--radius-xl) + 8px);
+  background:
+    radial-gradient(circle at 8% 12%, rgba(255, 255, 255, 0.86), transparent 18rem),
+    linear-gradient(145deg, rgba(255, 250, 241, 0.9), rgba(232, 239, 225, 0.78));
+  box-shadow: 0 1.2rem 3.8rem rgba(66, 43, 22, 0.11);
+  overflow: hidden;
+}
+
+.program-library-card > summary {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.8rem, 1.8vw, 1.2rem);
+  min-height: 5rem;
+  padding: clamp(1rem, 2vw, 1.4rem);
+  cursor: pointer;
+  list-style: none;
+}
+
+.program-library-card > summary::-webkit-details-marker,
+.program-detail > summary::-webkit-details-marker {
+  display: none;
+}
+
+.program-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 6.8rem;
+  min-height: 3rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: 999px;
+  background: var(--forest);
+  color: #fff;
+  font-weight: 900;
+}
+
+.program-summary-main {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.program-summary-main strong {
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: clamp(1.55rem, 2.7vw, 2.75rem);
+  line-height: 1;
+}
+
+.program-summary-main span {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.program-library-body {
+  display: grid;
+  gap: clamp(0.8rem, 1.5vw, 1.05rem);
+  padding: 0 clamp(1rem, 2vw, 1.4rem) clamp(1rem, 2vw, 1.4rem);
+}
+
+.program-detail {
+  border: 1px solid rgba(39, 55, 42, 0.1);
+  border-radius: var(--radius-xl);
+  background: rgba(255, 255, 255, 0.62);
+  overflow: hidden;
+}
+
+.program-detail > summary {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: clamp(0.85rem, 1.7vw, 1.15rem);
+  cursor: pointer;
+  list-style: none;
+}
+
+.program-detail > summary span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 999px;
+  background: rgba(47, 90, 67, 0.1);
+  color: var(--forest);
+  font-weight: 900;
+}
+
+.program-detail > summary strong {
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 2vw, 2rem);
+  line-height: 1.08;
+}
+
+.program-detail[open] > summary {
+  background: rgba(47, 90, 67, 0.09);
+}
+
+.program-detail[open] > summary span {
+  background: var(--forest);
+  color: #fff;
+}
+
+.program-detail-body {
+  display: grid;
+  gap: 0.85rem;
+  padding: 0 clamp(1rem, 2vw, 1.45rem) clamp(1rem, 2vw, 1.45rem) clamp(4.6rem, 5vw, 5.1rem);
+  color: var(--muted);
+  font-size: clamp(1rem, 1.25vw, 1.18rem);
+  line-height: 1.7;
+}
+
+.program-detail-body p {
+  margin: 0;
+}
+
+.program-detail-body ul {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.program-detail-transform .program-detail-body {
+  color: var(--ink);
+  font-size: clamp(1.25rem, 2vw, 2rem);
+  line-height: 1.25;
+}
+
+.program-contact-row {
+  justify-content: center;
+  margin-top: clamp(1.2rem, 2vw, 1.6rem);
+}
+
 .cta-card-soft {
   background:
     radial-gradient(circle at top right, rgba(217, 150, 68, 0.16), transparent 16rem),
@@ -4122,6 +4340,7 @@ body[data-page-slug="why-it-matters"] .matters-story-section .concept-story-head
   .footer-shell,
   .traceability-box,
   .page-hero-grid,
+  .program-hero-card,
   .journey-map-head,
   .finder-grid,
   .feedback-submit-grid,
@@ -4188,6 +4407,19 @@ body[data-page-slug="why-it-matters"] .matters-story-section .concept-story-head
   h2 {
     max-width: 20ch;
   }
+
+  .program-hero-copy {
+    justify-items: center;
+    text-align: center;
+  }
+
+  .program-hero-copy .hero-text {
+    margin-inline: auto;
+  }
+
+  .program-hero-image {
+    min-height: clamp(18rem, 44svh, 31rem);
+  }
 }
 
 @media (min-width: 761px) and (max-height: 840px) {
@@ -4219,6 +4451,11 @@ body[data-page-slug="why-it-matters"] .matters-story-section .concept-story-head
   }
 
   body[data-page-slug="mission"] .container {
+    width: min(calc(100vw - 1rem), 100%);
+    margin: 0 auto;
+  }
+
+  body[data-page-slug="programs"] .container {
     width: min(calc(100vw - 1rem), 100%);
     margin: 0 auto;
   }
@@ -4289,6 +4526,120 @@ body[data-page-slug="why-it-matters"] .matters-story-section .concept-story-head
   .product-detail-columns,
   .choice-grid {
     grid-template-columns: 1fr;
+  }
+
+  .programs-story-page {
+    padding: 0.75rem 0 0.25rem;
+  }
+
+  .program-hero-card {
+    gap: 0.8rem;
+    min-height: auto;
+    padding: 0.9rem;
+    border-radius: 1.55rem;
+  }
+
+  .program-hero-copy {
+    gap: 0.55rem;
+  }
+
+  .program-hero-copy .breadcrumb {
+    margin-bottom: 0.15rem;
+  }
+
+  .program-hero-copy h1 {
+    max-width: min(10ch, 100%);
+    font-size: clamp(2.3rem, 12vw, 3.5rem);
+    line-height: 0.96;
+  }
+
+  .program-tagline {
+    font-size: clamp(1rem, 4.8vw, 1.25rem);
+    text-align: center;
+  }
+
+  .program-hero-copy .hero-text {
+    max-width: min(100%, 31ch);
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+
+  .program-hero-image {
+    min-height: 0;
+    height: min(52svh, 23rem);
+    padding: 0.45rem;
+    border-radius: 1.35rem;
+  }
+
+  .program-hero-image img {
+    max-height: 100%;
+    border-radius: 1.05rem;
+  }
+
+  .program-library-section {
+    padding-top: 0.9rem;
+  }
+
+  .program-library-card {
+    border-radius: 1.55rem;
+  }
+
+  .program-library-card > summary {
+    align-items: flex-start;
+    gap: 0.65rem;
+    min-height: 0;
+    padding: 0.85rem;
+  }
+
+  .program-number {
+    min-width: 4.6rem;
+    min-height: 2.45rem;
+    padding: 0.45rem 0.65rem;
+    font-size: 0.82rem;
+  }
+
+  .program-summary-main strong {
+    font-size: clamp(1.25rem, 6.2vw, 1.85rem);
+  }
+
+  .program-summary-main span {
+    font-size: 0.88rem;
+  }
+
+  .program-library-body {
+    gap: 0.65rem;
+    padding: 0 0.75rem 0.75rem;
+  }
+
+  .program-detail > summary {
+    align-items: flex-start;
+    gap: 0.65rem;
+    padding: 0.75rem;
+  }
+
+  .program-detail > summary span {
+    width: 2.25rem;
+    height: 2.25rem;
+    font-size: 0.82rem;
+  }
+
+  .program-detail > summary strong {
+    font-size: clamp(1.1rem, 5.5vw, 1.45rem);
+  }
+
+  .program-detail-body {
+    gap: 0.72rem;
+    padding: 0 0.85rem 0.9rem;
+    font-size: 0.95rem;
+    line-height: 1.62;
+  }
+
+  .program-detail-body ul {
+    padding-left: 1.05rem;
+  }
+
+  .program-detail-transform .program-detail-body {
+    font-size: clamp(1.12rem, 5.8vw, 1.45rem);
   }
 
   .reflection-rating-row {
