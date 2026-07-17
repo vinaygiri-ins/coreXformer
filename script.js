@@ -41,6 +41,7 @@ if (navToggle && siteNav) {
 initHomeStoryRail();
 initMissionChapterNav();
 initNestedStoryRails();
+initProgramDetailModal();
 
 function createNoopAnalytics() {
   return {
@@ -586,6 +587,61 @@ function initNestedStoryRails() {
     });
 
     goToPanel(0, "auto");
+  });
+}
+
+function initProgramDetailModal() {
+  const openButtons = [...document.querySelectorAll("[data-program-modal-open]")];
+
+  if (!openButtons.length) {
+    return;
+  }
+
+  openButtons.forEach((button) => {
+    const modalKey = button.dataset.programModalOpen;
+    const modal = modalKey ? document.querySelector(`[data-program-modal="${modalKey}"]`) : null;
+
+    if (!modal) {
+      return;
+    }
+
+    const closeButtons = [...modal.querySelectorAll("[data-program-modal-close]")];
+
+    function openModal() {
+      if (typeof modal.showModal === "function") {
+        modal.showModal();
+      } else {
+        modal.setAttribute("open", "");
+      }
+
+      modal.querySelector("[data-program-modal-close]")?.focus({ preventScroll: true });
+    }
+
+    function closeModal() {
+      if (typeof modal.close === "function") {
+        modal.close();
+      } else {
+        modal.removeAttribute("open");
+      }
+
+      button.focus({ preventScroll: true });
+    }
+
+    button.addEventListener("click", openModal);
+
+    closeButtons.forEach((closeButton) => {
+      closeButton.addEventListener("click", closeModal);
+    });
+
+    modal.addEventListener("click", (event) => {
+      if (event.target === modal) {
+        closeModal();
+      }
+    });
+
+    modal.addEventListener("cancel", () => {
+      window.setTimeout(() => button.focus({ preventScroll: true }), 0);
+    });
   });
 }
 
