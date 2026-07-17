@@ -841,10 +841,12 @@ body[data-page-slug="home"] .container {
 }
 
 .mission-chapter-nav a:hover,
-.mission-chapter-nav a:focus-visible {
+.mission-chapter-nav a:focus-visible,
+.mission-chapter-nav a.is-active {
   transform: translateY(-1px);
   color: #fff;
   background: linear-gradient(135deg, var(--forest), #6a8f79);
+  box-shadow: 0 0.75rem 1.55rem rgba(47, 90, 67, 0.16);
 }
 
 .mission-vertical-rail {
@@ -5158,7 +5160,11 @@ body[data-page-slug="mission"] .mission-page-shell {
 
 body[data-page-slug="mission"] .mission-chapter-nav {
   margin-inline: auto;
-  max-width: min(100%, 64rem);
+  width: min(100%, 42rem);
+  max-width: min(100%, 42rem);
+  justify-content: flex-start;
+  padding-inline: max(0.35rem, calc(50% - 5.5rem));
+  scroll-padding-inline: 50%;
 }
 
 body[data-page-slug="mission"] .mission-story-stack {
@@ -5232,6 +5238,12 @@ body[data-page-slug="mission"] .mission-story-card-cover {
 @media (max-width: 900px) {
   body[data-page-slug="mission"] .mission-page {
     padding-top: 0.55rem;
+  }
+
+  body[data-page-slug="mission"] .mission-chapter-nav {
+    width: min(100%, calc(100vw - 1rem));
+    max-width: min(100%, calc(100vw - 1rem));
+    padding-inline: max(0.35rem, calc(50% - 4.6rem));
   }
 
   body[data-page-slug="mission"] .mission-story-module {

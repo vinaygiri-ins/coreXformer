@@ -39,6 +39,7 @@ if (navToggle && siteNav) {
 }
 
 initHomeStoryRail();
+initMissionChapterNav();
 initNestedStoryRails();
 
 function createNoopAnalytics() {
@@ -312,6 +313,104 @@ function initHomeStoryRail() {
 
   if (!handleHomeStoryHash(initialHash, "auto")) {
     goToPanel(0, "auto");
+  }
+}
+
+function initMissionChapterNav() {
+  const nav = document.querySelector(".mission-chapter-nav");
+  const links = nav ? [...nav.querySelectorAll('a[href^="#"]')] : [];
+  const chapters = links
+    .map((link) => {
+      const id = (link.getAttribute("href") || "").replace(/^#/, "");
+      const section = id ? document.getElementById(id) : null;
+
+      return section ? { id, link, section } : null;
+    })
+    .filter(Boolean);
+
+  if (!nav || !chapters.length) {
+    return;
+  }
+
+  let activeChapterId = "";
+  let scrollFrame = 0;
+
+  function setActiveChapter(nextId, behavior = "smooth", forceCenter = false) {
+    if (!nextId || (nextId === activeChapterId && !forceCenter)) {
+      return;
+    }
+
+    activeChapterId = nextId;
+
+    chapters.forEach(({ id, link }) => {
+      const isActive = id === nextId;
+      link.classList.toggle("is-active", isActive);
+
+      if (isActive) {
+        link.setAttribute("aria-current", "true");
+        link.scrollIntoView({
+          behavior,
+          block: "nearest",
+          inline: "center"
+        });
+      } else {
+        link.removeAttribute("aria-current");
+      }
+    });
+  }
+
+  function getChapterNearestViewportCenter() {
+    const targetY = window.innerHeight * 0.45;
+    let nearest = chapters[0];
+    let nearestDistance = Number.POSITIVE_INFINITY;
+
+    chapters.forEach((chapter) => {
+      const rect = chapter.section.getBoundingClientRect();
+      const isVisible = rect.bottom > 0 && rect.top < window.innerHeight;
+      const referenceY = rect.top <= targetY && rect.bottom >= targetY
+        ? targetY
+        : rect.top + rect.height / 2;
+      const distance = Math.abs(referenceY - targetY);
+
+      if (isVisible && distance < nearestDistance) {
+        nearest = chapter;
+        nearestDistance = distance;
+      }
+    });
+
+    return nearest.id;
+  }
+
+  function updateActiveChapter(behavior = "smooth") {
+    window.cancelAnimationFrame(scrollFrame);
+    scrollFrame = window.requestAnimationFrame(() => {
+      setActiveChapter(getChapterNearestViewportCenter(), behavior);
+    });
+  }
+
+  chapters.forEach(({ id, link, section }) => {
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      setActiveChapter(id);
+      section.scrollIntoView({ behavior: "smooth", block: "start" });
+
+      if (window.history?.pushState) {
+        window.history.pushState(null, "", `#${id}`);
+      }
+    });
+  });
+
+  window.addEventListener("scroll", () => updateActiveChapter(), { passive: true });
+  window.addEventListener("resize", () => updateActiveChapter("auto"));
+
+  const hashChapter = chapters.find(({ id }) => `#${id}` === window.location.hash);
+  setActiveChapter(hashChapter?.id || getChapterNearestViewportCenter(), "auto");
+
+  if (hashChapter) {
+    window.setTimeout(() => {
+      hashChapter.section.scrollIntoView({ behavior: "auto", block: "start" });
+      setActiveChapter(hashChapter.id, "auto", true);
+    }, 0);
   }
 }
 
