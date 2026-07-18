@@ -313,7 +313,11 @@ function initHomeStoryRail() {
   const initialHash = window.location.hash || "";
 
   if (!handleHomeStoryHash(initialHash, "auto")) {
-    goToPanel(0, "auto");
+    const resetInitialPanel = () => goToPanel(0, "auto");
+    resetInitialPanel();
+    window.requestAnimationFrame(resetInitialPanel);
+    window.setTimeout(resetInitialPanel, 120);
+    window.addEventListener("pageshow", resetInitialPanel, { once: true });
   }
 }
 
