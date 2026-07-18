@@ -82,7 +82,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260717-program-window">
+  <link rel="stylesheet" href="styles.css?v=20260718-program-briefs">
 </head>
 <body data-page-slug="home">
   <header class="site-header">
@@ -287,38 +287,107 @@
               <div class="home-story-card-body home-program-window home-program-index">
                 <div class="home-program-index-head">
                   <p class="eyebrow">Programs</p>
-                  <h2>Choose a program and open its full journey.</h2>
+                  <h2>Choose a program and read its brief.</h2>
                   <p>
-                    The rail keeps every program as a simple row. Select one when you want the full story window.
+                    Each row opens only the short brief, so the program window stays simple and easy to scan.
                   </p>
                 </div>
 
                 <div class="home-program-list" aria-label="CoreXformer programs">
-                  <button class="home-program-row is-ready" type="button" data-program-modal-open="understanding-experience">
+                  <button
+                    class="home-program-row is-ready"
+                    type="button"
+                    data-program-modal-open="program-brief"
+                    data-program-number="Program 01"
+                    data-program-title="Understanding the Experience"
+                    data-program-brief="Helps individuals and teams pause, observe what actually happened, recognise assumptions and learn from their experiences."
+                  >
                     <span class="home-program-row-number">Program 01</span>
                     <span class="home-program-row-copy">
                       <strong>Understanding the Experience</strong>
-                      <small>Pause. Observe. Understand. Respond.</small>
+                      <small>Click to read the short brief.</small>
                     </span>
-                    <span class="home-program-row-action">Open full screen</span>
+                    <span class="home-program-row-action">Read brief</span>
                   </button>
 
-                  <button class="home-program-row" type="button" disabled>
+                  <button
+                    class="home-program-row is-ready"
+                    type="button"
+                    data-program-modal-open="program-brief"
+                    data-program-number="Program 02"
+                    data-program-title="Planning and Strategy"
+                    data-program-brief="Develops the ability to think ahead, create a shared plan and act with greater clarity and purpose."
+                  >
                     <span class="home-program-row-number">Program 02</span>
                     <span class="home-program-row-copy">
-                      <strong>Next program</strong>
-                      <small>Ready when the next program content is added.</small>
+                      <strong>Planning and Strategy</strong>
+                      <small>Click to read the short brief.</small>
                     </span>
-                    <span class="home-program-row-action">Coming next</span>
+                    <span class="home-program-row-action">Read brief</span>
                   </button>
 
-                  <button class="home-program-row" type="button" disabled>
+                  <button
+                    class="home-program-row is-ready"
+                    type="button"
+                    data-program-modal-open="program-brief"
+                    data-program-number="Program 03"
+                    data-program-title="Teamwork and Communication"
+                    data-program-brief="Strengthens listening, participation, coordination and shared understanding within teams."
+                  >
                     <span class="home-program-row-number">Program 03</span>
                     <span class="home-program-row-copy">
-                      <strong>Next program</strong>
-                      <small>More program journeys can be added here.</small>
+                      <strong>Teamwork and Communication</strong>
+                      <small>Click to read the short brief.</small>
                     </span>
-                    <span class="home-program-row-action">Coming next</span>
+                    <span class="home-program-row-action">Read brief</span>
+                  </button>
+
+                  <button
+                    class="home-program-row is-ready"
+                    type="button"
+                    data-program-modal-open="program-brief"
+                    data-program-number="Program 04"
+                    data-program-title="Emotions and Reactions"
+                    data-program-brief="Helps participants recognise emotions, understand their reactions and respond more consciously under pressure."
+                  >
+                    <span class="home-program-row-number">Program 04</span>
+                    <span class="home-program-row-copy">
+                      <strong>Emotions and Reactions</strong>
+                      <small>Click to read the short brief.</small>
+                    </span>
+                    <span class="home-program-row-action">Read brief</span>
+                  </button>
+
+                  <button
+                    class="home-program-row is-ready"
+                    type="button"
+                    data-program-modal-open="program-brief"
+                    data-program-number="Program 05"
+                    data-program-title="Perseverance and Adaptability"
+                    data-program-brief="Builds the ability to stay committed, learn from failure and change direction when the existing approach is not working."
+                  >
+                    <span class="home-program-row-number">Program 05</span>
+                    <span class="home-program-row-copy">
+                      <strong>Perseverance and Adaptability</strong>
+                      <small>Click to read the short brief.</small>
+                    </span>
+                    <span class="home-program-row-action">Read brief</span>
+                  </button>
+
+                  <button
+                    class="home-program-row is-ready"
+                    type="button"
+                    data-program-modal-open="program-brief"
+                    data-program-number="Program 06"
+                    data-program-title="Learning and the Way Forward"
+                    data-program-brief="Enables participants to convert experiences into practical learning, better decisions and meaningful future action."
+                  >
+                    <span class="home-program-row-number">Program 06</span>
+                    <span class="home-program-row-copy">
+                      <strong>Learning and the Way Forward</strong>
+                      <small>Click to read the short brief.</small>
+                    </span>
+                    <span class="home-program-row-action">Read brief</span>
                   </button>
                 </div>
               </div>
@@ -343,91 +412,19 @@
       </div>
     </section>
 
-    <dialog class="program-fullscreen" data-program-modal="understanding-experience" aria-labelledby="program-fullscreen-title">
-      <div class="program-fullscreen-shell">
+    <dialog class="program-fullscreen program-brief-modal" data-program-modal="program-brief" aria-labelledby="program-fullscreen-title">
+      <div class="program-fullscreen-shell program-brief-shell">
         <button class="program-fullscreen-close" type="button" data-program-modal-close aria-label="Close program detail">
           Close
         </button>
 
-        <div class="program-fullscreen-layout">
-          <figure class="home-program-visual program-fullscreen-visual">
-            <img
-              src="images/program-stories/understanding-the-experience.jpg"
-              alt="Pencil colour illustration of participants pausing around a shared experience"
-              loading="lazy"
-            >
-          </figure>
-
-          <div class="home-program-content program-fullscreen-content">
-            <div class="home-program-head">
-              <p class="eyebrow">Program 01</p>
-              <h2 id="program-fullscreen-title">Understanding the Experience</h2>
-              <p class="home-program-tagline">Pause. Observe. Understand. Respond.</p>
-            </div>
-
-            <div class="home-program-accordion" aria-label="Understanding the Experience program details">
-              <details class="home-program-detail" open>
-                <summary>Why Is This Program Required?</summary>
-                <div>
-                  <p>
-                    People often react to situations before fully understanding what is happening. Assumptions, emotions, past experiences and time pressure can influence how an individual or team interprets a challenge.
-                  </p>
-                  <p>This program helps participants pause, observe the situation and separate:</p>
-                  <ul>
-                    <li>What actually happened</li>
-                    <li>What they assumed happened</li>
-                    <li>How they interpreted the experience</li>
-                    <li>How their reactions influenced the outcome</li>
-                  </ul>
-                  <p>It develops the ability to learn from an experience instead of simply moving on from it.</p>
-                </div>
-              </details>
-
-              <details class="home-program-detail">
-                <summary>Impact on the Individual</summary>
-                <div>
-                  <p>The program helps individuals:</p>
-                  <ul>
-                    <li>Become more aware of their thoughts, emotions and reactions</li>
-                    <li>Distinguish facts from personal assumptions</li>
-                    <li>Recognise repeated behavioural patterns</li>
-                    <li>Understand how they respond to uncertainty and pressure</li>
-                    <li>Listen to different perspectives</li>
-                    <li>Reflect before reacting</li>
-                    <li>Make more conscious decisions</li>
-                    <li>Learn from both success and failure</li>
-                  </ul>
-                  <p>The individual begins to create a space between an event and their response.</p>
-                </div>
-              </details>
-
-              <details class="home-program-detail">
-                <summary>Impact on Teams and Organisations</summary>
-                <div>
-                  <p>The program helps teams and organisations:</p>
-                  <ul>
-                    <li>Develop a shared understanding of situations</li>
-                    <li>Reduce misunderstandings and premature conclusions</li>
-                    <li>Identify the actual source of a problem</li>
-                    <li>Encourage different perspectives</li>
-                    <li>Improve the quality of discussions and reviews</li>
-                    <li>Replace blame with reflection and learning</li>
-                    <li>Recognise patterns affecting team performance</li>
-                    <li>Make decisions with greater clarity</li>
-                    <li>Build a culture of observation, openness and continuous learning</li>
-                  </ul>
-                </div>
-              </details>
-
-              <details class="home-program-detail home-program-transform">
-                <summary>Core Transformation</summary>
-                <div>
-                  <p><strong>From immediate reaction to conscious understanding.</strong></p>
-                </div>
-              </details>
-            </div>
-          </div>
-        </div>
+        <article class="program-brief-card">
+          <p class="eyebrow" data-program-modal-number>Program</p>
+          <h2 id="program-fullscreen-title" data-program-modal-title>Program brief</h2>
+          <p data-program-modal-brief>
+            Select a program to read its brief.
+          </p>
+        </article>
       </div>
     </dialog>
 
@@ -641,6 +638,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="content-loader.js"></script>
   <script src="feedback.js"></script>
-  <script src="script.js?v=20260717-program-window"></script>
+  <script src="script.js?v=20260718-program-briefs"></script>
 </body>
 </html>

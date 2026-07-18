@@ -606,8 +606,23 @@ function initProgramDetailModal() {
     }
 
     const closeButtons = [...modal.querySelectorAll("[data-program-modal-close]")];
+    const modalNumber = modal.querySelector("[data-program-modal-number]");
+    const modalTitle = modal.querySelector("[data-program-modal-title]");
+    const modalBrief = modal.querySelector("[data-program-modal-brief]");
 
     function openModal() {
+      if (modalNumber && button.dataset.programNumber) {
+        modalNumber.textContent = button.dataset.programNumber;
+      }
+
+      if (modalTitle && button.dataset.programTitle) {
+        modalTitle.textContent = button.dataset.programTitle;
+      }
+
+      if (modalBrief && button.dataset.programBrief) {
+        modalBrief.textContent = button.dataset.programBrief;
+      }
+
       if (typeof modal.showModal === "function") {
         modal.showModal();
       } else {
