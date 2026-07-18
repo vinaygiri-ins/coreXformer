@@ -82,7 +82,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260718-program-briefs">
+  <link rel="stylesheet" href="styles.css?v=20260718-program-inline-briefs">
 </head>
 <body data-page-slug="home">
   <header class="site-header">
@@ -288,107 +288,68 @@
                 <div class="home-program-index-head">
                   <p class="eyebrow">Programs</p>
                   <h2>Choose a program and read its brief.</h2>
-                  <p>
-                    Each row opens only the short brief, so the program window stays simple and easy to scan.
-                  </p>
                 </div>
 
                 <div class="home-program-list" aria-label="CoreXformer programs">
-                  <button
+                  <article
                     class="home-program-row is-ready"
-                    type="button"
-                    data-program-modal-open="program-brief"
-                    data-program-number="Program 01"
-                    data-program-title="Understanding the Experience"
-                    data-program-brief="Helps individuals and teams pause, observe what actually happened, recognise assumptions and learn from their experiences."
                   >
                     <span class="home-program-row-number">Program 01</span>
                     <span class="home-program-row-copy">
                       <strong>Understanding the Experience</strong>
-                      <small>Click to read the short brief.</small>
+                      <small>Helps individuals and teams pause, observe what actually happened, recognise assumptions and learn from their experiences.</small>
                     </span>
-                    <span class="home-program-row-action">Read brief</span>
-                  </button>
+                  </article>
 
-                  <button
+                  <article
                     class="home-program-row is-ready"
-                    type="button"
-                    data-program-modal-open="program-brief"
-                    data-program-number="Program 02"
-                    data-program-title="Planning and Strategy"
-                    data-program-brief="Develops the ability to think ahead, create a shared plan and act with greater clarity and purpose."
                   >
                     <span class="home-program-row-number">Program 02</span>
                     <span class="home-program-row-copy">
                       <strong>Planning and Strategy</strong>
-                      <small>Click to read the short brief.</small>
+                      <small>Develops the ability to think ahead, create a shared plan and act with greater clarity and purpose.</small>
                     </span>
-                    <span class="home-program-row-action">Read brief</span>
-                  </button>
+                  </article>
 
-                  <button
+                  <article
                     class="home-program-row is-ready"
-                    type="button"
-                    data-program-modal-open="program-brief"
-                    data-program-number="Program 03"
-                    data-program-title="Teamwork and Communication"
-                    data-program-brief="Strengthens listening, participation, coordination and shared understanding within teams."
                   >
                     <span class="home-program-row-number">Program 03</span>
                     <span class="home-program-row-copy">
                       <strong>Teamwork and Communication</strong>
-                      <small>Click to read the short brief.</small>
+                      <small>Strengthens listening, participation, coordination and shared understanding within teams.</small>
                     </span>
-                    <span class="home-program-row-action">Read brief</span>
-                  </button>
+                  </article>
 
-                  <button
+                  <article
                     class="home-program-row is-ready"
-                    type="button"
-                    data-program-modal-open="program-brief"
-                    data-program-number="Program 04"
-                    data-program-title="Emotions and Reactions"
-                    data-program-brief="Helps participants recognise emotions, understand their reactions and respond more consciously under pressure."
                   >
                     <span class="home-program-row-number">Program 04</span>
                     <span class="home-program-row-copy">
                       <strong>Emotions and Reactions</strong>
-                      <small>Click to read the short brief.</small>
+                      <small>Helps participants recognise emotions, understand their reactions and respond more consciously under pressure.</small>
                     </span>
-                    <span class="home-program-row-action">Read brief</span>
-                  </button>
+                  </article>
 
-                  <button
+                  <article
                     class="home-program-row is-ready"
-                    type="button"
-                    data-program-modal-open="program-brief"
-                    data-program-number="Program 05"
-                    data-program-title="Perseverance and Adaptability"
-                    data-program-brief="Builds the ability to stay committed, learn from failure and change direction when the existing approach is not working."
                   >
                     <span class="home-program-row-number">Program 05</span>
                     <span class="home-program-row-copy">
                       <strong>Perseverance and Adaptability</strong>
-                      <small>Click to read the short brief.</small>
+                      <small>Builds the ability to stay committed, learn from failure and change direction when the existing approach is not working.</small>
                     </span>
-                    <span class="home-program-row-action">Read brief</span>
-                  </button>
+                  </article>
 
-                  <button
+                  <article
                     class="home-program-row is-ready"
-                    type="button"
-                    data-program-modal-open="program-brief"
-                    data-program-number="Program 06"
-                    data-program-title="Learning and the Way Forward"
-                    data-program-brief="Enables participants to convert experiences into practical learning, better decisions and meaningful future action."
                   >
                     <span class="home-program-row-number">Program 06</span>
                     <span class="home-program-row-copy">
                       <strong>Learning and the Way Forward</strong>
-                      <small>Click to read the short brief.</small>
+                      <small>Enables participants to convert experiences into practical learning, better decisions and meaningful future action.</small>
                     </span>
-                    <span class="home-program-row-action">Read brief</span>
-                  </button>
+                  </article>
                 </div>
               </div>
             </article>
@@ -411,22 +372,6 @@
         </div>
       </div>
     </section>
-
-    <dialog class="program-fullscreen program-brief-modal" data-program-modal="program-brief" aria-labelledby="program-fullscreen-title">
-      <div class="program-fullscreen-shell program-brief-shell">
-        <button class="program-fullscreen-close" type="button" data-program-modal-close aria-label="Close program detail">
-          Close
-        </button>
-
-        <article class="program-brief-card">
-          <p class="eyebrow" data-program-modal-number>Program</p>
-          <h2 id="program-fullscreen-title" data-program-modal-title>Program brief</h2>
-          <p data-program-modal-brief>
-            Select a program to read its brief.
-          </p>
-        </article>
-      </div>
-    </dialog>
 
     <section class="section" id="working-together" data-section-slug="founder">
       <div class="container split-section">
@@ -638,6 +583,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="content-loader.js"></script>
   <script src="feedback.js"></script>
-  <script src="script.js?v=20260718-program-briefs"></script>
+  <script src="script.js?v=20260718-program-inline-briefs"></script>
 </body>
 </html>
