@@ -572,6 +572,43 @@ body[data-page-slug="home"] .container {
   line-height: 0.96;
 }
 
+.home-program-mission-tabs {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: clamp(0.45rem, 0.85vw, 0.7rem);
+  min-width: 0;
+}
+
+.home-program-mission-tabs a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: clamp(2.35rem, 4.8svh, 3rem);
+  padding: 0.48rem 0.62rem;
+  border: 1px solid rgba(39, 55, 42, 0.1);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.68);
+  color: var(--ink);
+  font-size: clamp(0.72rem, 0.9vw, 0.92rem);
+  font-weight: 900;
+  line-height: 1.12;
+  text-align: center;
+  text-decoration: none;
+  box-shadow: 0 0.6rem 1.8rem rgba(66, 43, 22, 0.08);
+}
+
+.home-program-mission-tabs a:hover,
+.home-program-mission-tabs a:focus-visible {
+  border-color: rgba(47, 90, 67, 0.22);
+  background: rgba(47, 90, 67, 0.1);
+  color: var(--forest);
+}
+
+.home-program-mission-tabs a:last-child {
+  background: var(--forest);
+  color: #fff;
+}
+
 .home-program-list {
   display: grid;
   gap: clamp(0.62rem, 1vw, 0.9rem);
@@ -5252,6 +5289,23 @@ body[data-page-slug="why-it-matters"] .matters-story-section .concept-story-head
     max-width: min(100%, 31ch);
     font-size: 0.88rem;
     line-height: 1.45;
+  }
+
+  .home-program-mission-tabs {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding: 0.05rem 0.15rem 0.25rem;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .home-program-mission-tabs a {
+    flex: 0 0 auto;
+    min-height: 2.2rem;
+    padding: 0.45rem 0.72rem;
+    font-size: 0.76rem;
+    scroll-snap-align: start;
   }
 
   .home-program-list {
