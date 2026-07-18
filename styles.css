@@ -3944,113 +3944,12 @@ body[data-page-slug="why-it-matters"] .matters-story-section .concept-story-head
   font-weight: 700;
 }
 
-.programs-story-page {
-  padding: clamp(1rem, 2vw, 1.5rem) 0 clamp(0.25rem, 1vw, 0.75rem);
-}
-
-.program-hero-card {
-  display: grid;
-  grid-template-columns: minmax(0, 0.82fr) minmax(18rem, 1fr);
-  gap: clamp(1rem, 2.6vw, 2rem);
-  align-items: stretch;
-  min-height: min(42rem, calc(100svh - 8rem));
-  padding: clamp(1rem, 2.4vw, 2rem);
-  border: 1px solid rgba(255, 255, 255, 0.78);
-  border-radius: calc(var(--radius-xl) + 10px);
-  background:
-    radial-gradient(circle at 8% 8%, rgba(255, 255, 255, 0.9), transparent 18rem),
-    radial-gradient(circle at 88% 76%, rgba(47, 90, 67, 0.15), transparent 24rem),
-    linear-gradient(135deg, rgba(255, 250, 241, 0.9), rgba(229, 239, 225, 0.82));
-  box-shadow: 0 1.4rem 4.8rem rgba(66, 43, 22, 0.12);
-}
-
-.program-brief-hero-card {
-  grid-template-columns: minmax(0, 0.9fr) minmax(18rem, 0.8fr);
-  min-height: min(28rem, calc(100svh - 8rem));
-}
-
-.program-hero-copy {
-  display: grid;
-  align-content: center;
-  justify-items: start;
-  gap: clamp(0.75rem, 1.4vw, 1.1rem);
-  min-width: 0;
-}
-
-.program-hero-copy .breadcrumb {
-  margin-bottom: clamp(0.35rem, 1vw, 0.75rem);
-}
-
-.program-hero-copy h1 {
-  max-width: 11ch;
-  margin: 0;
-  font-size: clamp(3rem, 7vw, 7rem);
-  line-height: 0.92;
-  text-wrap: balance;
-}
-
-.program-tagline {
-  margin: 0;
-  color: var(--clay);
-  font-size: clamp(1.15rem, 2vw, 1.9rem);
-  font-weight: 900;
-  letter-spacing: 0.01em;
-}
-
-.program-hero-copy .hero-text {
-  max-width: 34rem;
-  margin: 0;
-}
-
-.program-hero-image {
-  display: grid;
-  place-items: center;
-  min-height: clamp(22rem, 58svh, 36rem);
-  margin: 0;
-  padding: clamp(0.5rem, 1vw, 0.9rem);
-  border: 1px solid rgba(47, 90, 67, 0.1);
-  border-radius: calc(var(--radius-xl) + 2px);
-  background:
-    radial-gradient(circle at 18% 10%, rgba(255, 255, 255, 0.82), transparent 15rem),
-    linear-gradient(145deg, rgba(255, 250, 241, 0.76), rgba(232, 239, 225, 0.84));
-  overflow: hidden;
-}
-
-.program-hero-image img {
-  width: 100%;
-  height: 100%;
-  max-height: clamp(21rem, 58svh, 35rem);
-  object-fit: contain;
-  border-radius: calc(var(--radius-xl) - 4px);
-  box-shadow: 0 1rem 2.8rem rgba(66, 43, 22, 0.12);
-}
-
-.program-page-brief-note {
-  display: grid;
-  place-items: center;
-  min-height: clamp(13rem, 38svh, 22rem);
-  padding: clamp(1.2rem, 3vw, 2.2rem);
-  border: 1px solid rgba(255, 255, 255, 0.76);
-  border-radius: calc(var(--radius-xl) + 2px);
-  background:
-    radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.82), transparent 14rem),
-    linear-gradient(135deg, rgba(255, 250, 241, 0.78), rgba(232, 239, 225, 0.86));
-}
-
-.program-page-brief-note p {
-  max-width: 24rem;
-  margin: 0;
-  color: var(--forest);
-  font-family: var(--font-display);
-  font-size: clamp(1.45rem, 2.4vw, 2.45rem);
-  font-weight: 800;
-  line-height: 1.08;
-  text-align: center;
-  text-wrap: balance;
-}
-
 .program-library-section {
-  padding-top: clamp(1.25rem, 2vw, 2rem);
+  padding-top: clamp(1.25rem, 3vw, 3rem);
+}
+
+body[data-page-slug="programs"] .program-library-section {
+  padding-top: clamp(1rem, 2.5vw, 2.4rem);
 }
 
 .program-page-brief-list {
@@ -4781,7 +4680,6 @@ body[data-page-slug="why-it-matters"] .matters-story-section .concept-story-head
   .footer-shell,
   .traceability-box,
   .page-hero-grid,
-  .program-hero-card,
   .journey-map-head,
   .finder-grid,
   .feedback-submit-grid,
@@ -4849,18 +4747,6 @@ body[data-page-slug="why-it-matters"] .matters-story-section .concept-story-head
     max-width: 20ch;
   }
 
-  .program-hero-copy {
-    justify-items: center;
-    text-align: center;
-  }
-
-  .program-hero-copy .hero-text {
-    margin-inline: auto;
-  }
-
-  .program-hero-image {
-    min-height: clamp(18rem, 44svh, 31rem);
-  }
 }
 
 @media (min-width: 761px) and (max-height: 840px) {
@@ -4899,24 +4785,6 @@ body[data-page-slug="why-it-matters"] .matters-story-section .concept-story-head
   body[data-page-slug="programs"] .container {
     width: min(calc(100vw - 1rem), 100%);
     margin: 0 auto;
-  }
-
-  .program-brief-hero-card {
-    grid-template-columns: 1fr;
-    min-height: 0;
-    padding: 1rem;
-  }
-
-  .program-page-brief-note {
-    min-height: 0;
-    padding: 1rem;
-    border-radius: 1.25rem;
-  }
-
-  .program-page-brief-note p {
-    max-width: min(100%, 24ch);
-    font-size: clamp(1.18rem, 6vw, 1.55rem);
-    line-height: 1.16;
   }
 
   .program-page-brief-list {
@@ -5006,54 +4874,6 @@ body[data-page-slug="why-it-matters"] .matters-story-section .concept-story-head
   .product-detail-columns,
   .choice-grid {
     grid-template-columns: 1fr;
-  }
-
-  .programs-story-page {
-    padding: 0.75rem 0 0.25rem;
-  }
-
-  .program-hero-card {
-    gap: 0.8rem;
-    min-height: auto;
-    padding: 0.9rem;
-    border-radius: 1.55rem;
-  }
-
-  .program-hero-copy {
-    gap: 0.55rem;
-  }
-
-  .program-hero-copy .breadcrumb {
-    margin-bottom: 0.15rem;
-  }
-
-  .program-hero-copy h1 {
-    max-width: min(10ch, 100%);
-    font-size: clamp(2.3rem, 12vw, 3.5rem);
-    line-height: 0.96;
-  }
-
-  .program-tagline {
-    font-size: clamp(1rem, 4.8vw, 1.25rem);
-    text-align: center;
-  }
-
-  .program-hero-copy .hero-text {
-    max-width: min(100%, 31ch);
-    font-size: 0.95rem;
-    line-height: 1.5;
-  }
-
-  .program-hero-image {
-    min-height: 0;
-    height: min(52svh, 23rem);
-    padding: 0.45rem;
-    border-radius: 1.35rem;
-  }
-
-  .program-hero-image img {
-    max-height: 100%;
-    border-radius: 1.05rem;
   }
 
   .program-library-section {
