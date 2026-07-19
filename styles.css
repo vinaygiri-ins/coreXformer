@@ -5795,77 +5795,116 @@ body[data-page-slug="programs"] .program-library-section {
     display: none;
   }
 
-  .home-program-window {
+  #programs.home-story-card {
+    padding: 0.72rem;
+  }
+
+  #programs .home-program-window,
+  #programs .home-program-index {
     grid-template-columns: 1fr;
-    grid-template-rows: auto minmax(0, 1fr);
-    gap: 0.72rem;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    align-content: stretch;
+    gap: 0.42rem;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
   }
 
-  .home-program-index {
-    grid-template-rows: auto minmax(0, 1fr);
-    align-content: start;
-    gap: 0.65rem;
+  #programs .home-program-index-head {
+    gap: 0.18rem;
+    min-height: 1.15rem;
   }
 
-  .home-program-index-head {
-    gap: 0.45rem;
-  }
-
-  .home-program-index-head h2 {
-    max-width: min(12ch, 100%);
-    font-size: clamp(1.75rem, 8vw, 2.35rem);
+  #programs .home-program-index-head .eyebrow {
+    font-size: clamp(0.76rem, 3.2vw, 0.88rem);
+    letter-spacing: 0.14em;
     line-height: 1;
   }
 
-  .home-program-index-head p:not(.eyebrow) {
-    max-width: min(100%, 31ch);
-    font-size: 0.88rem;
-    line-height: 1.45;
-  }
-
-  .home-program-mission-tabs {
+  #programs .home-program-mission-tabs {
     display: flex;
-    gap: 0.5rem;
+    flex-wrap: nowrap;
+    gap: 0.38rem;
+    min-height: 2.2rem;
+    margin-top: 0;
+    padding: 0.12rem 0 0;
     overflow-x: auto;
-    padding: 0.05rem 0.15rem 0.25rem;
+    border-top: 1px solid rgba(39, 55, 42, 0.08);
     scroll-snap-type: x proximity;
+    scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
   }
 
-  .home-program-mission-tabs a {
+  #programs .home-program-mission-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  #programs .home-program-mission-tabs a {
     flex: 0 0 auto;
-    min-height: 2.2rem;
-    padding: 0.45rem 0.72rem;
-    font-size: 0.76rem;
+    min-height: 1.9rem;
+    padding: 0.38rem 0.62rem;
+    font-size: clamp(0.7rem, 3vw, 0.78rem);
+    line-height: 1.05;
     scroll-snap-align: start;
+    box-shadow: 0 0.35rem 0.9rem rgba(66, 43, 22, 0.06);
   }
 
-  .home-program-list {
-    gap: 0.6rem;
-  }
-
-  .home-program-row {
-    grid-template-columns: 1fr;
-    gap: 0.45rem;
+  #programs .home-program-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.36rem;
     min-height: 0;
-    padding: 0.78rem;
-    border-radius: 1.15rem;
+    padding: 0.05rem 0.02rem 0.25rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
   }
 
-  .home-program-row-number {
+  #programs .home-program-list::-webkit-scrollbar {
+    display: none;
+  }
+
+  #programs .home-program-row {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.48rem;
+    align-items: start;
+    min-height: 0;
+    padding: 0.48rem 0.52rem;
+    border-radius: 1rem;
+    box-shadow: 0 0.35rem 1rem rgba(66, 43, 22, 0.08);
+  }
+
+  #programs .home-program-row-number {
     justify-self: start;
-    min-height: 2.1rem;
-    padding: 0.42rem 0.72rem;
-    font-size: 0.75rem;
+    min-width: 4.85rem;
+    min-height: 1.55rem;
+    padding: 0.26rem 0.42rem;
+    font-size: clamp(0.55rem, 2.45vw, 0.64rem);
+    letter-spacing: 0.04em;
   }
 
-  .home-program-row-copy strong {
-    font-size: clamp(1.08rem, 5vw, 1.32rem);
+  #programs .home-program-row-copy {
+    gap: 0.1rem;
   }
 
-  .home-program-row-copy small {
-    font-size: 0.8rem;
-    line-height: 1.38;
+  #programs .home-program-row-copy strong {
+    font-family: "Manrope", sans-serif;
+    font-size: clamp(0.86rem, 3.75vw, 1.02rem);
+    font-weight: 900;
+    line-height: 1.08;
+    text-wrap: pretty;
+  }
+
+  #programs .home-program-row-copy small {
+    display: -webkit-box;
+    overflow: hidden;
+    color: rgba(82, 94, 86, 0.92);
+    font-size: clamp(0.68rem, 2.9vw, 0.78rem);
+    font-weight: 720;
+    line-height: 1.22;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
   }
 
   .home-program-visual {
