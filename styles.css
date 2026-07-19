@@ -6453,27 +6453,30 @@ body[data-page-slug="programs"] .program-library-section {
   .founder-copy p {
     width: 100%;
     max-width: 100%;
-    overflow-wrap: break-word;
+    overflow-wrap: normal;
+    word-break: normal;
+    hyphens: none;
   }
 
   #working-together h2 {
     margin-inline: auto;
-    max-width: min(10ch, 100%);
-    font-size: clamp(1.45rem, 7vw, 2rem);
-    line-height: 1.03;
+    max-width: min(18ch, 100%);
+    font-size: clamp(1.5rem, 6.2vw, 2.08rem);
+    line-height: 1.08;
     text-align: center;
   }
 
   .founder-copy p {
-    max-width: min(28ch, 100%);
+    max-width: min(34ch, 100%);
     margin-inline: auto;
     font-size: clamp(0.94rem, 3.6vw, 1.02rem);
-    line-height: 1.65;
+    line-height: 1.58;
   }
 
   #working-together > .container > div:first-child > p {
-    max-width: min(28ch, 100%);
+    max-width: min(36ch, 100%);
     margin-inline: auto;
+    text-align: left;
   }
 
   .hero {
