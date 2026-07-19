@@ -388,7 +388,7 @@ body[data-page-slug="home"] .container {
   color: var(--forest);
   box-shadow: 0 14px 36px rgba(66, 43, 22, 0.08);
   cursor: pointer;
-  transition: transform 160ms ease, background 160ms ease, color 160ms ease, opacity 160ms ease;
+  transition: transform 160ms ease, background 160ms ease, color 160ms ease, opacity 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
   transform: translateY(-50%);
 }
 
@@ -406,20 +406,31 @@ body[data-page-slug="home"] .container {
   right: -1rem;
 }
 
-.home-story-stage:hover .home-story-arrow:not(:disabled),
 .home-story-stage:focus-within .home-story-arrow:not(:disabled) {
   color: #3f6fae;
-  background: rgba(91, 141, 214, 0.14);
-  border-color: rgba(91, 141, 214, 0.22);
-  box-shadow: 0 16px 34px rgba(63, 111, 174, 0.16);
+  background: rgba(91, 141, 214, 0.12);
+  border-color: rgba(91, 141, 214, 0.2);
+  box-shadow: 0 16px 34px rgba(63, 111, 174, 0.14);
+}
+
+.home-story-stage.is-cue-left .home-story-arrow-prev:not(:disabled),
+.home-story-stage.is-cue-right .home-story-arrow-next:not(:disabled),
+.home-story-arrow:hover,
+.home-story-arrow:focus-visible {
+  color: #2269b3;
+  background: linear-gradient(180deg, rgba(90, 157, 230, 0.28), rgba(90, 157, 230, 0.12));
+  border-color: rgba(55, 132, 214, 0.42);
+  box-shadow: 0 1.1rem 2.4rem rgba(54, 126, 205, 0.22), inset 0 0 0 1px rgba(255, 255, 255, 0.62);
+}
+
+.home-story-stage.is-cue-left .home-story-arrow-prev:not(:disabled),
+.home-story-stage.is-cue-right .home-story-arrow-next:not(:disabled) {
+  transform: translateY(calc(-50% - 1px)) scale(1.03);
 }
 
 .home-story-arrow:hover,
 .home-story-arrow:focus-visible {
   transform: translateY(calc(-50% - 2px));
-  color: #2f67ad;
-  background: rgba(91, 141, 214, 0.22);
-  border-color: rgba(91, 141, 214, 0.3);
 }
 
 .home-story-arrow:disabled {
@@ -1685,31 +1696,47 @@ body[data-page-slug="home"] .container {
   border-radius: 1.25rem;
   background: rgba(255, 255, 255, 0.62);
   box-shadow: 0 0.75rem 1.8rem rgba(66, 43, 22, 0.07);
-  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
 }
 
 .mission-chapter-card:hover,
 .mission-chapter-card:focus-visible {
-  transform: translateY(-1px);
-  border-color: rgba(47, 90, 67, 0.26);
-  background: rgba(255, 255, 255, 0.84);
+  transform: translateY(-2px);
+  border-color: rgba(47, 90, 67, 0.34);
+  background: linear-gradient(135deg, var(--forest), #6a8f79);
+  box-shadow: 0 1.1rem 2.2rem rgba(47, 90, 67, 0.2);
 }
 
 .mission-chapter-card span {
   color: var(--clay);
   font-weight: 900;
   letter-spacing: 0.08em;
+  transition: color 160ms ease;
 }
 
 .mission-chapter-card strong {
   color: var(--ink);
   font-family: "Fraunces", serif;
   font-size: clamp(1rem, 1.2vw, 1.18rem);
+  transition: color 160ms ease;
 }
 
 .mission-chapter-card small {
   color: var(--muted);
   line-height: 1.45;
+  transition: color 160ms ease;
+}
+
+.mission-chapter-card:hover span,
+.mission-chapter-card:focus-visible span,
+.mission-chapter-card:hover strong,
+.mission-chapter-card:focus-visible strong {
+  color: #fff;
+}
+
+.mission-chapter-card:hover small,
+.mission-chapter-card:focus-visible small {
+  color: rgba(255, 255, 255, 0.84);
 }
 
 .mission-page {
@@ -1809,16 +1836,16 @@ body[data-page-slug="home"] .container {
   font-weight: 900;
   text-align: center;
   white-space: nowrap;
-  transition: transform 160ms ease, background 160ms ease, color 160ms ease;
+  transition: transform 160ms ease, background 160ms ease, color 160ms ease, box-shadow 160ms ease;
 }
 
 .mission-chapter-nav a:hover,
 .mission-chapter-nav a:focus-visible,
 .mission-chapter-nav a.is-active {
-  transform: translateY(-1px);
+  transform: translateY(-2px);
   color: #fff;
-  background: linear-gradient(135deg, var(--forest), #6a8f79);
-  box-shadow: 0 0.75rem 1.55rem rgba(47, 90, 67, 0.16);
+  background: linear-gradient(135deg, var(--forest), #5d8b70);
+  box-shadow: 0 0.85rem 1.8rem rgba(47, 90, 67, 0.22);
 }
 
 .mission-vertical-rail {

@@ -58,10 +58,11 @@ function initHomeStoryRail() {
   const tabs = shell ? [...shell.querySelectorAll("[data-home-rail-tab]")] : [];
   const dots = shell ? [...shell.querySelectorAll("[data-home-rail-dot]")] : [];
   const progress = shell?.querySelector("[data-home-rail-progress]");
+  const stage = shell?.querySelector(".home-story-stage");
   const previousButton = shell?.querySelector("[data-home-rail-prev]");
   const nextButton = shell?.querySelector("[data-home-rail-next]");
 
-  if (!shell || !rail || !panels.length || !tabs.length) {
+  if (!shell || !rail || !stage || !panels.length || !tabs.length) {
     return;
   }
 
@@ -174,6 +175,26 @@ function initHomeStoryRail() {
     return Math.max(44, Math.min(72, rail.clientWidth * 0.12));
   }
 
+  function clearDirectionalCue() {
+    stage.classList.remove("is-cue-left", "is-cue-right");
+  }
+
+  function updateDirectionalCue(event) {
+    const supportsHover = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+
+    if (!supportsHover) {
+      clearDirectionalCue();
+      return;
+    }
+
+    const bounds = stage.getBoundingClientRect();
+    const midpoint = bounds.left + bounds.width / 2;
+    const isLeftSide = event.clientX < midpoint;
+
+    stage.classList.toggle("is-cue-left", isLeftSide);
+    stage.classList.toggle("is-cue-right", !isLeftSide);
+  }
+
   tabs.forEach((tab, index) => {
     tab.addEventListener("click", () => {
       dismissMobileCue();
@@ -191,6 +212,8 @@ function initHomeStoryRail() {
     goToPanel(activeIndex + 1);
   });
 
+  shell.addEventListener("pointermove", updateDirectionalCue, { passive: true });
+  shell.addEventListener("pointerleave", clearDirectionalCue, { passive: true });
   rail.addEventListener("pointerdown", dismissMobileCue, { passive: true });
   rail.addEventListener("touchstart", dismissMobileCue, { passive: true });
 
