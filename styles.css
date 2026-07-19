@@ -900,6 +900,100 @@ body[data-page-slug="home"] .container {
   background: rgba(255, 250, 241, 0.76);
 }
 
+#intro .intro-story-body {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 0;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+#intro .intro-story-copy {
+  display: grid;
+  gap: 0.32rem;
+  align-content: center;
+  justify-items: center;
+  padding: clamp(0.62rem, 0.95vw, 0.88rem) clamp(1.1rem, 2.6vw, 2.4rem);
+  text-align: center;
+  border-bottom: 1px solid rgba(47, 90, 67, 0.18);
+}
+
+#intro .intro-story-copy .eyebrow {
+  margin: 0;
+}
+
+#intro .intro-story-copy h2 {
+  max-width: min(34ch, 100%);
+  margin: 0 auto;
+  font-size: clamp(1.55rem, 2.15vw, 2.75rem);
+  line-height: 1.08;
+}
+
+#intro .intro-story-copy > p:not(.eyebrow) {
+  max-width: 76ch;
+  margin: 0 auto;
+  font-size: clamp(0.86rem, 1vw, 1rem);
+  line-height: 1.46;
+}
+
+.intro-art-card {
+  display: grid;
+  place-items: center;
+  justify-self: center;
+  width: min(100%, 78rem);
+  aspect-ratio: 16 / 9;
+  min-width: 0;
+  margin: 0;
+  padding: clamp(0.45rem, 0.85vw, 0.7rem) clamp(0.75rem, 1.45vw, 1.2rem);
+  background:
+    radial-gradient(circle at 14% 12%, rgba(255, 255, 255, 0.45), transparent 18rem),
+    linear-gradient(180deg, rgba(255, 252, 244, 0.34), rgba(255, 252, 244, 0.12));
+}
+
+.intro-art-card img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: calc(var(--radius-xl) - 6px);
+  box-shadow: 0 1rem 2.5rem rgba(47, 67, 52, 0.16);
+}
+
+.intro-action-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  padding: clamp(0.5rem, 0.75vw, 0.7rem) clamp(1rem, 2.6vw, 2.4rem);
+  border-top: 1px solid rgba(47, 90, 67, 0.18);
+  background: rgba(255, 250, 241, 0.72);
+}
+
+#intro .intro-action-strip .hero-highlights {
+  display: flex;
+  justify-content: center;
+  gap: 0.55rem;
+  width: auto;
+  max-width: 100%;
+}
+
+#intro .intro-action-strip .hero-highlights li {
+  min-width: 5.8rem;
+  text-align: center;
+  color: var(--forest);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 0.65rem 1.8rem rgba(66, 43, 22, 0.07);
+}
+
+#intro .intro-action-strip .button {
+  min-height: 2.55rem;
+  padding: 0.62rem 1.05rem;
+}
+
 @keyframes intro-travel {
   0%,
   100% {
@@ -5657,23 +5751,33 @@ body[data-page-slug="programs"] .program-library-section {
     overflow: hidden;
   }
 
+  #intro .intro-story-body {
+    grid-template-rows: auto auto auto;
+    align-content: start;
+    gap: 0;
+  }
+
   .intro-story-copy {
     align-content: start;
     gap: 0.25rem;
   }
 
-  .intro-story-copy h2 {
-    max-width: min(11ch, 100%);
-    font-size: clamp(1.72rem, 7.8vw, 2.35rem);
-    line-height: 0.94;
+  #intro .intro-story-copy {
+    padding: 0.58rem 0.72rem 0.5rem;
+  }
+
+  #intro .intro-story-copy h2 {
+    max-width: min(15ch, 100%);
+    font-size: clamp(1.5rem, 6.7vw, 2.08rem);
+    line-height: 0.98;
     margin-bottom: 0.1rem;
   }
 
-  .intro-story-copy > p:not(.eyebrow) {
-    inline-size: min(100%, 33ch) !important;
-    max-inline-size: min(100%, 33ch) !important;
-    font-size: 0.78rem;
-    line-height: 1.32;
+  #intro .intro-story-copy > p:not(.eyebrow) {
+    inline-size: min(100%, 36ch) !important;
+    max-inline-size: min(100%, 36ch) !important;
+    font-size: 0.72rem;
+    line-height: 1.26;
   }
 
   #intro .hero-actions {
@@ -5793,6 +5897,46 @@ body[data-page-slug="programs"] .program-library-section {
 
   .intro-flow-steps strong {
     display: none;
+  }
+
+  .intro-art-card {
+    min-height: 0;
+    width: 100%;
+    padding: 0.4rem 0.42rem;
+  }
+
+  .intro-art-card img {
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 1.15rem;
+  }
+
+  .intro-action-strip {
+    display: grid;
+    gap: 0.42rem;
+    padding: 0.45rem 0.5rem;
+  }
+
+  #intro .intro-action-strip .hero-highlights {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.28rem;
+  }
+
+  #intro .intro-action-strip .hero-highlights li {
+    min-width: 0;
+    padding: 0.36rem 0.2rem;
+    font-size: clamp(0.58rem, 2.7vw, 0.72rem);
+    line-height: 1;
+  }
+
+  #intro .intro-action-strip .button {
+    justify-self: center;
+    min-height: 2.2rem;
+    padding: 0.48rem 1rem;
+    font-size: 0.82rem;
   }
 
   #programs.home-story-card {
