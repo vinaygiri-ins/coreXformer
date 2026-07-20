@@ -167,6 +167,25 @@ function initHomeStoryRail() {
     });
   }
 
+  function stabilizePanelAlignment(panelIndex) {
+    const realign = () => goToPanel(panelIndex, "auto");
+
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(realign);
+    });
+
+    [120, 360, 800].forEach((delay) => {
+      window.setTimeout(realign, delay);
+    });
+
+    if (document.readyState !== "complete") {
+      window.addEventListener("load", () => {
+        realign();
+        window.setTimeout(realign, 180);
+      }, { once: true });
+    }
+  }
+
   function resetTouchSwipeState() {
     touchSwipeState = null;
   }
@@ -286,11 +305,13 @@ function initHomeStoryRail() {
 
     if (behavior === "auto") {
       goToPanel(panelIndex, "auto");
+      stabilizePanelAlignment(panelIndex);
       return true;
     }
 
     window.setTimeout(() => {
       goToPanel(panelIndex, "smooth");
+      stabilizePanelAlignment(panelIndex);
     }, 180);
 
     return true;
