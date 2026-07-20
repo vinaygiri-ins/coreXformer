@@ -5768,8 +5768,9 @@ body[data-page-slug="programs"] .program-library-section {
   .home-story-viewport {
     display: flex;
     gap: 0;
-    width: min(100%, calc(100vw - 1rem));
-    max-width: min(100%, calc(100vw - 1rem));
+    width: min(100%, calc(100vw - 1.6rem));
+    max-width: min(100%, calc(100vw - 1.6rem));
+    box-sizing: border-box;
     margin-inline: auto;
     height: var(--home-story-mobile-card-height);
     overflow-x: auto;
@@ -6051,12 +6052,14 @@ body[data-page-slug="programs"] .program-library-section {
   #programs .home-program-list {
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: 0.32rem;
     justify-self: center;
     width: 100%;
-    max-width: 100%;
+    max-width: min(100%, calc(100vw - 2rem));
     min-height: 0;
-    padding: 0.05rem 0.7rem 0.25rem 0.02rem;
+    padding: 0.05rem 0.42rem 0.25rem;
+    box-sizing: border-box;
     overflow-y: auto;
     overscroll-behavior: contain;
     scrollbar-width: none;
@@ -6072,12 +6075,13 @@ body[data-page-slug="programs"] .program-library-section {
     grid-template-columns: minmax(0, 1fr);
     gap: 0.28rem;
     align-items: start;
-    width: calc(100% - 0.7rem);
-    max-width: calc(100% - 0.7rem);
+    width: min(100%, 78vw) !important;
+    max-width: 78vw !important;
     min-width: 0;
     min-height: auto;
     padding: 0.5rem 0.52rem;
     border-radius: 1rem;
+    box-sizing: border-box;
     box-shadow: 0 0.35rem 1rem rgba(66, 43, 22, 0.08);
     overflow: visible;
   }
@@ -6096,13 +6100,13 @@ body[data-page-slug="programs"] .program-library-section {
     min-width: 0;
     width: 100%;
     max-width: 100%;
-    overflow: hidden;
+    overflow: visible;
   }
 
   #programs .home-program-row-copy strong {
     display: block;
     width: 100%;
-    max-width: min(100%, calc(100vw - 6rem));
+    max-width: 100%;
     font-family: "Manrope", sans-serif;
     font-size: clamp(0.82rem, 3.42vw, 0.95rem);
     font-weight: 900;
@@ -6117,18 +6121,18 @@ body[data-page-slug="programs"] .program-library-section {
   #programs .home-program-row-copy small {
     display: block;
     justify-self: start;
-    width: min(100%, calc(100vw - 8rem));
-    max-width: min(100%, calc(100vw - 8rem));
-    inline-size: min(100%, calc(100vw - 8rem));
-    max-inline-size: min(100%, calc(100vw - 8rem));
+    width: min(100%, 32ch) !important;
+    max-width: min(100%, 32ch) !important;
+    inline-size: min(100%, 32ch) !important;
+    max-inline-size: min(100%, 32ch) !important;
     color: rgba(82, 94, 86, 0.92);
     font-size: clamp(0.58rem, 2.36vw, 0.66rem);
     font-weight: 720;
     line-height: 1.2;
     overflow-wrap: anywhere;
-    word-break: normal;
+    word-break: break-word;
     hyphens: none;
-    text-wrap: pretty;
+    text-wrap: wrap;
     white-space: normal !important;
   }
 
@@ -6402,6 +6406,7 @@ body[data-page-slug="programs"] .program-library-section {
 
   .home-story-card {
     flex: 0 0 100%;
+    box-sizing: border-box;
     min-width: 100%;
     max-width: 100%;
     scroll-snap-stop: always;
