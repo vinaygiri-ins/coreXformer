@@ -5753,8 +5753,8 @@ body[data-page-slug="programs"] .program-library-section {
     -webkit-overflow-scrolling: touch;
     scroll-snap-type: x mandatory;
     touch-action: pan-x pan-y pinch-zoom;
-    padding: 0 0 0.15rem;
-    scroll-padding-inline: 0;
+    padding: 0 0.5rem 0.15rem;
+    scroll-padding-inline: 0.5rem;
     scroll-behavior: smooth;
     align-items: stretch;
   }
@@ -5996,6 +5996,8 @@ body[data-page-slug="programs"] .program-library-section {
     display: flex;
     flex-wrap: nowrap;
     gap: 0.38rem;
+    justify-self: center;
+    width: min(100%, calc(100vw - 4rem));
     min-height: 2.2rem;
     margin-top: 0;
     padding: 0.12rem 0 0;
@@ -6024,6 +6026,8 @@ body[data-page-slug="programs"] .program-library-section {
     display: flex;
     flex-direction: column;
     gap: 0.32rem;
+    justify-self: center;
+    width: min(100%, calc(100vw - 4rem));
     min-height: 0;
     padding: 0.05rem 0.02rem 0.25rem;
     overflow-y: auto;
@@ -6037,44 +6041,58 @@ body[data-page-slug="programs"] .program-library-section {
   }
 
   #programs .home-program-row {
-    grid-template-columns: auto minmax(0, 1fr);
-    gap: 0.42rem;
+    flex: 0 0 auto;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.28rem;
     align-items: start;
-    min-height: 0;
-    padding: 0.46rem 0.5rem;
+    min-height: auto;
+    padding: 0.52rem 0.58rem;
     border-radius: 1rem;
     box-shadow: 0 0.35rem 1rem rgba(66, 43, 22, 0.08);
+    overflow: visible;
   }
 
   #programs .home-program-row-number {
     justify-self: start;
-    min-width: 4.36rem;
-    min-height: 1.55rem;
-    padding: 0.25rem 0.34rem;
-    font-size: clamp(0.52rem, 2.28vw, 0.6rem);
+    min-width: 0;
+    min-height: 1.38rem;
+    padding: 0.22rem 0.46rem;
+    font-size: clamp(0.48rem, 2.18vw, 0.56rem);
     letter-spacing: 0.025em;
   }
 
   #programs .home-program-row-copy {
     gap: 0.1rem;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
   }
 
   #programs .home-program-row-copy strong {
     font-family: "Manrope", sans-serif;
-    font-size: clamp(0.84rem, 3.55vw, 0.98rem);
+    font-size: clamp(0.82rem, 3.42vw, 0.95rem);
     font-weight: 900;
-    line-height: 1.08;
+    line-height: 1.06;
     text-wrap: pretty;
+    overflow-wrap: break-word;
+    word-break: normal;
+    hyphens: none;
+    white-space: normal;
   }
 
   #programs .home-program-row-copy small {
     display: block;
+    width: 100%;
+    max-width: min(100%, 34ch);
     color: rgba(82, 94, 86, 0.92);
-    font-size: clamp(0.65rem, 2.68vw, 0.74rem);
+    font-size: clamp(0.58rem, 2.36vw, 0.66rem);
     font-weight: 720;
-    line-height: 1.17;
-    overflow-wrap: normal;
+    line-height: 1.2;
+    overflow-wrap: break-word;
+    word-break: normal;
+    hyphens: none;
     text-wrap: pretty;
+    white-space: normal;
   }
 
   .home-program-visual {
@@ -6346,9 +6364,9 @@ body[data-page-slug="programs"] .program-library-section {
   }
 
   .home-story-card {
-    flex: 0 0 100%;
-    min-width: 100%;
-    max-width: 100%;
+    flex: 0 0 calc(100% - 1rem);
+    min-width: calc(100% - 1rem);
+    max-width: calc(100% - 1rem);
     scroll-snap-stop: always;
   }
 
