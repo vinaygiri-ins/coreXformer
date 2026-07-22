@@ -451,7 +451,9 @@ body[data-page-slug="home"] .container {
   gap: 1rem;
   width: 100%;
   max-width: 100%;
+  height: clamp(30rem, calc(100svh - 13rem), 44rem);
   overflow-x: auto;
+  overflow-y: hidden;
   overscroll-behavior-x: auto;
   touch-action: auto;
   scroll-snap-type: x mandatory;
@@ -459,8 +461,10 @@ body[data-page-slug="home"] .container {
 }
 
 .home-story-card {
+  display: grid;
   scroll-snap-align: start;
   scroll-snap-stop: always;
+  height: 100%;
   min-height: auto;
   min-width: 0;
   padding: clamp(1.75rem, 2.35vw, 2.4rem);
@@ -470,6 +474,7 @@ body[data-page-slug="home"] .container {
     linear-gradient(145deg, rgba(255, 250, 241, 0.92), rgba(224, 236, 227, 0.8));
   border: 1px solid rgba(255, 255, 255, 0.76);
   box-shadow: var(--shadow);
+  overflow: hidden;
 }
 
 .home-story-card-body {
@@ -479,6 +484,8 @@ body[data-page-slug="home"] .container {
   align-items: stretch;
   height: 100%;
   min-width: 0;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .home-story-primary {
@@ -1056,7 +1063,8 @@ body[data-page-slug="home"] .container {
 
 .home-program-index {
   grid-template-columns: 1fr;
-  align-content: start;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  align-content: stretch;
   align-items: stretch;
   gap: clamp(0.8rem, 1.45vw, 1.1rem);
 }
@@ -1121,8 +1129,14 @@ body[data-page-slug="home"] .container {
 
 .home-program-list {
   display: grid;
+  align-content: start;
   gap: clamp(0.62rem, 1vw, 0.9rem);
   min-width: 0;
+  min-height: 0;
+  padding-right: 0.25rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
 }
 
 .home-program-row {
@@ -1131,7 +1145,7 @@ body[data-page-slug="home"] .container {
   gap: clamp(0.8rem, 1.4vw, 1rem);
   align-items: start;
   width: 100%;
-  min-height: 0;
+  min-height: clamp(4.8rem, 8.2svh, 6.4rem);
   padding: clamp(0.68rem, 1.05vw, 0.9rem);
   border: 1px solid rgba(255, 255, 255, 0.78);
   border-radius: calc(var(--radius-xl) - 2px);
