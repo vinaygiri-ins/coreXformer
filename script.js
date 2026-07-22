@@ -42,6 +42,7 @@ initHomeStoryRail();
 initMissionChapterNav();
 initNestedStoryRails();
 initProgramDetailModal();
+initProgramObjectiveCart();
 
 function createNoopAnalytics() {
   return {
@@ -706,6 +707,241 @@ function initProgramDetailModal() {
       window.setTimeout(() => button.focus({ preventScroll: true }), 0);
     });
   });
+}
+
+function initProgramObjectiveCart() {
+  const storageKey = "corexformer.programObjectives.v1";
+  const toggles = [...document.querySelectorAll("[data-program-cart-toggle]")];
+  const objectiveSelect = document.querySelector("[data-program-objective-select]");
+  const hiddenInput = document.querySelector("[data-program-objective-hidden]");
+  const summary = document.querySelector("[data-program-cart-summary]");
+  const itemList = document.querySelector("[data-program-cart-items]");
+  const clearButton = document.querySelector("[data-program-cart-clear]");
+
+  if (!toggles.length && !objectiveSelect) {
+    return;
+  }
+
+  const programMap = new Map();
+
+  toggles.forEach((button) => {
+    const title = normalizeValue(button.dataset.programTitle);
+    const number = normalizeValue(button.dataset.programNumber);
+
+    if (title) {
+      programMap.set(getProgramObjectiveId(title), { id: getProgramObjectiveId(title), number, title });
+    }
+  });
+
+  let selectedPrograms = readSelectedPrograms();
+
+  function getProgramObjectiveId(title) {
+    return normalizeValue(title).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  }
+
+  function normalizeProgram(program) {
+    const title = normalizeValue(program?.title);
+
+    if (!title) {
+      return null;
+    }
+
+    const id = getProgramObjectiveId(title);
+    const knownProgram = programMap.get(id);
+
+    return {
+      id,
+      number: normalizeValue(program?.number) || knownProgram?.number || "",
+      title
+    };
+  }
+
+  function readSelectedPrograms() {
+    try {
+      const parsed = JSON.parse(window.localStorage?.getItem(storageKey) || "[]");
+
+      if (!Array.isArray(parsed)) {
+        return [];
+      }
+
+      return parsed.map(normalizeProgram).filter(Boolean);
+    } catch (error) {
+      return [];
+    }
+  }
+
+  function saveSelectedPrograms() {
+    try {
+      window.localStorage?.setItem(storageKey, JSON.stringify(selectedPrograms));
+    } catch (error) {
+      // The selection still works for the current page even if storage is unavailable.
+    }
+  }
+
+  function formatProgram(program) {
+    return [program.number, program.title].filter(Boolean).join(" - ");
+  }
+
+  function hasProgram(title) {
+    const id = getProgramObjectiveId(title);
+    return selectedPrograms.some((program) => program.id === id);
+  }
+
+  function setSelectedPrograms(nextPrograms, options = {}) {
+    const uniquePrograms = [];
+    const seenIds = new Set();
+
+    nextPrograms.forEach((program) => {
+      const normalized = normalizeProgram(program);
+
+      if (!normalized || seenIds.has(normalized.id)) {
+        return;
+      }
+
+      seenIds.add(normalized.id);
+      uniquePrograms.push(normalized);
+    });
+
+    selectedPrograms = uniquePrograms;
+    saveSelectedPrograms();
+    renderSelectedPrograms(options);
+  }
+
+  function showProgramToast(message) {
+    let toast = document.querySelector("[data-program-toast]");
+
+    if (!toast) {
+      toast = document.createElement("div");
+      toast.className = "program-objective-toast";
+      toast.dataset.programToast = "";
+      toast.setAttribute("role", "status");
+      toast.setAttribute("aria-live", "polite");
+      document.body.append(toast);
+    }
+
+    toast.textContent = message;
+    toast.classList.add("is-visible");
+    window.clearTimeout(showProgramToast.hideTimer);
+    showProgramToast.hideTimer = window.setTimeout(() => {
+      toast.classList.remove("is-visible");
+    }, 2600);
+  }
+
+  function addProgram(program, options = {}) {
+    const normalized = normalizeProgram(program);
+
+    if (!normalized) {
+      return;
+    }
+
+    if (hasProgram(normalized.title)) {
+      if (options.notify) {
+        showProgramToast(`${normalized.title} is already selected.`);
+      }
+
+      return;
+    }
+
+    setSelectedPrograms([...selectedPrograms, normalized], { latestTitle: normalized.title });
+
+    if (options.notify) {
+      showProgramToast(`${normalized.title} added as an objective for further connect.`);
+    }
+  }
+
+  function removeProgram(title, options = {}) {
+    const id = getProgramObjectiveId(title);
+    const nextPrograms = selectedPrograms.filter((program) => program.id !== id);
+
+    setSelectedPrograms(nextPrograms, { clearSelectWhenEmpty: true });
+
+    if (options.notify) {
+      showProgramToast("Program removed from selected objectives.");
+    }
+  }
+
+  function renderSelectedPrograms(options = {}) {
+    toggles.forEach((button) => {
+      const title = normalizeValue(button.dataset.programTitle);
+      const isSelected = hasProgram(title);
+
+      button.classList.toggle("is-selected", isSelected);
+      button.setAttribute("aria-pressed", String(isSelected));
+      button.textContent = isSelected ? "Remove objective" : "Add objective";
+      button.closest(".home-program-row, .program-library-card")?.classList.toggle("is-objective-selected", isSelected);
+    });
+
+    if (hiddenInput) {
+      hiddenInput.value = selectedPrograms.map(formatProgram).join("; ");
+    }
+
+    if (objectiveSelect) {
+      const latestTitle = options.latestTitle || selectedPrograms[selectedPrograms.length - 1]?.title || "";
+
+      if (latestTitle && [...objectiveSelect.options].some((option) => option.value === latestTitle || option.textContent === latestTitle)) {
+        objectiveSelect.value = latestTitle;
+      } else if (!selectedPrograms.length && options.clearSelectWhenEmpty) {
+        objectiveSelect.value = "";
+      }
+    }
+
+    if (summary) {
+      summary.hidden = selectedPrograms.length === 0;
+    }
+
+    if (itemList) {
+      itemList.innerHTML = "";
+
+      selectedPrograms.forEach((program) => {
+        const chip = document.createElement("span");
+        const label = document.createElement("span");
+        const removeButton = document.createElement("button");
+
+        chip.className = "objective-cart-chip";
+        label.textContent = formatProgram(program);
+        removeButton.type = "button";
+        removeButton.textContent = "Remove";
+        removeButton.setAttribute("aria-label", `Remove ${program.title} from selected objectives`);
+        removeButton.addEventListener("click", () => removeProgram(program.title, { notify: true }));
+
+        chip.append(label, removeButton);
+        itemList.append(chip);
+      });
+    }
+  }
+
+  toggles.forEach((button) => {
+    button.addEventListener("click", () => {
+      const program = {
+        number: button.dataset.programNumber,
+        title: button.dataset.programTitle
+      };
+
+      if (hasProgram(program.title)) {
+        removeProgram(program.title, { notify: true });
+      } else {
+        addProgram(program, { notify: true });
+      }
+    });
+  });
+
+  objectiveSelect?.addEventListener("change", () => {
+    const title = normalizeValue(objectiveSelect.value);
+    const program = programMap.get(getProgramObjectiveId(title));
+
+    if (program) {
+      addProgram(program, { notify: true });
+    } else if (title) {
+      setSelectedPrograms([], { clearSelectWhenEmpty: false });
+    }
+  });
+
+  clearButton?.addEventListener("click", () => {
+    setSelectedPrograms([], { clearSelectWhenEmpty: true });
+    showProgramToast("Selected program objectives cleared.");
+  });
+
+  renderSelectedPrograms();
 }
 
 function createCoreXformerAnalytics(supabase) {
@@ -1452,6 +1688,7 @@ async function submitInquiry(supabase, form) {
 
   const interestValue = normalizeValue(formData.get("interest"));
   const objectiveValue = normalizeValue(formData.get("objective"));
+  const selectedProgramsValue = normalizeValue(formData.get("selectedPrograms"));
   const messageValue = normalizeValue(formData.get("message"));
 
   const payload = {
@@ -1463,7 +1700,7 @@ async function submitInquiry(supabase, form) {
     city: normalizeValue(formData.get("location")),
     preferred_date: normalizeValue(formData.get("timeline")),
     group_size: normalizeValue(formData.get("groupSize")),
-    objective: [interestValue, objectiveValue].filter(Boolean).join(" | "),
+    objective: [interestValue, selectedProgramsValue || objectiveValue].filter(Boolean).join(" | "),
     message: messageValue,
     source_page: "website:home-contact"
   };
@@ -1508,11 +1745,16 @@ async function submitInquiry(supabase, form) {
     metadata: {
       audienceType: payload.audience_type || null,
       interest: interestValue || null,
-      objective: objectiveValue || null
+      objective: selectedProgramsValue || objectiveValue || null
     }
   });
 
   form.reset();
+  try {
+    window.localStorage?.removeItem("corexformer.programObjectives.v1");
+  } catch (error) {
+    // Ignore storage cleanup failures after a successful inquiry.
+  }
   window.location.href = form.getAttribute("action") || "thank-you.html";
 }
 

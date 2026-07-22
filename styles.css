@@ -1144,7 +1144,7 @@ body[data-page-slug="home"] .container {
 
 .home-program-row {
   display: grid;
-  grid-template-columns: minmax(6.8rem, auto) minmax(0, 1fr);
+  grid-template-columns: minmax(6.8rem, auto) minmax(0, 1fr) auto;
   gap: clamp(0.8rem, 1.4vw, 1rem);
   align-items: start;
   width: 100%;
@@ -1160,6 +1160,12 @@ body[data-page-slug="home"] .container {
   cursor: default;
   text-align: left;
   transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.home-program-row.is-objective-selected,
+.program-library-card.is-objective-selected {
+  border-color: rgba(47, 90, 67, 0.28);
+  box-shadow: 0 1rem 3rem rgba(47, 90, 67, 0.16);
 }
 
 .home-program-row-number {
@@ -1200,6 +1206,44 @@ body[data-page-slug="home"] .container {
   font-size: clamp(0.84rem, 0.92vw, 0.94rem);
   font-weight: 800;
   line-height: 1.32;
+}
+
+.program-objective-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.45rem;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid rgba(47, 90, 67, 0.22);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--forest);
+  box-shadow: 0 0.65rem 1.7rem rgba(66, 43, 22, 0.08);
+  cursor: pointer;
+  font: inherit;
+  font-size: clamp(0.76rem, 0.92vw, 0.88rem);
+  font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
+  transition: transform 160ms ease, background 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
+.program-objective-toggle:hover,
+.program-objective-toggle:focus-visible {
+  border-color: rgba(47, 90, 67, 0.36);
+  background: rgba(47, 90, 67, 0.1);
+  transform: translateY(-1px);
+}
+
+.program-objective-toggle.is-selected {
+  background: var(--forest);
+  color: #fff;
+  border-color: transparent;
+}
+
+.home-program-row .program-objective-toggle {
+  align-self: center;
+  justify-self: end;
 }
 
 .program-fullscreen {
@@ -4084,6 +4128,106 @@ a.journey-map-card:focus-visible {
   resize: vertical;
 }
 
+.objective-cart {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.9rem;
+  border: 1px solid rgba(47, 90, 67, 0.16);
+  border-radius: 1.1rem;
+  background:
+    radial-gradient(circle at 8% 10%, rgba(255, 255, 255, 0.72), transparent 9rem),
+    rgba(255, 255, 255, 0.52);
+}
+
+.objective-cart[hidden] {
+  display: none;
+}
+
+.objective-cart strong {
+  color: var(--forest);
+  font-weight: 900;
+}
+
+.objective-cart p {
+  margin: 0.2rem 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.objective-cart-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.objective-cart-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  max-width: 100%;
+  padding: 0.42rem 0.44rem 0.42rem 0.72rem;
+  border-radius: 999px;
+  background: rgba(47, 90, 67, 0.1);
+  color: var(--ink);
+  font-size: 0.84rem;
+  font-weight: 850;
+  line-height: 1.2;
+}
+
+.objective-cart-chip span {
+  overflow-wrap: anywhere;
+}
+
+.objective-cart-chip button,
+.objective-cart-clear {
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+}
+
+.objective-cart-chip button {
+  padding: 0.32rem 0.55rem;
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--forest);
+  font-size: 0.72rem;
+}
+
+.objective-cart-clear {
+  justify-self: start;
+  padding: 0.55rem 0.85rem;
+  background: rgba(39, 55, 42, 0.08);
+  color: var(--forest);
+  font-size: 0.82rem;
+}
+
+.program-objective-toast {
+  position: fixed;
+  right: clamp(1rem, 3vw, 2rem);
+  bottom: clamp(1rem, 3vw, 2rem);
+  z-index: 120;
+  max-width: min(28rem, calc(100vw - 2rem));
+  padding: 0.95rem 1.1rem;
+  border: 1px solid rgba(255, 255, 255, 0.48);
+  border-radius: 1rem;
+  background: rgba(47, 90, 67, 0.94);
+  color: #fff;
+  box-shadow: 0 1rem 3rem rgba(22, 49, 40, 0.24);
+  font-weight: 900;
+  line-height: 1.35;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(0.8rem);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.program-objective-toast.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 .interest-form input:focus,
 .interest-form select:focus,
 .interest-form textarea:focus,
@@ -4565,12 +4709,16 @@ body[data-page-slug="programs"] .program-library-section {
 
 .program-brief-list-heading {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: clamp(0.8rem, 1.8vw, 1.2rem);
   min-height: clamp(4rem, 7svh, 5rem);
   min-width: 0;
   padding: clamp(0.9rem, 1.7vw, 1.2rem) clamp(1rem, 2vw, 1.4rem) 0;
+}
+
+.program-brief-list-heading .program-objective-toggle {
+  justify-self: end;
 }
 
 .program-library-card > summary::-webkit-details-marker,
@@ -5757,6 +5905,14 @@ body[data-page-slug="programs"] .program-library-section {
     padding: 0.85rem;
   }
 
+  .program-brief-list-heading {
+    grid-template-columns: 1fr;
+    justify-items: stretch;
+    gap: 0.5rem;
+    min-height: 0;
+    padding: 0.85rem 0.9rem 0;
+  }
+
   .program-number {
     justify-self: start;
     min-width: 3.95rem;
@@ -5765,6 +5921,13 @@ body[data-page-slug="programs"] .program-library-section {
     box-shadow: 0 0.45rem 1rem rgba(47, 90, 67, 0.16);
     font-size: 0.66rem;
     letter-spacing: -0.01em;
+  }
+
+  .program-brief-list-heading .program-objective-toggle {
+    justify-self: start;
+    min-height: 2rem;
+    padding: 0.42rem 0.72rem;
+    font-size: 0.72rem;
   }
 
   .program-summary-main strong {
@@ -5783,7 +5946,7 @@ body[data-page-slug="programs"] .program-library-section {
 
   .program-library-body {
     gap: 0.45rem;
-    padding: 0 0.95rem 0.95rem 1rem;
+    padding: 0.25rem 0.9rem 0.95rem;
   }
 
   .program-brief-list-card .program-library-body p {
@@ -5794,6 +5957,26 @@ body[data-page-slug="programs"] .program-library-section {
     font-weight: 650;
     line-height: 1.5;
     text-wrap: pretty;
+  }
+
+  .objective-cart {
+    padding: 0.8rem;
+  }
+
+  .objective-cart-list {
+    display: grid;
+  }
+
+  .objective-cart-chip {
+    justify-content: space-between;
+    border-radius: 0.9rem;
+  }
+
+  .program-objective-toast {
+    right: 0.8rem;
+    bottom: 0.8rem;
+    left: 0.8rem;
+    max-width: none;
   }
 
   .program-detail > summary {
@@ -6269,6 +6452,13 @@ body[data-page-slug="programs"] .program-library-section {
     box-sizing: border-box;
     box-shadow: 0 0.35rem 1rem rgba(66, 43, 22, 0.08);
     overflow: visible;
+  }
+
+  #programs .home-program-row .program-objective-toggle {
+    justify-self: start;
+    min-height: 1.62rem;
+    padding: 0.28rem 0.52rem;
+    font-size: clamp(0.52rem, 2.35vw, 0.62rem);
   }
 
   #programs .home-program-row-number {
