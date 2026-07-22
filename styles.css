@@ -101,7 +101,7 @@ textarea {
 }
 
 body[data-page-slug="home"] .container {
-  width: min(1440px, calc(100vw - 3rem));
+  width: min(1680px, calc(100vw - 2rem));
 }
 
 .site-header {
@@ -980,6 +980,7 @@ body[data-page-slug="home"] .container {
   width: 100%;
   height: 100%;
   object-fit: contain;
+  object-position: center bottom;
   border-radius: calc(var(--radius-xl) - 6px);
   box-shadow: 0 1rem 2.5rem rgba(47, 67, 52, 0.16);
 }
@@ -5233,7 +5234,7 @@ body[data-page-slug="programs"] .program-library-section {
 
 @media (min-width: 981px) {
   body[data-page-slug="home"] {
-    --home-rail-height: clamp(29rem, calc(100svh - 10.4rem), 42rem);
+    --home-rail-height: clamp(31rem, calc(100svh - 8.75rem), 64rem);
   }
 
   .home-story {
