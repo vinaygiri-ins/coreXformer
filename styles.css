@@ -964,6 +964,7 @@ body[data-page-slug="home"] .container {
 .intro-art-card {
   display: grid;
   place-items: center;
+  position: relative;
   justify-self: center;
   width: min(100%, 78rem);
   aspect-ratio: 16 / 9;
@@ -1503,6 +1504,7 @@ body[data-page-slug="home"] .container {
   display: grid;
   place-items: center;
   position: relative;
+  aspect-ratio: 16 / 9;
   min-width: 0;
   margin: 0;
   padding: var(--vision-art-padding-y) var(--vision-art-padding-x);
@@ -1518,6 +1520,35 @@ body[data-page-slug="home"] .container {
   object-fit: contain;
   border-radius: calc(var(--radius-xl) - 6px);
   box-shadow: 0 1rem 2.5rem rgba(47, 67, 52, 0.16);
+}
+
+.intro-art-card::before,
+.vision-art-card::before {
+  content: "";
+  position: absolute;
+  inset: clamp(0.45rem, 0.85vw, 0.78rem);
+  border-radius: calc(var(--radius-xl) - 6px);
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  box-shadow: 0 1rem 2.5rem rgba(47, 67, 52, 0.16);
+}
+
+.intro-art-card::before {
+  background-image: url("images/introduction-boat-learning.jpg");
+}
+
+.vision-art-card::before {
+  background-image: url("images/vision-hidden-wings.jpg");
+}
+
+.intro-art-card img,
+.vision-art-card img {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .vision-note-strip {
@@ -5305,10 +5336,12 @@ body[data-page-slug="programs"] .program-library-section {
 
   .intro-art-card img,
   .vision-art-card img {
-    width: 100%;
-    height: 100%;
-    max-height: 100%;
+    width: auto !important;
+    height: calc(100% - clamp(1.3rem, 2.2svh, 2.6rem)) !important;
+    max-width: none;
+    max-height: none;
     object-fit: contain;
+    object-position: center center;
   }
 
   .intro-action-strip,
@@ -5966,10 +5999,11 @@ body[data-page-slug="programs"] .program-library-section {
   }
 
   #intro .intro-story-copy h2 {
-    max-width: min(15ch, 100%);
-    font-size: clamp(1.5rem, 6.7vw, 2.08rem);
+    max-width: min(11.5ch, calc(100vw - 3.5rem));
+    font-size: clamp(1.38rem, 5.9vw, 1.86rem);
     line-height: 0.98;
     margin-bottom: 0.1rem;
+    overflow-wrap: break-word;
   }
 
   #intro .intro-story-copy > p:not(.eyebrow) {
@@ -6101,14 +6135,18 @@ body[data-page-slug="programs"] .program-library-section {
   .intro-art-card {
     min-height: 0;
     width: 100%;
+    max-width: 100%;
     padding: 0.4rem 0.42rem;
+    overflow: hidden;
   }
 
   .intro-art-card img {
-    width: 100%;
-    height: 100%;
-    max-height: 100%;
+    width: 94%;
+    height: auto;
+    max-width: 100%;
+    max-height: none;
     object-fit: contain;
+    object-position: center center;
     border-radius: 1.15rem;
   }
 
@@ -6126,8 +6164,9 @@ body[data-page-slug="programs"] .program-library-section {
 
   #intro .intro-action-strip .hero-highlights li {
     min-width: 0;
-    padding: 0.36rem 0.2rem;
-    font-size: clamp(0.58rem, 2.7vw, 0.72rem);
+    padding: 0.36rem 0.12rem;
+    font-size: clamp(0.52rem, 2.25vw, 0.62rem);
+    letter-spacing: 0.01em;
     line-height: 1;
   }
 
@@ -6570,10 +6609,12 @@ body[data-page-slug="programs"] .program-library-section {
   }
 
   .vision-art-card img {
-    width: 100%;
-    height: 100%;
-    max-height: 100%;
+    width: 94%;
+    height: auto;
+    max-width: 100%;
+    max-height: none;
     object-fit: contain;
+    object-position: center center;
   }
 
   .vision-art-card {
