@@ -82,7 +82,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260730-impact-rail-v2">
+  <link rel="stylesheet" href="styles.css?v=20260730-impact-roll-v1">
 </head>
 <body data-page-slug="home">
   <header class="site-header">
@@ -453,7 +453,7 @@
             </article>
 
             <article class="home-story-card impact-home-card" id="impact" data-home-rail-panel="impact">
-              <section class="impact-story-shell" data-nested-story-rail aria-labelledby="impact-story-title">
+              <section class="impact-story-shell" aria-labelledby="impact-story-title">
                 <header class="impact-story-head">
                   <div>
                     <p class="eyebrow">The Experience-to-Impact Pathway</p>
@@ -465,16 +465,13 @@
                   </p>
                 </header>
 
-                <div class="impact-story-stage">
-                  <button class="impact-story-arrow impact-story-arrow-prev" type="button" aria-label="Previous impact story" data-nested-story-prev>
-                    <span>&lsaquo;</span>
-                  </button>
+                <div class="impact-story-stage" tabindex="0">
+                  <figure class="impact-story-hero-visual">
+                    <img src="images/impact-experience-to-ecosystem.png" alt="A complete visual pathway showing experience moving into individual, team, and institutional impact" width="1942" height="809" loading="lazy" decoding="async">
+                  </figure>
 
-                  <div class="impact-story-track" data-nested-story-track tabindex="0">
-                    <article class="impact-story-panel" data-nested-story-panel>
-                      <figure class="impact-story-visual impact-story-visual-1">
-                        <img src="images/impact-experience-to-ecosystem.png" alt="A group facing a shared experiential challenge" width="1942" height="809" loading="lazy" decoding="async">
-                      </figure>
+                  <div class="impact-story-roll" aria-label="Impact story steps">
+                    <article class="impact-story-panel">
                       <div class="impact-story-copy">
                         <span>01</span>
                         <h3>We enter a real challenge.</h3>
@@ -483,10 +480,7 @@
                       </div>
                     </article>
 
-                    <article class="impact-story-panel" data-nested-story-panel>
-                      <figure class="impact-story-visual impact-story-visual-2">
-                        <img src="images/impact-experience-to-ecosystem.png" alt="Different reactions becoming visible within a group" width="1942" height="809" loading="lazy" decoding="async">
-                      </figure>
+                    <article class="impact-story-panel">
                       <div class="impact-story-copy">
                         <span>02</span>
                         <h3>Our behaviour becomes visible.</h3>
@@ -495,10 +489,7 @@
                       </div>
                     </article>
 
-                    <article class="impact-story-panel" data-nested-story-panel>
-                      <figure class="impact-story-visual impact-story-visual-3">
-                        <img src="images/impact-experience-to-ecosystem.png" alt="Participants reflecting together with a facilitator" width="1942" height="809" loading="lazy" decoding="async">
-                      </figure>
+                    <article class="impact-story-panel">
                       <div class="impact-story-copy">
                         <span>03</span>
                         <h3>We pause and make meaning.</h3>
@@ -507,10 +498,7 @@
                       </div>
                     </article>
 
-                    <article class="impact-story-panel" data-nested-story-panel>
-                      <figure class="impact-story-visual impact-story-visual-4">
-                        <img src="images/impact-experience-to-ecosystem.png" alt="The same group collaborating more effectively" width="1942" height="809" loading="lazy" decoding="async">
-                      </figure>
+                    <article class="impact-story-panel">
                       <div class="impact-story-copy">
                         <span>04</span>
                         <h3>Insight becomes a better choice.</h3>
@@ -519,10 +507,7 @@
                       </div>
                     </article>
 
-                    <article class="impact-story-panel" data-nested-story-panel>
-                      <figure class="impact-story-visual impact-story-visual-5">
-                        <img src="images/impact-experience-to-ecosystem.png" alt="Collaborative school, college and workplace teams" width="1942" height="809" loading="lazy" decoding="async">
-                      </figure>
+                    <article class="impact-story-panel">
                       <div class="impact-story-copy">
                         <span>05</span>
                         <h3>Individual learning becomes collective strength.</h3>
@@ -531,15 +516,9 @@
                       </div>
                     </article>
                   </div>
-
-                  <button class="impact-story-arrow impact-story-arrow-next" type="button" aria-label="Next impact story" data-nested-story-next>
-                    <span>&rsaquo;</span>
-                  </button>
                 </div>
 
                 <footer class="impact-story-foot">
-                  <span data-nested-story-progress>1 / 5</span>
-                  <div class="impact-story-dots" data-nested-story-dots aria-hidden="true"></div>
                   <p>
                     <span><b>Individual</b><small>notices and chooses</small></span>
                     <i></i>
@@ -723,6 +702,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="content-loader.js"></script>
   <script src="feedback.js"></script>
-  <script src="script.js?v=20260730-impact-rail-v2"></script>
+  <script src="script.js?v=20260730-impact-roll-v1"></script>
 </body>
 </html>
