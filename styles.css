@@ -159,7 +159,17 @@ body[data-page-slug="home"] .container {
 }
 
 .brand-text strong {
-  font-size: 1rem;
+  display: block;
+  width: 8.8rem;
+  max-width: 42vw;
+  height: 1.08rem;
+  overflow: hidden;
+  color: transparent;
+  font-size: 0;
+  line-height: 1;
+  text-indent: -999rem;
+  background: url("images/corxformer-wordmark.png") left center / contain no-repeat;
+  mix-blend-mode: multiply;
 }
 
 .brand-text small {
@@ -4501,6 +4511,20 @@ a.journey-map-card:focus-visible {
 
 .site-footer {
   padding: 1.2rem 0 2rem;
+}
+
+.site-footer .footer-shell > div > strong {
+  display: block;
+  width: 10.2rem;
+  max-width: 56vw;
+  height: 1.25rem;
+  overflow: hidden;
+  color: transparent;
+  font-size: 0;
+  line-height: 1;
+  text-indent: -999rem;
+  background: url("images/corxformer-wordmark.png") left center / contain no-repeat;
+  mix-blend-mode: multiply;
 }
 
 .footer-shell {
