@@ -158,18 +158,46 @@ body[data-page-slug="home"] .container {
   flex-direction: column;
 }
 
-.brand-text strong {
-  display: block;
-  width: 8.8rem;
-  max-width: 42vw;
-  height: 1.08rem;
-  overflow: hidden;
-  color: transparent;
-  font-size: 0;
+.brand-wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.02em;
+  color: #1b1f1a;
+  font-size: 1.02rem;
+  font-weight: 900;
+  letter-spacing: 0.035em;
   line-height: 1;
-  text-indent: -999rem;
-  background: url("images/corxformer-wordmark.png") left center / contain no-repeat;
-  mix-blend-mode: multiply;
+}
+
+.brand-x {
+  position: relative;
+  display: inline-block;
+  flex: 0 0 0.82em;
+  width: 0.82em;
+  height: 0.82em;
+  margin: 0 -0.01em;
+}
+
+.brand-x::before,
+.brand-x::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1.05em;
+  height: 0.18em;
+  border-radius: 999px;
+  transform-origin: center;
+}
+
+.brand-x::before {
+  background: linear-gradient(90deg, #156fe7 0 48%, transparent 48% 52%, #0bb34f 52% 100%);
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.brand-x::after {
+  background: linear-gradient(90deg, #e32328 0 48%, transparent 48% 52%, #156fe7 52% 100%);
+  transform: translate(-50%, -50%) rotate(45deg);
 }
 
 .brand-text small {
@@ -4513,18 +4541,8 @@ a.journey-map-card:focus-visible {
   padding: 1.2rem 0 2rem;
 }
 
-.site-footer .footer-shell > div > strong {
-  display: block;
-  width: 10.2rem;
-  max-width: 56vw;
-  height: 1.25rem;
-  overflow: hidden;
-  color: transparent;
-  font-size: 0;
-  line-height: 1;
-  text-indent: -999rem;
-  background: url("images/corxformer-wordmark.png") left center / contain no-repeat;
-  mix-blend-mode: multiply;
+.site-footer .brand-wordmark {
+  font-size: 1.05rem;
 }
 
 .footer-shell {
