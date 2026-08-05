@@ -24,6 +24,693 @@
   --measure-heading-md: 24ch;
 }
 
+body[data-page-slug="program-journey"] {
+  overflow-x: clip;
+}
+
+body[data-page-slug="program-journey"] .experience-journey-section {
+  min-height: calc(100svh - 5rem);
+  padding: clamp(0.55rem, 1.1vw, 0.9rem) 0 clamp(0.75rem, 1.5vw, 1.2rem);
+}
+
+.svg-definitions {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.experience-journey-shell {
+  display: grid;
+  gap: clamp(0.45rem, 0.9vw, 0.75rem);
+}
+
+.experience-journey-board {
+  position: relative;
+  display: grid;
+  align-content: stretch;
+  align-items: start;
+  gap: clamp(0.45rem, 0.9vw, 0.75rem);
+  min-height: clamp(390px, calc(100svh - 13rem), 520px);
+  padding: clamp(0.65rem, 1.1vw, 0.9rem);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: clamp(1.5rem, 3vw, 2.4rem);
+  background:
+    radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.78), transparent 30%),
+    radial-gradient(circle at 82% 72%, rgba(83, 126, 92, 0.18), transparent 34%),
+    linear-gradient(135deg, rgba(255, 252, 242, 0.92), rgba(232, 241, 231, 0.86));
+  box-shadow: 0 2rem 5rem rgba(41, 32, 19, 0.12);
+  overflow: hidden;
+}
+
+.experience-journey-board::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, transparent 0 50%, rgba(47, 94, 67, 0.05) 50% 50.2%, transparent 50.2%),
+    repeating-linear-gradient(105deg, transparent 0 2.5rem, rgba(47, 94, 67, 0.035) 2.5rem 2.56rem);
+}
+
+.experience-journey-board > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.experience-program-window,
+.experience-axis-panel {
+  position: relative;
+  z-index: 1;
+}
+
+.experience-program-window {
+  justify-self: center;
+  width: min(720px, 86vw);
+  margin-inline: auto;
+  padding: clamp(0.45rem, 0.85vw, 0.65rem);
+  border: 1.5px solid rgba(47, 90, 67, 0.18);
+  border-radius: clamp(1.2rem, 2.5vw, 2rem);
+  background: rgba(255, 250, 241, 0.94);
+  box-shadow: 0 1.2rem 2.8rem rgba(42, 34, 23, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.72);
+}
+
+.experience-program-rail {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  border-radius: 1.4rem;
+}
+
+.experience-program-rail::-webkit-scrollbar {
+  display: none;
+}
+
+.experience-program-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(0.55rem, 0.9vw, 0.75rem);
+  flex: 0 0 100%;
+  min-height: 0;
+  padding: clamp(0.62rem, 1vw, 0.82rem);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: clamp(1.2rem, 2.4vw, 1.8rem);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(242, 238, 225, 0.68)),
+    radial-gradient(circle at 78% 25%, rgba(47, 94, 67, 0.14), transparent 36%);
+  box-shadow: 0 1.5rem 3rem rgba(42, 34, 23, 0.11);
+  scroll-snap-align: center;
+  opacity: 0.48;
+  transform: scale(0.985);
+  transition: opacity 220ms ease, transform 220ms ease;
+}
+
+.experience-program-card > * {
+  position: relative;
+  z-index: 2;
+}
+
+.experience-program-card.is-active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.experience-program-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.32rem;
+  text-align: center;
+}
+
+.experience-program-copy span {
+  display: none;
+  align-self: flex-start;
+  padding: 0.32rem 0.52rem;
+  border-radius: 999px;
+  background: var(--forest);
+  color: #fff;
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.experience-program-copy h3 {
+  margin: 0;
+  font-family: "Fraunces", serif;
+  font-size: clamp(1.35rem, 2.05vw, 2.15rem);
+  line-height: 0.95;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.experience-program-copy p {
+  display: none;
+  max-width: 38ch;
+  margin: 0;
+  color: var(--muted);
+  font-size: clamp(0.72rem, 0.82vw, 0.82rem);
+  line-height: 1.32;
+}
+
+.experience-program-picture {
+  position: relative;
+  height: clamp(255px, 38vh, 350px);
+  min-height: 0;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid rgba(62, 52, 38, 0.16);
+  border-radius: clamp(1rem, 2vw, 1.5rem);
+  background:
+    radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.68), transparent 24%),
+    radial-gradient(circle at 84% 80%, rgba(99, 85, 59, 0.08), transparent 32%),
+    repeating-linear-gradient(0deg, rgba(36, 34, 28, 0.04) 0 1px, transparent 1px 44px),
+    repeating-linear-gradient(105deg, rgba(36, 34, 28, 0.035) 0 1px, transparent 1px 9px),
+    linear-gradient(135deg, #fbf8ed, #f4eddd 52%, #eadfc8);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.72),
+    inset 0 1.1rem 2.8rem rgba(255, 255, 255, 0.38),
+    inset 0 -1.2rem 2.6rem rgba(64, 52, 34, 0.08);
+}
+
+.experience-program-picture.has-photo {
+  display: grid;
+  place-items: center;
+  background: rgba(255, 251, 241, 0.72);
+}
+
+.experience-program-picture.has-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center bottom;
+}
+
+.experience-program-picture:not(.has-photo)::before,
+.experience-program-picture:not(.has-photo)::after {
+  content: "";
+  position: absolute;
+  border-radius: 999px;
+}
+
+.experience-program-picture:not(.has-photo)::before {
+  inset: 18% 14%;
+  border: 2px solid rgba(47, 94, 67, 0.22);
+  transform: rotate(-8deg);
+}
+
+.experience-program-picture:not(.has-photo)::after {
+  width: 9rem;
+  height: 9rem;
+  right: 12%;
+  bottom: 14%;
+  background: rgba(47, 94, 67, 0.18);
+  box-shadow: -8rem -4rem 0 rgba(177, 107, 55, 0.18), -15rem 2rem 0 rgba(38, 114, 180, 0.13);
+}
+
+.experience-program-picture.art-network::before {
+  background:
+    linear-gradient(45deg, transparent 0 47%, rgba(47, 94, 67, 0.22) 48% 52%, transparent 53%),
+    linear-gradient(-35deg, transparent 0 47%, rgba(177, 107, 55, 0.2) 48% 52%, transparent 53%);
+}
+
+.experience-program-picture.art-wave::before {
+  border-radius: 42% 58% 38% 62%;
+  transform: rotate(12deg);
+}
+
+.experience-program-picture.art-path::before,
+.experience-program-picture.art-forward::before {
+  border-style: dashed;
+}
+
+.experience-program-picture.art-rise::after,
+.experience-program-picture.art-wings::after,
+.experience-program-picture.art-light::after {
+  border-radius: 50% 50% 10% 90%;
+  transform: rotate(-18deg);
+}
+
+.experience-program-picture.art-good::before,
+.experience-program-picture.art-flex::before,
+.experience-program-picture.art-shift::before {
+  transform: rotate(8deg) skewX(-8deg);
+}
+
+.experience-program-picture.art-coherence::after,
+.experience-program-picture.art-progress::after,
+.experience-program-picture.art-identity::after,
+.experience-program-picture.art-seeking::after {
+  background: conic-gradient(from 120deg, rgba(47, 94, 67, 0.2), rgba(177, 107, 55, 0.18), rgba(38, 114, 180, 0.14), rgba(47, 94, 67, 0.2));
+}
+
+.experience-program-picture[class*="art-"] {
+  background:
+    radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.72), transparent 24%),
+    radial-gradient(circle at 80% 74%, rgba(70, 60, 43, 0.1), transparent 32%),
+    repeating-linear-gradient(0deg, rgba(36, 34, 28, 0.04) 0 1px, transparent 1px 44px),
+    repeating-linear-gradient(105deg, rgba(36, 34, 28, 0.035) 0 1px, transparent 1px 9px),
+    linear-gradient(135deg, #fffdf4, #f6efde 54%, #e9dec7);
+}
+
+.experience-program-picture[class*="art-"]::before {
+  content: "";
+  position: absolute;
+  inset: clamp(0.55rem, 1.1vw, 0.95rem);
+  display: block;
+  border-radius: clamp(0.8rem, 1.65vw, 1.25rem);
+  background-image: var(--program-art);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  filter: url("#pencil-roughen") grayscale(1) contrast(1.72) brightness(1.08);
+  mix-blend-mode: multiply;
+  opacity: 0.7;
+  transform: rotate(-0.2deg);
+}
+
+.experience-program-picture[class*="art-"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  display: block;
+  border-radius: inherit;
+  background:
+    radial-gradient(circle at 20% 18%, rgba(255, 255, 255, 0.42), transparent 30%),
+    radial-gradient(circle at 72% 78%, rgba(60, 50, 34, 0.08), transparent 28%),
+    repeating-linear-gradient(96deg, rgba(32, 31, 27, 0.055) 0 1px, transparent 1px 7px),
+    repeating-linear-gradient(4deg, rgba(32, 31, 27, 0.026) 0 1px, transparent 1px 22px);
+  mix-blend-mode: multiply;
+  opacity: 0.72;
+  pointer-events: none;
+}
+
+.experience-program-picture.art-map {
+  --program-art: url("images/program-journey/planning-and-strategy.svg");
+}
+
+.experience-program-picture.art-network {
+  --program-art: url("images/program-journey/teamwork-and-communication.svg");
+}
+
+.experience-program-picture.art-wave {
+  --program-art: url("images/program-journey/emotions-and-reactions.svg");
+}
+
+.experience-program-picture.art-path {
+  --program-art: url("images/program-journey/perseverance-and-adaptability.svg");
+}
+
+.experience-program-picture.art-forward {
+  --program-art: url("images/program-journey/learning-and-the-way-forward.svg");
+}
+
+.experience-program-picture.art-rise {
+  --program-art: url("images/program-journey/rise-with-confidence.svg");
+}
+
+.experience-program-picture.art-we {
+  --program-art: url("images/program-journey/the-power-of-we.svg");
+}
+
+.experience-program-picture.art-wings {
+  --program-art: url("images/program-journey/hidden-wings.svg");
+}
+
+.experience-program-picture.art-growth {
+  --program-art: url("images/program-journey/the-growth-mindset.svg");
+}
+
+.experience-program-picture.art-good {
+  --program-art: url("images/program-journey/choosing-the-greater-good.svg");
+}
+
+.experience-program-picture.art-flex {
+  --program-art: url("images/program-journey/flexibility-with-purpose.svg");
+}
+
+.experience-program-picture.art-shift {
+  --program-art: url("images/program-journey/the-efficiency-shift.svg");
+}
+
+.experience-program-picture.art-coherence {
+  --program-art: url("images/program-journey/from-chaos-to-coherence.svg");
+}
+
+.experience-program-picture.art-progress {
+  --program-art: url("images/program-journey/progress-before-perfection.svg");
+}
+
+.experience-program-picture.art-light {
+  --program-art: url("images/program-journey/make-life-light.svg");
+}
+
+.experience-program-picture.art-identity {
+  --program-art: url("images/program-journey/identities-in-motion.svg");
+}
+
+.experience-program-picture.art-seeking {
+  --program-art: url("images/program-journey/understanding-the-seeking-mind.svg");
+}
+
+.experience-rail-arrow {
+  position: absolute;
+  top: 60%;
+  z-index: 3;
+  display: grid;
+  width: 1.85rem;
+  height: 3.55rem;
+  place-items: center;
+  border: 1px solid rgba(47, 111, 178, 0.22);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.7);
+  color: #2d6faf;
+  box-shadow: 0 1rem 2rem rgba(42, 34, 23, 0.1);
+  transform: translateY(-50%);
+  transition: background 180ms ease, border-color 180ms ease, opacity 180ms ease;
+}
+
+.experience-rail-arrow span {
+  font-size: 1.48rem;
+  line-height: 1;
+}
+
+.experience-rail-arrow-prev {
+  left: -0.25rem;
+}
+
+.experience-rail-arrow-next {
+  right: -0.25rem;
+}
+
+.experience-program-window:hover .experience-rail-arrow:not(:disabled),
+.experience-program-window:focus-within .experience-rail-arrow:not(:disabled),
+.experience-rail-arrow:hover,
+.experience-rail-arrow:focus-visible {
+  border-color: rgba(47, 111, 178, 0.56);
+  background: rgba(47, 111, 178, 0.18);
+}
+
+.experience-rail-arrow:disabled {
+  cursor: default;
+  opacity: 0.28;
+}
+
+.experience-axis-panel {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  align-self: end;
+  gap: 0.24rem;
+  padding: clamp(0.45rem, 0.75vw, 0.62rem);
+  border-radius: 1.4rem;
+  background: rgba(255, 255, 255, 0.42);
+}
+
+.experience-axis-labels {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  color: var(--forest);
+  font-size: clamp(0.68rem, 0.88vw, 0.82rem);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.experience-axis {
+  position: relative;
+  height: clamp(2.15rem, 4.2vh, 2.85rem);
+}
+
+.experience-axis-line {
+  position: absolute;
+  top: 50%;
+  left: 0.4rem;
+  right: 0.4rem;
+  height: 0.18rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(47, 94, 67, 0.54), rgba(47, 94, 67, 0.24));
+}
+
+.experience-start-marker,
+.experience-objective-flag {
+  position: absolute;
+  top: 50%;
+  width: 0;
+  height: 0;
+  transform: translateY(-50%);
+}
+
+.experience-start-marker {
+  left: 0;
+  border-top: 0.65rem solid transparent;
+  border-bottom: 0.65rem solid transparent;
+  border-right: 1.05rem solid var(--forest);
+}
+
+.experience-objective-flag {
+  right: 0;
+  border-top: 0.82rem solid transparent;
+  border-bottom: 0.82rem solid transparent;
+  border-left: 1.25rem solid #b16b37;
+}
+
+.experience-objective-flag::after {
+  content: "";
+  position: absolute;
+  top: 0.7rem;
+  right: 1.12rem;
+  width: 0.18rem;
+  height: 1.95rem;
+  border-radius: 999px;
+  background: #b16b37;
+}
+
+.experience-ball {
+  position: absolute;
+  top: 50%;
+  left: 5%;
+  width: clamp(1.1rem, 2vw, 1.55rem);
+  height: clamp(1.1rem, 2vw, 1.55rem);
+  border: 0.22rem solid rgba(255, 255, 255, 0.86);
+  border-radius: 999px;
+  background: #2d6faf;
+  box-shadow: 0 0.75rem 1.5rem rgba(45, 111, 175, 0.24);
+  transform: translate(-50%, -50%);
+  transition: left 1200ms cubic-bezier(0.22, 0.78, 0.26, 1);
+}
+
+.experience-formula {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.38rem, 1vw, 0.75rem);
+  color: var(--ink);
+  font-family: "Fraunces", serif;
+  font-size: clamp(0.9rem, 1.35vw, 1.25rem);
+  line-height: 1.05;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.experience-formula span {
+  min-width: 0;
+}
+
+.experience-math {
+  color: var(--forest);
+  font-family: "Times New Roman", serif;
+  font-size: 1.2em;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.experience-math mo {
+  font-size: 1.25em;
+}
+
+.experience-math mi,
+.experience-math mn {
+  color: var(--forest);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .experience-ball {
+    left: 50%;
+    transition: none;
+  }
+}
+
+@media (max-width: 760px) {
+  body[data-page-slug="program-journey"] .experience-journey-section {
+    min-height: auto;
+    padding-top: 0.55rem;
+  }
+
+  body[data-page-slug="program-journey"] .container {
+    width: calc(100% - 1rem);
+    max-width: calc(100% - 1rem);
+  }
+
+  .experience-journey-board {
+    min-height: 0;
+    padding: 0.5rem;
+    border-radius: 1.45rem;
+    overflow: hidden;
+  }
+
+  .experience-program-window {
+    width: 100%;
+    padding: 0.56rem;
+  }
+
+  .experience-program-card {
+    grid-template-columns: 1fr;
+    min-height: auto;
+    padding: 0.58rem;
+    gap: 0.46rem;
+  }
+
+  .experience-program-copy {
+    order: 0;
+    text-align: center;
+  }
+
+  .experience-program-copy span {
+    align-self: center;
+  }
+
+  .experience-program-copy h3 {
+    max-width: 100%;
+    font-size: clamp(1.08rem, 5.8vw, 1.45rem);
+    line-height: 1.02;
+    overflow-wrap: anywhere;
+  }
+
+  .experience-program-copy p {
+    max-width: none;
+    font-size: 0.84rem;
+    line-height: 1.38;
+    text-align: left;
+  }
+
+  .experience-program-picture {
+    height: clamp(190px, 56vw, 240px);
+    min-height: 0;
+    order: 0;
+  }
+
+  .experience-rail-arrow {
+    top: 44%;
+    width: 2rem;
+    height: 3.8rem;
+  }
+
+  .experience-rail-arrow-prev {
+    left: 0.1rem;
+  }
+
+  .experience-rail-arrow-next {
+    right: 0.1rem;
+  }
+
+  .experience-axis-labels {
+    font-size: 0.58rem;
+    letter-spacing: 0.05em;
+  }
+
+  .experience-axis-labels span:last-child {
+    text-align: right;
+  }
+
+  .experience-formula {
+    flex-direction: column;
+    gap: 0.2rem;
+    max-width: 100%;
+    font-size: clamp(0.9rem, 4.7vw, 1.18rem);
+  }
+
+  .experience-formula span {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+}
+
+.program-journey-home-card {
+  padding: clamp(0.8rem, 1.35vw, 1.15rem);
+}
+
+.program-journey-home-card .experience-journey-board {
+  height: 100%;
+  min-height: 0;
+  align-content: center;
+  gap: clamp(0.45rem, 0.9vw, 0.78rem);
+  padding: clamp(0.7rem, 1.1vw, 1rem);
+  border-radius: clamp(1.35rem, 2.5vw, 2.1rem);
+  box-shadow: none;
+}
+
+.program-journey-home-card .experience-program-window {
+  width: min(760px, 82vw);
+}
+
+.program-journey-home-card .experience-program-picture {
+  height: clamp(220px, 34svh, 320px);
+}
+
+.program-journey-home-card .experience-axis-panel {
+  align-self: stretch;
+}
+
+@media (min-width: 981px) {
+  .program-journey-home-card .experience-program-window {
+    width: min(760px, calc(100% - 12rem));
+  }
+}
+
+@media (max-width: 980px) {
+  .program-journey-home-card {
+    padding: clamp(0.55rem, 2.4vw, 0.85rem);
+  }
+
+  .program-journey-home-card .experience-journey-board {
+    align-content: start;
+    gap: 0.55rem;
+    padding: 0.5rem;
+  }
+
+  .program-journey-home-card .experience-program-window {
+    width: 100%;
+  }
+
+  .program-journey-home-card .experience-program-picture[class*="art-"]::before {
+    background-size: contain;
+  }
+
+  .program-journey-home-card .experience-axis-panel {
+    overflow: hidden;
+  }
+
+  .program-journey-home-card .experience-formula {
+    width: 100%;
+    font-size: clamp(0.82rem, 4.35vw, 1.08rem);
+  }
+
+  .program-journey-home-card .experience-formula span:first-child {
+    display: block;
+    max-width: 17ch;
+    line-height: 1.1;
+  }
+}
+
 * {
   box-sizing: border-box;
 }
@@ -690,7 +1377,7 @@ body[data-page-slug="home"] .container {
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: 100%;
-  gap: 1rem;
+  gap: 0;
   width: 100%;
   max-width: 100%;
   height: clamp(30rem, calc(100svh - 13rem), 44rem);
@@ -699,7 +1386,7 @@ body[data-page-slug="home"] .container {
   overscroll-behavior-x: auto;
   touch-action: auto;
   scroll-snap-type: x mandatory;
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
 }
 
 .home-story-card {

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" role="img" aria-label="hidden wings illustration">
+  <defs>
+    <linearGradient id="sky" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#fffaf0"/><stop offset=".58" stop-color="#eef4e8"/><stop offset="1" stop-color="#d9e8df"/></linearGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#302818" flood-opacity=".14"/></filter>
+  </defs>
+  <rect width="1200" height="760" fill="url(#sky)"/>
+  <circle cx="970" cy="150" r="82" fill="#e5a84b" opacity=".28"/>
+  <circle cx="225" cy="165" r="120" fill="#ffffff" opacity=".45"/>
+  <path d="M0 610 C210 520 380 570 570 500 C760 430 930 455 1200 360 L1200 760 L0 760 Z" fill="#dfe9dd" opacity=".78"/>
+  <path d="M200 490 C350 390 445 440 575 310 C700 188 820 288 1040 165" fill="none" stroke="#2f5a43" stroke-width="9" stroke-linecap="round" stroke-dasharray="22 18" opacity=".32"/>
+  <g filter="url(#softShadow)">
+    <circle cx="600" cy="355" r="34" fill="#e1a649"/><path d="M565 405 h70 l28 130 h-126z" fill="#2f5a43"/><path d="M560 385 C410 255 305 300 210 415 C370 390 465 450 560 385Z" fill="#8fb6c7" opacity=".55"/><path d="M640 385 C790 255 895 300 990 415 C830 390 735 450 640 385Z" fill="#8fb6c7" opacity=".55"/><ellipse cx="430" cy="300" rx="140" ry="42" fill="#fff" opacity=".62"/><ellipse cx="760" cy="315" rx="160" ry="46" fill="#fff" opacity=".62"/>
+
+
+  </g>
+</svg>

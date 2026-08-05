@@ -43,6 +43,7 @@ initMissionChapterNav();
 initNestedStoryRails();
 initProgramDetailModal();
 initProgramObjectiveCart();
+initExperienceProgramJourney();
 
 function createNoopAnalytics() {
   return {
@@ -68,10 +69,11 @@ function initHomeStoryRail() {
   }
 
   const panelIds = panels.map((panel) => panel.dataset.homeRailPanel || panel.id).filter(Boolean);
+  const getPanelThemeId = (panelId) => panelId === "program-journey" ? "programs" : panelId;
   const headerRailLinks = siteNav
     ? [...siteNav.querySelectorAll('a[href^="#"]')].filter((link) => {
         const href = link.getAttribute("href") || "";
-        return panelIds.includes(href.replace(/^#/, ""));
+        return panelIds.includes(href.replace(/^#/, "")) || panelIds.map(getPanelThemeId).includes(href.replace(/^#/, ""));
       })
     : [];
   let activeIndex = 0;
@@ -94,13 +96,14 @@ function initHomeStoryRail() {
     const clampedIndex = Math.max(0, Math.min(nextIndex, panels.length - 1));
     activeIndex = clampedIndex;
     const activePanelId = panelIds[clampedIndex] || "intro";
-    shell.dataset.homeRailTheme = activePanelId;
+    const activeThemeId = getPanelThemeId(activePanelId);
+    shell.dataset.homeRailTheme = activeThemeId;
     headerRailLinks.forEach((link) => {
-      link.classList.toggle("is-current", link.getAttribute("href") === `#${activePanelId}`);
+      link.classList.toggle("is-current", link.getAttribute("href") === `#${activeThemeId}`);
     });
 
-    tabs.forEach((tab, index) => {
-      const isActive = index === clampedIndex;
+    tabs.forEach((tab) => {
+      const isActive = tab.dataset.homeRailTab === activeThemeId;
       tab.classList.toggle("is-active", isActive);
       tab.setAttribute("aria-selected", String(isActive));
 
@@ -137,20 +140,15 @@ function initHomeStoryRail() {
   }
 
   function getNearestIndex() {
-    const railLeft = rail.scrollLeft;
-    let bestIndex = 0;
-    let bestDistance = Number.POSITIVE_INFINITY;
+    if (!rail.clientWidth) {
+      return activeIndex;
+    }
 
-    panels.forEach((panel, index) => {
-      const distance = Math.abs(panel.offsetLeft - railLeft);
+    return Math.max(0, Math.min(Math.round(rail.scrollLeft / rail.clientWidth), panels.length - 1));
+  }
 
-      if (distance < bestDistance) {
-        bestDistance = distance;
-        bestIndex = index;
-      }
-    });
-
-    return bestIndex;
+  function getPanelRailLeft(index) {
+    return Math.max(0, index * rail.clientWidth);
   }
 
   function goToPanel(nextIndex, behavior = "smooth") {
@@ -163,7 +161,7 @@ function initHomeStoryRail() {
 
     setActiveState(clampedIndex);
     rail.scrollTo({
-      left: targetPanel.offsetLeft,
+      left: getPanelRailLeft(clampedIndex),
       behavior
     });
   }
@@ -215,10 +213,17 @@ function initHomeStoryRail() {
     stage.classList.toggle("is-cue-right", !isLeftSide);
   }
 
-  tabs.forEach((tab, index) => {
+  tabs.forEach((tab) => {
     tab.addEventListener("click", () => {
+      const targetId = tab.dataset.homeRailTab || "";
+      const targetIndex = panelIds.indexOf(targetId);
+
+      if (targetIndex === -1) {
+        return;
+      }
+
       dismissMobileCue();
-      goToPanel(index);
+      goToPanel(targetIndex);
     });
   });
 
@@ -283,7 +288,7 @@ function initHomeStoryRail() {
   rail.addEventListener("scroll", () => {
     window.cancelAnimationFrame(scrollFrame);
     scrollFrame = window.requestAnimationFrame(() => {
-      if (Math.abs(rail.scrollLeft - panels[activeIndex].offsetLeft) > 14) {
+      if (Math.abs(rail.scrollLeft - getPanelRailLeft(activeIndex)) > 14) {
         dismissMobileCue();
       }
 
@@ -942,6 +947,132 @@ function initProgramObjectiveCart() {
   });
 
   renderSelectedPrograms();
+}
+
+function initExperienceProgramJourney() {
+  const shell = document.querySelector("[data-experience-journey]");
+  const rail = shell?.querySelector("[data-experience-rail]");
+  const cards = rail ? [...rail.querySelectorAll("[data-experience-card]")] : [];
+  const previousButton = shell?.querySelector("[data-experience-prev]");
+  const nextButton = shell?.querySelector("[data-experience-next]");
+  const ball = shell?.querySelector("[data-experience-ball]");
+
+  if (!shell || !rail || !cards.length) {
+    return;
+  }
+
+  let activeIndex = 0;
+  let scrollFrame = 0;
+  let ballPosition = 5;
+
+  function startRandomBallMotion() {
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (!ball || prefersReducedMotion) {
+      return;
+    }
+
+    function pickNextPosition() {
+      const step = Math.round(12 + Math.random() * 28);
+      return Math.min(96, ballPosition + step);
+    }
+
+    function resetBall() {
+      ball.style.transitionDuration = "0ms";
+      ball.style.left = "5%";
+      ballPosition = 5;
+      window.setTimeout(moveBall, 700 + Math.random() * 600);
+    }
+
+    function moveBall() {
+      const nextPosition = pickNextPosition();
+      const distance = Math.abs(nextPosition - ballPosition);
+      const speedFactor = 12 + Math.random() * 22;
+      const duration = Math.round(380 + distance * speedFactor);
+
+      ball.style.transitionDuration = `${duration}ms`;
+      ball.style.left = `${nextPosition}%`;
+      ballPosition = nextPosition;
+
+      if (ballPosition >= 96) {
+        window.setTimeout(resetBall, duration + 1000);
+      } else {
+        window.setTimeout(moveBall, duration + 750 + Math.random() * 900);
+      }
+    }
+
+    window.setTimeout(moveBall, 900);
+  }
+
+  function updateActiveState(index, shouldScroll = true) {
+    activeIndex = Math.max(0, Math.min(index, cards.length - 1));
+
+    cards.forEach((card, cardIndex) => {
+      const isActive = cardIndex === activeIndex;
+      card.classList.toggle("is-active", isActive);
+      card.setAttribute("aria-hidden", String(!isActive));
+    });
+
+    if (previousButton) {
+      previousButton.disabled = activeIndex === 0;
+    }
+
+    if (nextButton) {
+      nextButton.disabled = activeIndex === cards.length - 1;
+    }
+
+    if (shouldScroll) {
+      rail.scrollTo({
+        left: cards[activeIndex].offsetLeft - rail.offsetLeft,
+        behavior: "smooth"
+      });
+    }
+  }
+
+  function getNearestIndex() {
+    const railLeft = rail.scrollLeft;
+    let nearestIndex = 0;
+    let nearestDistance = Number.POSITIVE_INFINITY;
+
+    cards.forEach((card, index) => {
+      const distance = Math.abs(card.offsetLeft - rail.offsetLeft - railLeft);
+
+      if (distance < nearestDistance) {
+        nearestDistance = distance;
+        nearestIndex = index;
+      }
+    });
+
+    return nearestIndex;
+  }
+
+  previousButton?.addEventListener("click", () => {
+    updateActiveState(activeIndex - 1);
+  });
+
+  nextButton?.addEventListener("click", () => {
+    updateActiveState(activeIndex + 1);
+  });
+
+  cards.forEach((card, index) => {
+    card.addEventListener("click", () => {
+      updateActiveState(index);
+    });
+  });
+
+  rail.addEventListener(
+    "scroll",
+    () => {
+      window.cancelAnimationFrame(scrollFrame);
+      scrollFrame = window.requestAnimationFrame(() => {
+        updateActiveState(getNearestIndex(), false);
+      });
+    },
+    { passive: true }
+  );
+
+  updateActiveState(0, false);
+  startRandomBallMotion();
 }
 
 function createCoreXformerAnalytics(supabase) {

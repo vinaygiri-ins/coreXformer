@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" role="img" aria-label="identities in motion illustration">
+  <defs>
+    <linearGradient id="sky" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#fffaf0"/><stop offset=".58" stop-color="#eef4e8"/><stop offset="1" stop-color="#d9e8df"/></linearGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#302818" flood-opacity=".14"/></filter>
+  </defs>
+  <rect width="1200" height="760" fill="url(#sky)"/>
+  <circle cx="970" cy="150" r="82" fill="#e5a84b" opacity=".28"/>
+  <circle cx="225" cy="165" r="120" fill="#ffffff" opacity=".45"/>
+  <path d="M0 610 C210 520 380 570 570 500 C760 430 930 455 1200 360 L1200 760 L0 760 Z" fill="#dfe9dd" opacity=".78"/>
+  <path d="M190 480 C335 390 445 405 585 315 C735 220 815 285 1050 170" fill="none" stroke="#2f5a43" stroke-width="9" stroke-linecap="round" stroke-dasharray="22 18" opacity=".32"/>
+  <g filter="url(#softShadow)">
+    <path d="M240 520 C320 390 405 430 470 300 C540 165 640 225 675 345 C720 500 840 375 970 260" fill="none" stroke="#8fb6c7" stroke-width="34" stroke-linecap="round" opacity=".58"/><g fill="#2f5a43" opacity=".9"><circle cx="430" cy="340" r="34"/><path d="M388 392 h84 l28 128 h-140z"/><circle cx="740" cy="315" r="32"/><path d="M700 365 h80 l34 132 h-148z"/></g>
+
+
+  </g>
+</svg>
