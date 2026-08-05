@@ -44,6 +44,7 @@ initNestedStoryRails();
 initProgramDetailModal();
 initProgramObjectiveCart();
 initExperienceProgramJourney();
+initImpactPathway();
 
 function createNoopAnalytics() {
   return {
@@ -81,7 +82,7 @@ function initHomeStoryRail() {
   let hasDismissedMobileCue = false;
   let touchSwipeState = null;
   const compactViewport = window.matchMedia("(max-width: 900px)");
-  const swipeIgnoreSelector = "a, button, input, select, textarea, label";
+  const swipeIgnoreSelector = "a, button, input, select, textarea, label, [data-impact-slide-track]";
 
   function dismissMobileCue() {
     if (hasDismissedMobileCue) {
@@ -641,6 +642,190 @@ function initNestedStoryRails() {
     });
 
     goToPanel(0, "auto");
+  });
+}
+
+function initImpactPathway() {
+  const shells = [...document.querySelectorAll("[data-impact-pathway]")];
+
+  if (!shells.length) {
+    return;
+  }
+
+  shells.forEach((shell) => {
+    const tabs = [...shell.querySelectorAll("[data-impact-audience-tab]")];
+    const panels = [...shell.querySelectorAll("[data-impact-audience-panel]")];
+    const previousButton = shell.querySelector("[data-impact-slide-prev]");
+    const nextButton = shell.querySelector("[data-impact-slide-next]");
+    const audienceLabel = shell.querySelector("[data-impact-audience-label]");
+    const progress = shell.querySelector("[data-impact-slide-progress]");
+    const audienceIndexes = new Map();
+    let activeAudience = panels[0]?.dataset.impactAudiencePanel || "";
+    let scrollFrame = 0;
+
+    if (!tabs.length || !panels.length || !activeAudience) {
+      return;
+    }
+
+    function getActivePanel() {
+      return panels.find((panel) => panel.dataset.impactAudiencePanel === activeAudience) || panels[0];
+    }
+
+    function getSlides(panel) {
+      return panel ? [...panel.querySelectorAll("[data-impact-slide]")] : [];
+    }
+
+    function getTrack(panel) {
+      return panel?.querySelector("[data-impact-slide-track]") || null;
+    }
+
+    function getAudienceLabel(audience) {
+      const tab = tabs.find((button) => button.dataset.impactAudienceTab === audience);
+      return tab?.textContent?.trim() || audience;
+    }
+
+    function getNearestSlideIndex(track, slides) {
+      if (!track || !slides.length) {
+        return 0;
+      }
+
+      let bestIndex = 0;
+      let bestDistance = Number.POSITIVE_INFINITY;
+
+      slides.forEach((slide, index) => {
+        const distance = Math.abs(slide.offsetLeft - track.scrollLeft);
+
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          bestIndex = index;
+        }
+      });
+
+      return bestIndex;
+    }
+
+    function setSlideState(panel, nextIndex) {
+      const audience = panel.dataset.impactAudiencePanel || activeAudience;
+      const slides = getSlides(panel);
+      const clampedIndex = Math.max(0, Math.min(nextIndex, slides.length - 1));
+
+      audienceIndexes.set(audience, clampedIndex);
+      slides.forEach((slide, index) => {
+        slide.classList.toggle("is-active", index === clampedIndex);
+      });
+
+      if (panel === getActivePanel()) {
+        if (progress) {
+          progress.textContent = `${clampedIndex + 1} / ${slides.length}`;
+        }
+
+        if (previousButton) {
+          previousButton.disabled = clampedIndex === 0;
+        }
+
+        if (nextButton) {
+          nextButton.disabled = clampedIndex === slides.length - 1;
+        }
+      }
+    }
+
+    function goToSlide(nextIndex, behavior = "smooth") {
+      const panel = getActivePanel();
+      const track = getTrack(panel);
+      const slides = getSlides(panel);
+      const clampedIndex = Math.max(0, Math.min(nextIndex, slides.length - 1));
+      const targetSlide = slides[clampedIndex];
+
+      if (!track || !targetSlide) {
+        return;
+      }
+
+      setSlideState(panel, clampedIndex);
+      track.scrollTo({
+        left: targetSlide.offsetLeft,
+        behavior
+      });
+    }
+
+    function activateAudience(audience, behavior = "auto") {
+      if (!audience) {
+        return;
+      }
+
+      activeAudience = audience;
+
+      tabs.forEach((tab) => {
+        const isActive = tab.dataset.impactAudienceTab === audience;
+        tab.classList.toggle("is-active", isActive);
+        tab.setAttribute("aria-selected", String(isActive));
+
+        if (isActive) {
+          tab.scrollIntoView({
+            behavior,
+            inline: "center",
+            block: "nearest"
+          });
+        }
+      });
+
+      panels.forEach((panel) => {
+        const isActive = panel.dataset.impactAudiencePanel === audience;
+        panel.classList.toggle("is-active", isActive);
+        panel.hidden = !isActive;
+      });
+
+      if (audienceLabel) {
+        audienceLabel.textContent = getAudienceLabel(audience);
+      }
+
+      goToSlide(audienceIndexes.get(audience) || 0, behavior);
+    }
+
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        activateAudience(tab.dataset.impactAudienceTab || "", "smooth");
+      });
+    });
+
+    previousButton?.addEventListener("click", () => {
+      const index = audienceIndexes.get(activeAudience) || 0;
+      goToSlide(index - 1);
+    });
+
+    nextButton?.addEventListener("click", () => {
+      const index = audienceIndexes.get(activeAudience) || 0;
+      goToSlide(index + 1);
+    });
+
+    panels.forEach((panel) => {
+      const track = getTrack(panel);
+
+      if (!track) {
+        return;
+      }
+
+      track.addEventListener("scroll", () => {
+        window.cancelAnimationFrame(scrollFrame);
+        scrollFrame = window.requestAnimationFrame(() => {
+          const slides = getSlides(panel);
+          const nearestIndex = getNearestSlideIndex(track, slides);
+
+          if ((audienceIndexes.get(panel.dataset.impactAudiencePanel || "") || 0) !== nearestIndex) {
+            setSlideState(panel, nearestIndex);
+          }
+        });
+      });
+    });
+
+    window.addEventListener("resize", () => {
+      window.cancelAnimationFrame(scrollFrame);
+      scrollFrame = window.requestAnimationFrame(() => {
+        activateAudience(activeAudience, "auto");
+      });
+    });
+
+    panels.forEach((panel) => setSlideState(panel, 0));
+    activateAudience(activeAudience, "auto");
   });
 }
 
