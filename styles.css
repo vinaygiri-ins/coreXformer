@@ -1058,6 +1058,83 @@ body[data-page-slug="home"] .container {
   overflow: hidden;
 }
 
+.impact-pathway-single {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: clamp(0.6rem, 1.2vw, 0.9rem);
+  position: relative;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.impact-pathway-single > :not(.impact-single-head):not(.impact-single-image) {
+  display: none;
+}
+
+.impact-single-head {
+  display: grid;
+  justify-items: center;
+  gap: 0.15rem;
+  text-align: center;
+}
+
+.impact-single-head p {
+  margin: 0;
+  color: var(--forest);
+  font-size: clamp(0.72rem, 0.9vw, 0.92rem);
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.impact-single-head h2 {
+  margin: 0;
+  color: var(--ink);
+  font-family: "Fraunces", serif;
+  font-size: clamp(2rem, 4.4vw, 4.9rem);
+  line-height: 0.98;
+  letter-spacing: -0.035em;
+  text-align: center;
+}
+
+.impact-single-image {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  margin: 0;
+  overflow: hidden;
+  border-radius: calc(var(--radius-xl) - 0.35rem);
+  background: #061321;
+}
+
+.impact-single-image img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
+
+@media (max-width: 560px) {
+  .impact-pathway-single {
+    gap: 0.55rem;
+  }
+
+  .impact-single-head p {
+    font-size: 0.68rem;
+  }
+
+  .impact-single-head h2 {
+    max-width: 12ch;
+    font-size: clamp(1.65rem, 8.5vw, 2.2rem);
+    line-height: 0.96;
+  }
+}
+
 .impact-pathway-head {
   display: grid;
   justify-items: center;
