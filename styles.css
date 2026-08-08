@@ -1039,9 +1039,9 @@ body[data-page-slug="home"] .container {
   --home-glow-b: rgba(73, 103, 85, 0.22);
 }
 
-.home-story[data-home-rail-theme="impact"] .home-story-arrow {
-  opacity: 0;
-  pointer-events: none;
+.home-story[data-home-rail-theme="about"] {
+  --home-glow-a: rgba(47, 90, 67, 0.2);
+  --home-glow-b: rgba(165, 112, 73, 0.18);
 }
 
 .impact-home-card {
@@ -1119,6 +1119,93 @@ body[data-page-slug="home"] .container {
   object-position: center;
 }
 
+.home-about-card {
+  background:
+    radial-gradient(circle at 8% 10%, rgba(255, 255, 255, 0.9), transparent 18rem),
+    radial-gradient(circle at 88% 20%, rgba(47, 90, 67, 0.14), transparent 24rem),
+    radial-gradient(circle at 72% 92%, rgba(217, 150, 68, 0.12), transparent 24rem),
+    linear-gradient(145deg, rgba(255, 250, 241, 0.94), rgba(224, 236, 227, 0.8));
+}
+
+.home-about-body {
+  grid-template-columns: minmax(0, 1.06fr) minmax(18rem, 0.62fr);
+  align-items: center;
+}
+
+.home-about-copy {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: clamp(0.65rem, 1vw, 0.95rem);
+  min-width: 0;
+  text-align: center;
+}
+
+.home-about-copy h2 {
+  max-width: 14.5ch;
+  margin: 0;
+  font-family: "Fraunces", serif;
+  font-size: clamp(2.45rem, 4.5vw, 5.4rem);
+  line-height: 0.94;
+  letter-spacing: -0.045em;
+  text-wrap: balance;
+}
+
+.home-about-copy > p:not(.eyebrow) {
+  max-width: 62ch;
+  margin: 0;
+  color: var(--muted);
+  font-size: clamp(0.98rem, 1.1vw, 1.12rem);
+  line-height: 1.66;
+}
+
+.home-about-strip {
+  justify-content: center;
+  margin-top: 0;
+}
+
+.home-about-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.7rem;
+  margin-top: clamp(0.2rem, 0.7vw, 0.55rem);
+}
+
+.home-about-founder-card {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  min-width: 0;
+  height: 100%;
+  padding: clamp(0.65rem, 0.95vw, 0.85rem);
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  border-radius: calc(var(--radius-xl) + 8px);
+  background:
+    radial-gradient(circle at 30% 0%, rgba(255, 255, 255, 0.86), transparent 13rem),
+    linear-gradient(160deg, rgba(255, 250, 241, 0.88), rgba(230, 239, 225, 0.74));
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.28),
+    0 1rem 3.2rem rgba(66, 43, 22, 0.12);
+  overflow: hidden;
+}
+
+.home-about-founder-card .about-founder-image-frame {
+  min-height: min(32vh, 20rem);
+}
+
+.home-about-founder-card .about-founder-copy {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+}
+
+.home-about-founder-card .about-founder-copy p,
+.home-about-founder-card .about-founder-copy blockquote {
+  margin-inline: auto;
+  text-align: center;
+}
+
 @media (max-width: 560px) {
   .impact-pathway-single {
     gap: 0.55rem;
@@ -1132,6 +1219,63 @@ body[data-page-slug="home"] .container {
     max-width: 12ch;
     font-size: clamp(1.65rem, 8.5vw, 2.2rem);
     line-height: 0.96;
+  }
+
+  .home-about-body {
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+  }
+
+  .home-about-copy {
+    align-content: start;
+    gap: 0.55rem;
+  }
+
+  .home-about-copy h2 {
+    max-width: 11.5ch;
+    font-size: clamp(2rem, 10vw, 2.75rem);
+  }
+
+  .home-about-copy > p:not(.eyebrow) {
+    font-size: 0.9rem;
+    line-height: 1.48;
+  }
+
+  .home-about-strip {
+    gap: 0.4rem;
+  }
+
+  .home-about-strip span {
+    min-height: 1.9rem;
+    padding: 0.35rem 0.58rem;
+    font-size: 0.68rem;
+  }
+
+  .home-about-founder-card {
+    grid-template-columns: minmax(5.5rem, 0.35fr) minmax(0, 0.65fr);
+    grid-template-rows: 1fr;
+    align-items: center;
+    padding: 0.62rem;
+  }
+
+  .home-about-founder-card .about-founder-image-frame {
+    min-height: 8.5rem;
+    height: 100%;
+  }
+
+  .home-about-founder-card .about-founder-copy {
+    justify-items: start;
+    text-align: left;
+  }
+
+  .home-about-founder-card .about-founder-copy h3,
+  .home-about-founder-card .about-founder-copy p,
+  .home-about-founder-card .about-founder-copy blockquote {
+    text-align: left;
+  }
+
+  .home-about-founder-card .about-founder-copy blockquote {
+    display: none;
   }
 }
 
