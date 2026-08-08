@@ -1127,36 +1127,90 @@ body[data-page-slug="home"] .container {
     linear-gradient(145deg, rgba(255, 250, 241, 0.94), rgba(224, 236, 227, 0.8));
 }
 
-.home-about-body {
-  grid-template-columns: minmax(0, 1.06fr) minmax(18rem, 0.62fr);
+.home-about-dossier {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  gap: clamp(0.55rem, 0.95vw, 0.85rem);
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.home-about-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: clamp(0.85rem, 1.6vw, 1.35rem);
   align-items: center;
 }
 
-.home-about-copy {
+.home-about-title {
   display: grid;
-  align-content: center;
-  justify-items: center;
-  gap: clamp(0.65rem, 1vw, 0.95rem);
+  gap: 0.45rem;
   min-width: 0;
-  text-align: center;
 }
 
-.home-about-copy h2 {
-  max-width: 14.5ch;
+.home-about-title .eyebrow {
+  margin: 0;
+}
+
+.home-about-title h2 {
+  max-width: 18ch;
   margin: 0;
   font-family: "Fraunces", serif;
-  font-size: clamp(2.45rem, 4.5vw, 5.4rem);
-  line-height: 0.94;
-  letter-spacing: -0.045em;
+  font-size: clamp(1.65rem, 3vw, 3.5rem);
+  line-height: 0.98;
+  letter-spacing: -0.04em;
   text-wrap: balance;
 }
 
-.home-about-copy > p:not(.eyebrow) {
-  max-width: 62ch;
+.home-about-title > p:not(.eyebrow) {
+  max-width: 75ch;
   margin: 0;
   color: var(--muted);
-  font-size: clamp(0.98rem, 1.1vw, 1.12rem);
-  line-height: 1.66;
+  font-size: clamp(0.88rem, 0.94vw, 0.98rem);
+  line-height: 1.55;
+}
+
+.home-about-passport {
+  display: grid;
+  justify-items: center;
+  gap: 0.45rem;
+  width: clamp(7.1rem, 9vw, 8.6rem);
+  min-width: clamp(7.1rem, 9vw, 8.6rem);
+  margin: 0;
+  padding: 0.42rem;
+  border: 1px solid rgba(39, 55, 42, 0.12);
+  border-radius: 1.25rem;
+  background: rgba(255, 255, 255, 0.66);
+  box-shadow: 0 0.8rem 2.1rem rgba(66, 43, 22, 0.1);
+}
+
+.home-about-passport img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 7 / 9;
+  object-fit: cover;
+  object-position: center top;
+  border-radius: 0.9rem;
+}
+
+.home-about-passport figcaption {
+  display: grid;
+  gap: 0.12rem;
+  text-align: center;
+}
+
+.home-about-passport figcaption strong {
+  color: var(--ink);
+  font-size: clamp(0.66rem, 0.72vw, 0.76rem);
+  line-height: 1.15;
+}
+
+.home-about-passport figcaption span {
+  color: var(--muted);
+  font-size: clamp(0.55rem, 0.62vw, 0.66rem);
+  line-height: 1.25;
 }
 
 .home-about-strip {
@@ -1164,46 +1218,108 @@ body[data-page-slug="home"] .container {
   margin-top: 0;
 }
 
+.home-about-scroll {
+  display: grid;
+  gap: clamp(0.65rem, 1vw, 0.9rem);
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0.15rem 0.25rem 0.2rem 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(47, 90, 67, 0.28) transparent;
+}
+
+.home-about-section,
+.home-about-mini-rail article,
+.home-about-principles article,
+.home-about-quote {
+  border: 1px solid rgba(39, 55, 42, 0.1);
+  border-radius: 1.25rem;
+  background: rgba(255, 255, 255, 0.58);
+  box-shadow: 0 0.65rem 1.7rem rgba(66, 43, 22, 0.06);
+}
+
+.home-about-section {
+  display: grid;
+  gap: 0.45rem;
+  padding: clamp(0.78rem, 1.1vw, 1rem);
+}
+
+.home-about-section .panel-label {
+  margin: 0;
+}
+
+.home-about-section h3 {
+  max-width: none;
+  margin: 0;
+  font-size: clamp(1.06rem, 1.35vw, 1.5rem);
+}
+
+.home-about-section p {
+  margin: 0;
+  color: var(--muted);
+  font-size: clamp(0.82rem, 0.92vw, 0.96rem);
+  line-height: 1.55;
+}
+
+.home-about-mini-rail,
+.home-about-principles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.home-about-principles {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.home-about-mini-rail article,
+.home-about-principles article {
+  display: grid;
+  gap: 0.35rem;
+  align-content: start;
+  padding: clamp(0.7rem, 0.9vw, 0.9rem);
+}
+
+.home-about-mini-rail span,
+.home-about-principles span {
+  color: var(--copper);
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+
+.home-about-mini-rail strong,
+.home-about-principles strong {
+  color: var(--ink);
+  font-family: "Fraunces", serif;
+  font-size: clamp(0.98rem, 1.1vw, 1.2rem);
+  line-height: 1.08;
+}
+
+.home-about-mini-rail p,
+.home-about-principles p {
+  margin: 0;
+  color: var(--muted);
+  font-size: clamp(0.76rem, 0.84vw, 0.9rem);
+  line-height: 1.45;
+}
+
+.home-about-quote {
+  margin: 0;
+  padding: clamp(0.8rem, 1vw, 1rem);
+  color: var(--ink);
+  font-family: "Fraunces", serif;
+  font-size: clamp(0.94rem, 1.08vw, 1.15rem);
+  line-height: 1.34;
+  text-align: center;
+}
+
 .home-about-actions {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 0.7rem;
-  margin-top: clamp(0.2rem, 0.7vw, 0.55rem);
-}
-
-.home-about-founder-card {
-  display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
-  gap: 0.75rem;
-  min-width: 0;
-  height: 100%;
-  padding: clamp(0.65rem, 0.95vw, 0.85rem);
-  border: 1px solid rgba(255, 255, 255, 0.82);
-  border-radius: calc(var(--radius-xl) + 8px);
-  background:
-    radial-gradient(circle at 30% 0%, rgba(255, 255, 255, 0.86), transparent 13rem),
-    linear-gradient(160deg, rgba(255, 250, 241, 0.88), rgba(230, 239, 225, 0.74));
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.28),
-    0 1rem 3.2rem rgba(66, 43, 22, 0.12);
-  overflow: hidden;
-}
-
-.home-about-founder-card .about-founder-image-frame {
-  min-height: min(32vh, 20rem);
-}
-
-.home-about-founder-card .about-founder-copy {
-  display: grid;
-  justify-items: center;
-  text-align: center;
-}
-
-.home-about-founder-card .about-founder-copy p,
-.home-about-founder-card .about-founder-copy blockquote {
-  margin-inline: auto;
-  text-align: center;
+  padding-top: 0.05rem;
 }
 
 @media (max-width: 560px) {
@@ -1221,24 +1337,39 @@ body[data-page-slug="home"] .container {
     line-height: 0.96;
   }
 
-  .home-about-body {
-    grid-template-columns: 1fr;
-    gap: 0.8rem;
+  .home-about-head {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.65rem;
+    align-items: start;
   }
 
-  .home-about-copy {
-    align-content: start;
-    gap: 0.55rem;
+  .home-about-title h2 {
+    max-width: 13ch;
+    font-size: clamp(1.55rem, 8vw, 2.05rem);
   }
 
-  .home-about-copy h2 {
-    max-width: 11.5ch;
-    font-size: clamp(2rem, 10vw, 2.75rem);
+  .home-about-title > p:not(.eyebrow) {
+    font-size: 0.78rem;
+    line-height: 1.42;
   }
 
-  .home-about-copy > p:not(.eyebrow) {
-    font-size: 0.9rem;
-    line-height: 1.48;
+  .home-about-passport {
+    width: 4.8rem;
+    min-width: 4.8rem;
+    padding: 0.28rem;
+    border-radius: 0.9rem;
+  }
+
+  .home-about-passport img {
+    border-radius: 0.65rem;
+  }
+
+  .home-about-passport figcaption span {
+    display: none;
+  }
+
+  .home-about-passport figcaption strong {
+    font-size: 0.54rem;
   }
 
   .home-about-strip {
@@ -1251,31 +1382,50 @@ body[data-page-slug="home"] .container {
     font-size: 0.68rem;
   }
 
-  .home-about-founder-card {
-    grid-template-columns: minmax(5.5rem, 0.35fr) minmax(0, 0.65fr);
-    grid-template-rows: 1fr;
-    align-items: center;
-    padding: 0.62rem;
+  .home-about-scroll {
+    gap: 0.55rem;
+    padding-right: 0;
   }
 
-  .home-about-founder-card .about-founder-image-frame {
-    min-height: 8.5rem;
-    height: 100%;
+  .home-about-section {
+    padding: 0.72rem;
+    border-radius: 1rem;
   }
 
-  .home-about-founder-card .about-founder-copy {
-    justify-items: start;
+  .home-about-section h3 {
+    font-size: 1rem;
+  }
+
+  .home-about-section p,
+  .home-about-mini-rail p,
+  .home-about-principles p {
+    font-size: 0.74rem;
+    line-height: 1.38;
+  }
+
+  .home-about-mini-rail,
+  .home-about-principles {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .home-about-mini-rail article,
+  .home-about-principles article {
+    padding: 0.68rem;
+    border-radius: 1rem;
+  }
+
+  .home-about-quote {
+    padding: 0.72rem;
+    font-size: 0.82rem;
     text-align: left;
   }
 
-  .home-about-founder-card .about-founder-copy h3,
-  .home-about-founder-card .about-founder-copy p,
-  .home-about-founder-card .about-founder-copy blockquote {
-    text-align: left;
-  }
-
-  .home-about-founder-card .about-founder-copy blockquote {
-    display: none;
+  .home-about-actions .button,
+  .home-about-actions .button-ghost {
+    min-height: 2.4rem;
+    padding: 0.6rem 0.9rem;
+    font-size: 0.8rem;
   }
 }
 
