@@ -9665,14 +9665,23 @@ body[data-page-slug="hanoi-team-lab"] {
 }
 
 body[data-page-slug="hanoi-team-lab"] .section {
-  padding-block: clamp(2rem, 5vw, 4.5rem);
+  padding-block: clamp(1.8rem, 4.5vw, 4.2rem);
+}
+
+.hanoi-hero-section {
+  padding-top: clamp(3.1rem, 6vw, 5.2rem);
+  padding-bottom: clamp(1.5rem, 3.4vw, 2.7rem);
+}
+
+.hanoi-lab-section {
+  padding-top: 0;
 }
 
 .hanoi-hero-shell {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: clamp(1rem, 4vw, 3rem);
-  align-items: stretch;
+  grid-template-columns: minmax(0, 1.5fr) minmax(18rem, 0.72fr);
+  gap: clamp(2rem, 8vw, 7rem);
+  align-items: end;
 }
 
 .hanoi-hero-copy,
@@ -9690,27 +9699,32 @@ body[data-page-slug="hanoi-team-lab"] .section {
 }
 
 .hanoi-hero-copy {
-  display: grid;
-  align-content: center;
-  min-height: clamp(18rem, 36vw, 32rem);
-  padding: clamp(1.35rem, 4vw, 4rem);
-  text-align: center;
+  min-height: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  text-align: left;
 }
 
 .hanoi-hero-copy h1 {
-  max-width: 11ch;
-  margin: 0 auto;
+  max-width: 10.4ch;
+  margin: 0;
   font-family: "Fraunces", serif;
-  font-size: clamp(3.2rem, 8vw, 7rem);
-  line-height: 0.86;
+  font-size: clamp(3.35rem, 7.7vw, 7.4rem);
+  line-height: 0.88;
   letter-spacing: -0.055em;
   color: var(--ink);
   text-wrap: balance;
 }
 
 .hanoi-hero-copy .hero-text {
-  width: min(100%, 48rem);
-  margin: clamp(1rem, 2.5vw, 1.7rem) auto 0;
+  width: min(100%, 38rem);
+  margin: clamp(1.15rem, 2.6vw, 2rem) 0 0;
+  color: var(--muted);
+  font-size: clamp(1rem, 1.45vw, 1.22rem);
+  line-height: 1.58;
 }
 
 .hanoi-intent-card {
@@ -9749,11 +9763,12 @@ body[data-page-slug="hanoi-team-lab"] .section {
 }
 
 .hanoi-control-card {
-  display: grid;
-  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
-  gap: clamp(1rem, 3vw, 2rem);
-  align-items: end;
-  padding: clamp(1rem, 2.8vw, 2rem);
+  padding: 1.35rem 0 0;
+  border: 0;
+  border-top: 1px solid rgba(31, 42, 31, 0.22);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .hanoi-control-head h2 {
@@ -9764,7 +9779,7 @@ body[data-page-slug="hanoi-team-lab"] .section {
 .hanoi-controls {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
+  gap: 1rem 1.25rem;
 }
 
 .hanoi-field {
@@ -9781,16 +9796,17 @@ body[data-page-slug="hanoi-team-lab"] .section {
 .hanoi-field select,
 .hanoi-field input {
   width: 100%;
-  min-height: 3.2rem;
-  border: 1px solid rgba(39, 55, 42, 0.16);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.62);
+  min-height: 2.65rem;
+  border: 0;
+  border-bottom: 1px solid rgba(39, 55, 42, 0.18);
+  border-radius: 0;
+  background: transparent;
   color: var(--ink);
   font-size: 1rem;
   font-weight: 800;
   letter-spacing: 0;
   text-transform: none;
-  padding: 0.65rem 1rem;
+  padding: 0.4rem 0 0.62rem;
 }
 
 .hanoi-team-mode {
@@ -9831,7 +9847,7 @@ body[data-page-slug="hanoi-team-lab"] .section {
 
 .hanoi-start-button,
 .hanoi-reset-button {
-  min-height: 3.2rem;
+  min-height: 3rem;
   justify-content: center;
 }
 
@@ -9864,6 +9880,10 @@ body[data-page-slug="hanoi-team-lab"] .section {
 
 .hanoi-team-card {
   overflow: hidden;
+  border-color: rgba(31, 42, 31, 0.14);
+  border-radius: 0.35rem;
+  background: rgba(255, 255, 255, 0.26);
+  box-shadow: none;
 }
 
 .hanoi-team-1 {
@@ -9932,8 +9952,8 @@ body[data-page-slug="hanoi-team-lab"] .section {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.18rem;
-  min-height: clamp(18rem, 34vw, 25rem);
-  padding: clamp(1rem, 2vw, 1.35rem) 0.65rem 1rem;
+  min-height: clamp(18rem, 30vw, 24.5rem);
+  padding: clamp(1.1rem, 2vw, 1.75rem) 0.65rem 1rem;
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.25), transparent),
     var(--hanoi-team-soft);

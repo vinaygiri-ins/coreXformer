@@ -120,9 +120,11 @@
           };
         });
         stopTimer();
+        render();
+        return;
       }
 
-      render();
+      updateTimerDisplays();
     }, 100);
   }
 
@@ -246,7 +248,7 @@
           <span class="hanoi-team-number">0${teamIndex + 1} / Team</span>
           <input class="hanoi-team-name" value="${escapeHtml(teamName)}" maxlength="24" aria-label="Name for ${escapeHtml(teamName)}"${state.started ? " disabled" : ""}>
         </div>
-        <div class="hanoi-timer${isExpired ? " is-expired" : ""}" aria-label="Time left ${timeValue}">
+        <div class="hanoi-timer${isExpired ? " is-expired" : ""}" data-hanoi-timer="${teamIndex}" aria-label="Time left ${timeValue}">
           <span>Time left</span>
           <strong>${timeValue}</strong>
         </div>
@@ -293,7 +295,7 @@
         diskElement.innerHTML = `<span>${disk}</span>`;
         diskElement.addEventListener("click", (event) => {
           event.stopPropagation();
-          selectPeg(teamIndex, pegIndex, disk);
+          selectPeg(teamIndex, pegIndex);
         });
         diskStack.append(diskElement);
       });
@@ -302,6 +304,31 @@
     });
 
     return card;
+  }
+
+  function updateTimerDisplays() {
+    if (!controls.grid) {
+      return;
+    }
+
+    state.teams.slice(0, state.teamCount).forEach((team, teamIndex) => {
+      const timer = controls.grid.querySelector(`[data-hanoi-timer="${teamIndex}"]`);
+
+      if (!timer) {
+        return;
+      }
+
+      const timeValue = formatTime(team.finishRemainingMs ?? state.remainingMs);
+      const isExpired = state.timeExpired && team.finishRemainingMs === null;
+      const timerValue = timer.querySelector("strong");
+
+      timer.classList.toggle("is-expired", isExpired);
+      timer.setAttribute("aria-label", `Time left ${timeValue}`);
+
+      if (timerValue) {
+        timerValue.textContent = timeValue;
+      }
+    });
   }
 
   function render() {
