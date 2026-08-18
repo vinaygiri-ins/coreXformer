@@ -10275,6 +10275,15 @@ body[data-page-slug="hanoi-team-lab"] .section {
     grid-template-columns: 1fr;
   }
 
+  .hanoi-game-grid.single-team {
+    grid-template-columns: minmax(0, 1fr);
+    justify-content: stretch;
+  }
+
+  .hanoi-game-grid.single-team .hanoi-team-card {
+    width: 100%;
+  }
+
   .hanoi-start-button,
   .hanoi-reset-button {
     width: 100%;
@@ -10302,6 +10311,11 @@ body[data-page-slug="hanoi-team-lab"] .section {
     padding-inline: 0.35rem;
   }
 
+  .hanoi-game-grid.single-team .hanoi-board {
+    height: clamp(18.5rem, 72vw, 23rem);
+    min-height: 18.5rem;
+  }
+
   .hanoi-peg {
     inset-inline: 0.15rem;
   }
@@ -10323,6 +10337,18 @@ body[data-page-slug="hanoi-team-lab"] .section {
   .hanoi-team-status p {
     max-width: 13rem;
     font-size: 0.78rem;
+  }
+
+  .hanoi-game-grid.single-team .hanoi-team-status {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    min-height: auto;
+  }
+
+  .hanoi-game-grid.single-team .hanoi-team-status p {
+    width: 100%;
+    max-width: none;
+    text-align: left;
   }
 
   .hanoi-rules-card li,
@@ -10500,5 +10526,155 @@ body[data-page-slug="hanoi-team-lab"] .section {
   .about-principle-list .feature-card p {
     max-width: 100%;
     margin-inline: auto;
+  }
+}
+
+@media (max-width: 940px) and (orientation: landscape) {
+  body[data-page-slug="hanoi-team-lab"] .section {
+    padding-block: 0.65rem;
+  }
+
+  .hanoi-hero-section {
+    padding-top: 0.75rem;
+    padding-bottom: 0.55rem;
+  }
+
+  .hanoi-hero-shell,
+  .hanoi-lab-shell {
+    width: min(calc(100vw - 1rem), 100%);
+  }
+
+  .hanoi-hero-shell {
+    grid-template-columns: minmax(13rem, 0.55fr) minmax(0, 1fr);
+    gap: 0.9rem;
+    align-items: center;
+  }
+
+  .hanoi-hero-copy {
+    padding: 0;
+    text-align: left;
+  }
+
+  .hanoi-hero-copy h1 {
+    max-width: 12ch;
+    font-size: clamp(2rem, 6vw, 3.4rem);
+    line-height: 0.9;
+  }
+
+  .hanoi-hero-copy .hero-text {
+    width: min(100%, 32ch);
+    margin-top: 0.55rem;
+    font-size: 0.82rem;
+    line-height: 1.4;
+  }
+
+  .hanoi-control-card {
+    padding: 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.72);
+    border-radius: 1.2rem;
+    background:
+      radial-gradient(circle at 14% 12%, rgba(255, 255, 255, 0.78), transparent 34%),
+      linear-gradient(135deg, rgba(255, 252, 243, 0.9), rgba(233, 241, 231, 0.76));
+  }
+
+  .hanoi-controls {
+    grid-template-columns: minmax(9rem, 1.4fr) minmax(4.75rem, 0.6fr) minmax(5rem, 0.64fr) minmax(6.6rem, 0.85fr) minmax(4.8rem, 0.58fr);
+    gap: 0.48rem;
+    align-items: end;
+  }
+
+  .hanoi-team-mode {
+    grid-column: auto;
+  }
+
+  .hanoi-field {
+    gap: 0.25rem;
+    font-size: 0.58rem;
+    letter-spacing: 0.08em;
+  }
+
+  .hanoi-team-toggle {
+    gap: 0.24rem;
+    padding: 0.24rem;
+  }
+
+  .hanoi-team-toggle button,
+  .hanoi-field select,
+  .hanoi-field input,
+  .hanoi-start-button,
+  .hanoi-reset-button {
+    min-height: 2.18rem;
+    font-size: 0.78rem;
+  }
+
+  .hanoi-start-button,
+  .hanoi-reset-button {
+    width: 100%;
+    padding-inline: 0.55rem;
+  }
+
+  .hanoi-lab-shell {
+    gap: 0.55rem;
+  }
+
+  .hanoi-game-grid.single-team {
+    grid-template-columns: minmax(0, min(48rem, 100%));
+    justify-content: center;
+  }
+
+  .hanoi-game-grid.single-team .hanoi-team-card {
+    border-radius: 1rem;
+  }
+
+  .hanoi-game-grid.single-team .hanoi-team-head {
+    padding: 0.58rem 0.75rem;
+  }
+
+  .hanoi-game-grid.single-team .hanoi-team-name {
+    font-size: clamp(1rem, 2.5vw, 1.24rem);
+  }
+
+  .hanoi-game-grid.single-team .hanoi-timer strong {
+    margin-top: 0.15rem;
+    font-size: 0.9rem;
+  }
+
+  .hanoi-game-grid.single-team .hanoi-board {
+    height: clamp(12rem, 43vh, 16rem);
+    min-height: 12rem;
+    padding: 0.65rem 0.35rem 0.5rem;
+  }
+
+  .hanoi-game-grid.single-team .hanoi-peg {
+    inset: 2rem 0.15rem 0.55rem;
+  }
+
+  .hanoi-game-grid.single-team .hanoi-peg-label {
+    top: 0.42rem;
+    font-size: 0.52rem;
+  }
+
+  .hanoi-game-grid.single-team .hanoi-disk {
+    height: clamp(0.95rem, 3.3vw, 1.28rem);
+  }
+
+  .hanoi-game-grid.single-team .hanoi-disk span {
+    width: 0.88rem;
+    height: 0.88rem;
+    font-size: 0.58rem;
+  }
+
+  .hanoi-game-grid.single-team .hanoi-team-status {
+    min-height: auto;
+    padding: 0.62rem 0.75rem;
+  }
+
+  .hanoi-game-grid.single-team .hanoi-team-status p {
+    max-width: 20rem;
+    font-size: 0.74rem;
+  }
+
+  .hanoi-learning-grid {
+    margin-top: 0.25rem;
   }
 }

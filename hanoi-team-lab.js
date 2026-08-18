@@ -128,6 +128,20 @@
     }, 100);
   }
 
+  function scrollGameIntoView() {
+    if (!controls.grid || !window.matchMedia("(max-width: 940px)").matches) {
+      return;
+    }
+
+    window.setTimeout(() => {
+      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      controls.grid.scrollIntoView({
+        behavior: prefersReducedMotion ? "auto" : "smooth",
+        block: "start"
+      });
+    }, 60);
+  }
+
   function resetGame(nextDiskCount = state.diskCount, nextMinutes = state.timeLimitMinutes) {
     stopTimer();
     state.diskCount = nextDiskCount;
@@ -150,6 +164,7 @@
     makeTeams();
     render();
     startTimer();
+    scrollGameIntoView();
   }
 
   function selectPeg(teamIndex, pegIndex, requestedDisk) {
