@@ -166,27 +166,29 @@
     }
 
     if (team.selected === null) {
-      if (team.pegs[pegIndex].length === 0) {
-        team.message = "Choose a peg that has a disk";
+      if (requestedDisk === undefined) {
+        team.message = "Choose a disk first";
         render();
         return;
       }
 
       team.selected = pegIndex;
-      team.selectedDisk = requestedDisk ?? team.pegs[pegIndex][team.pegs[pegIndex].length - 1];
+      team.selectedDisk = requestedDisk;
       team.message = `Disk ${team.selectedDisk} selected on ${pegNames[pegIndex]}`;
       render();
       return;
     }
 
     if (team.selected === pegIndex) {
-      if (requestedDisk !== undefined && requestedDisk !== team.selectedDisk) {
-        team.selectedDisk = requestedDisk;
-        team.message = `Disk ${requestedDisk} selected on ${pegNames[pegIndex]}`;
-      } else {
+      if (requestedDisk !== undefined && requestedDisk === team.selectedDisk) {
         team.selected = null;
         team.selectedDisk = null;
         team.message = "Selection cleared";
+      } else if (requestedDisk !== undefined) {
+        team.selectedDisk = requestedDisk;
+        team.message = `Disk ${requestedDisk} selected on ${pegNames[pegIndex]}`;
+      } else {
+        team.message = `Disk ${team.selectedDisk} is selected. Choose another peg to move it.`;
       }
       render();
       return;
@@ -295,7 +297,7 @@
         diskElement.innerHTML = `<span>${disk}</span>`;
         diskElement.addEventListener("click", (event) => {
           event.stopPropagation();
-          selectPeg(teamIndex, pegIndex);
+          selectPeg(teamIndex, pegIndex, disk);
         });
         diskStack.append(diskElement);
       });
