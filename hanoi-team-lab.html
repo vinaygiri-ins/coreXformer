@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tower of Hanoi Team Lab | CoreXformer</title>
+  <meta
+    name="description"
+    content="A CoreXformer experiential team lab using the Tower of Hanoi challenge to practise planning, communication, patience, and shared problem solving."
+  >
+  <link rel="canonical" href="https://corexformer.pages.dev/hanoi-team-lab.html">
+  <meta name="robots" content="index,follow">
+  <meta property="og:site_name" content="CoreXformer">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Tower of Hanoi Team Lab | CoreXformer">
+  <meta property="og:description" content="A playable CoreXformer experiential challenge for teams to practise planning, communication, patience, and shared problem solving.">
+  <meta property="og:url" content="https://corexformer.pages.dev/hanoi-team-lab.html">
+  <meta property="og:locale" content="en_IN">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Tower of Hanoi Team Lab | CoreXformer">
+  <meta name="twitter:description" content="A playable CoreXformer experiential challenge for teams to practise planning, communication, patience, and shared problem solving.">
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": "https://corexformer.pages.dev/hanoi-team-lab.html#webpage",
+      "url": "https://corexformer.pages.dev/hanoi-team-lab.html",
+      "name": "Tower of Hanoi Team Lab",
+      "description": "A CoreXformer experiential team lab using the Tower of Hanoi challenge to practise planning, communication, patience, and shared problem solving.",
+      "isPartOf": {
+        "@id": "https://corexformer.pages.dev/#website"
+      },
+      "about": {
+        "@id": "https://corexformer.pages.dev/#organization"
+      },
+      "inLanguage": "en-IN"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://corexformer.pages.dev/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Tower of Hanoi Team Lab",
+          "item": "https://corexformer.pages.dev/hanoi-team-lab.html"
+        }
+      ]
+    }
+  ]
+}
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=20260818-hanoi-lab-v1">
+</head>
+<body data-page-slug="hanoi-team-lab">
+  <header class="site-header">
+    <div class="container nav-shell">
+      <a class="brand" href="index.html">
+        <span class="brand-mark brand-logo-mark" aria-hidden="true"><img src="images/corxformer-logo-mark.png" alt=""></span>
+        <span class="brand-text">
+          <strong class="brand-wordmark" aria-label="CoreXformer"><span>Core</span><span class="brand-x" aria-hidden="true"></span><span>former</span></strong>
+          <small>Shared experience. Honest reflection.</small>
+        </span>
+      </a>
+
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Toggle navigation">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <nav id="site-nav" class="site-nav">
+        <a href="index.html#vision">Vision</a>
+        <a href="mission.html">Mission</a>
+        <a href="index.html#programs">Programs</a>
+        <a href="index.html#impact">Impact</a>
+        <a href="about.html">About</a>
+        <a href="index.html#contact" class="button button-small">Let&apos;s connect</a>
+      </nav>
+    </div>
+  </header>
+
+  <main data-hanoi-lab>
+    <section class="section hanoi-hero-section">
+      <div class="container hanoi-hero-shell">
+        <div class="hanoi-hero-copy">
+          <p class="section-eyebrow">Tower of Hanoi Team Lab</p>
+          <h1>Think ahead. Move together.</h1>
+          <p class="hero-text">
+            A playable CoreXformer challenge where teams practise planning, listening, turn-taking,
+            patience, and shared problem solving under a simple rule system.
+          </p>
+        </div>
+
+        <aside class="hanoi-intent-card" aria-label="Learning intent">
+          <p class="panel-label">What this reveals</p>
+          <h2>Action makes the team visible.</h2>
+          <p>
+            The puzzle is small, but the room becomes clear: who plans, who rushes,
+            who listens, who corrects, and how the group recovers after a mistake.
+          </p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section hanoi-lab-section">
+      <div class="container hanoi-lab-shell">
+        <div class="hanoi-control-card" aria-label="Challenge settings">
+          <div class="hanoi-control-head">
+            <p class="section-eyebrow">Challenge setup</p>
+            <h2>Set the room, then start.</h2>
+          </div>
+
+          <div class="hanoi-controls">
+            <div class="hanoi-field hanoi-team-mode">
+              <span>Teams</span>
+            <div class="hanoi-team-toggle" role="group" aria-label="Number of teams">
+                <button type="button" data-hanoi-teams="1" aria-pressed="false">1 team</button>
+                <button type="button" class="is-active" data-hanoi-teams="2" aria-pressed="true">2 teams</button>
+              </div>
+            </div>
+
+            <label class="hanoi-field">
+              <span>Disks</span>
+              <select data-hanoi-disks>
+                <option value="3">3 disks</option>
+                <option value="4" selected>4 disks</option>
+                <option value="5">5 disks</option>
+                <option value="6">6 disks</option>
+                <option value="7">7 disks</option>
+              </select>
+            </label>
+
+            <label class="hanoi-field">
+              <span>Countdown</span>
+              <input type="number" min="1" max="60" step="1" value="5" data-hanoi-minutes aria-label="Countdown in minutes">
+            </label>
+
+            <button class="button hanoi-start-button" type="button" data-hanoi-start>Start challenge</button>
+            <button class="button button-ghost hanoi-reset-button" type="button" data-hanoi-reset>Reset</button>
+          </div>
+        </div>
+
+        <div class="hanoi-banner hanoi-winner-banner" data-hanoi-winner hidden role="status"></div>
+        <div class="hanoi-banner hanoi-time-banner" data-hanoi-time-up hidden role="status"></div>
+
+        <section class="hanoi-game-grid" data-hanoi-grid aria-label="Tower of Hanoi game boards"></section>
+
+        <section class="hanoi-learning-grid" id="rules">
+          <article class="hanoi-rules-card">
+            <p class="section-eyebrow">Rules</p>
+            <h2>Three simple constraints.</h2>
+            <ol>
+              <li><span>01</span><p>Move only <strong>one disk at a time.</strong></p></li>
+              <li><span>02</span><p>Only the <strong>top disk</strong> of a tower can move.</p></li>
+              <li><span>03</span><p>Never place a <strong>larger disk</strong> on a smaller one.</p></li>
+            </ol>
+          </article>
+
+          <article class="hanoi-reflection-card">
+            <p class="section-eyebrow">Reflection prompts</p>
+            <h2>After the challenge, ask what became visible.</h2>
+            <ul>
+              <li>Where did the team pause before acting?</li>
+              <li>What assumptions appeared when pressure increased?</li>
+              <li>Who helped the team recover after a wrong move?</li>
+              <li>What would the group do differently in the next round?</li>
+            </ul>
+          </article>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-shell">
+      <div>
+        <strong class="brand-wordmark" aria-label="CoreXformer"><span>Core</span><span class="brand-x" aria-hidden="true"></span><span>former</span></strong>
+        <p class="footer-tagline">Helping groups understand themselves and each other through shared experiences.</p>
+      </div>
+      <div class="footer-meta">
+        <p>Experiential learning sessions for schools, colleges, teams, institutions, and communities.</p>
+        <div class="footer-links">
+          <a class="footer-admin-link" href="mission.html">Mission</a>
+          <a class="footer-admin-link" href="index.html#programs">View programs</a>
+          <a class="footer-admin-link" href="about.html">About</a>
+          <a class="footer-admin-link" href="feedback.html">Feedback</a>
+          <a class="footer-admin-link" href="hanoi-team-lab.html">Tower of Hanoi Lab</a>
+          <a class="footer-admin-link" href="studio/">Studio</a>
+          <a class="footer-admin-link" href="index.html#contact">Request a call</a>
+          <a class="footer-admin-link" href="become-a-facilitator.html">Become a facilitator</a>
+          <a class="footer-admin-link" href="privacy.html">Privacy and trust</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="content-loader.js"></script>
+  <script src="script.js?v=20260805-impact-pathway-v7"></script>
+  <script src="hanoi-team-lab.js?v=20260818-hanoi-lab-v1"></script>
+</body>
+</html>
