@@ -9670,7 +9670,7 @@ body[data-page-slug="hanoi-team-lab"] .section {
 
 .hanoi-hero-shell {
   display: grid;
-  grid-template-columns: minmax(0, 1.12fr) minmax(18rem, 0.72fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: clamp(1rem, 4vw, 3rem);
   align-items: stretch;
 }
@@ -10072,7 +10072,8 @@ body[data-page-slug="hanoi-team-lab"] .section {
 
 .hanoi-learning-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, min(54rem, 100%));
+  justify-content: center;
   gap: clamp(0.85rem, 2vw, 1.25rem);
 }
 
