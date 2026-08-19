@@ -181,14 +181,18 @@
     }
 
     if (team.selected === null) {
+      const topDisk = team.pegs[pegIndex][team.pegs[pegIndex].length - 1];
+
       if (requestedDisk === undefined) {
-        team.message = "Choose a disk first";
-        render();
-        return;
+        if (topDisk === undefined) {
+          team.message = "This tower is empty";
+          render();
+          return;
+        }
       }
 
       team.selected = pegIndex;
-      team.selectedDisk = requestedDisk;
+      team.selectedDisk = requestedDisk ?? topDisk;
       team.message = `Disk ${team.selectedDisk} selected on ${pegNames[pegIndex]}`;
       render();
       return;
