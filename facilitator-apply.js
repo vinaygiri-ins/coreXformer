@@ -37,8 +37,8 @@ async function submitFacilitatorApplication(form) {
     background: normalizeValue(formData.get("background")),
     experience_summary: normalizeValue(formData.get("experience_summary")),
     audience_interest: formData.getAll("audience_interest").map(normalizeValue).filter(Boolean),
-    product_interest: formData.getAll("product_interest").map(normalizeValue).filter(Boolean),
-    availability: buildFacilitatorAvailabilitySummary(formData),
+    product_interest: [],
+    availability: null,
     motivation: normalizeValue(formData.get("motivation")),
     source_page: "website:become-a-facilitator"
   };
@@ -91,9 +91,7 @@ async function submitFacilitatorApplication(form) {
   await window.COREXFORMER_ANALYTICS?.trackFormSuccess("facilitator_application", {
     formContext: payload.source_page,
     metadata: {
-      entryPath: normalizeValue(formData.get("entry_path")) || null,
       audienceInterestCount: payload.audience_interest.length,
-      productInterestCount: payload.product_interest.length
     }
   });
 
@@ -113,14 +111,4 @@ function showApplicationMessage(element, text, tone) {
   element.textContent = text;
   element.classList.remove("hidden", "is-error", "is-success", "is-info");
   element.classList.add(`is-${tone || "info"}`);
-}
-
-function buildFacilitatorAvailabilitySummary(formData) {
-  const entryPath = normalizeValue(formData.get("entry_path"));
-  const availability = normalizeValue(formData.get("availability"));
-
-  return [
-    entryPath ? `Preferred entry path: ${entryPath}` : "",
-    availability ? `Current availability: ${availability}` : ""
-  ].filter(Boolean).join(" | ") || null;
 }
