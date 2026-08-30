@@ -8,7 +8,11 @@
     name="description"
     content="Explore CoreXformer college workshops for belonging, teamwork, resilience under pressure, career readiness, and leadership without title."
   >
-  <link rel="canonical" href="https://corexformer.pages.dev/programs-colleges.html">
+  <link rel="canonical" href="https://corexformer.pages.dev/programs.html?audience=colleges">
+  <meta http-equiv="refresh" content="0; url=programs.html?audience=colleges">
+  <script>
+    window.location.replace("programs.html?audience=colleges");
+  </script>
   <meta name="robots" content="index,follow">
   <meta property="og:site_name" content="CoreXformer">
   <meta property="og:type" content="website">
@@ -85,7 +89,12 @@
       <nav id="site-nav" class="site-nav">
         <a href="index.html#vision">Vision</a>
         <a href="mission.html">Mission</a>
-        <a href="index.html#programs" class="is-current">Programs</a>
+        <div class="nav-menu-item nav-program-menu">
+          <a href="programs.html" class="is-current" aria-haspopup="true">Programs</a>
+          <div class="nav-submenu" aria-label="Program menu">
+            <a href="programs.html?view=explore#explore-programs">Explore programs</a>
+          </div>
+        </div>
                 <a href="index.html#impact">Impact</a>
         <a href="about.html">About</a>
         <a href="index.html#contact" class="button button-small">Let&apos;s connect</a>
@@ -100,7 +109,7 @@
           <div class="breadcrumb">
             <a href="index.html">Home</a>
             <span>/</span>
-            <a href="index.html#programs">Programs</a>
+            <a href="programs.html?view=explore#explore-programs">Programs</a>
             <span>/</span>
             <span>Colleges</span>
           </div>
@@ -127,13 +136,13 @@
     <section class="section audience-tabs-section">
       <div class="container">
         <nav class="audience-nav" aria-label="Program audiences">
-          <a href="index.html#programs">All audiences</a>
-          <a href="programs-schools.html">Schools</a>
-          <a href="programs-teachers.html">Teachers</a>
-          <a class="is-current" href="programs-colleges.html" aria-current="page">Colleges</a>
-          <a href="programs-corporates.html">Corporates</a>
-          <a href="programs-government.html">Government</a>
-          <a href="programs-communities.html">Communities</a>
+          <a href="programs.html?view=explore#explore-programs">Explore programs</a>
+          <a href="programs.html?audience=schools">Schools</a>
+          <a href="programs.html?audience=teachers">Teachers</a>
+          <a class="is-current" href="programs.html?audience=colleges" aria-current="page">Colleges</a>
+          <a href="programs.html?audience=corporates">Corporates</a>
+          <a href="programs.html?audience=government">Government</a>
+          <a href="programs.html?audience=communities">Communities</a>
         </nav>
       </div>
     </section>
@@ -516,7 +525,7 @@
         <p>Experiential learning sessions for schools, colleges, teams, institutions, and communities.</p>
         <div class="footer-links">
           <a class="footer-admin-link" href="mission.html">Mission</a>
-          <a class="footer-admin-link" href="index.html#programs">View programs</a>
+          <a class="footer-admin-link" href="programs.html?view=explore#explore-programs">View programs</a>
           <a class="footer-admin-link" href="about.html">About</a>
           <a class="footer-admin-link" href="feedback.html">Feedback</a>
           <a class="footer-admin-link" href="hanoi-team-lab.html">Experiential Lab</a>

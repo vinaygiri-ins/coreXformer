@@ -44,6 +44,7 @@ initNestedStoryRails();
 initProgramDetailModal();
 initProgramObjectiveCart();
 initExperienceProgramJourney();
+initAudienceProgramRail();
 initImpactPathway();
 
 function createNoopAnalytics() {
@@ -1258,6 +1259,195 @@ function initExperienceProgramJourney() {
 
   updateActiveState(0, false);
   startRandomBallMotion();
+}
+
+function initAudienceProgramRail() {
+  const shells = [...document.querySelectorAll("[data-audience-program-rail]")];
+
+  if (!shells.length) {
+    return;
+  }
+
+  shells.forEach((shell) => {
+    const tabs = [...shell.querySelectorAll("[data-audience-program-tab]")];
+    const track = shell.querySelector("[data-audience-program-track]");
+    const tabIds = tabs.map((tab) => tab.dataset.audienceProgramTab || "");
+    const panels = track
+      ? [...track.querySelectorAll("[data-audience-program-panel]")].filter((panel) =>
+          tabIds.includes(panel.dataset.audienceProgramPanel || "")
+        )
+      : [];
+    const stage = shell.querySelector(".audience-program-stage");
+    const previousButton = shell.querySelector("[data-audience-program-prev]");
+    const nextButton = shell.querySelector("[data-audience-program-next]");
+    const label = shell.querySelector("[data-audience-program-label]");
+    const progress = shell.querySelector("[data-audience-program-progress]");
+    const params = new URLSearchParams(window.location.search);
+    const isExplorerOnlyView = params.get("view") === "explore" || params.has("audience");
+
+    if (!tabs.length || !track || !panels.length) {
+      return;
+    }
+
+    const panelIds = panels.map((panel) => panel.dataset.audienceProgramPanel || "");
+    const requestedAudience = getRequestedAudience(panelIds);
+    let activeIndex = Math.max(0, requestedAudience ? panelIds.indexOf(requestedAudience) : 0);
+    let scrollFrame = 0;
+
+    function getRequestedAudience(validIds) {
+      const queryAudience = new URLSearchParams(window.location.search).get("audience") || "";
+      const hashAudience = (window.location.hash || "").replace(/^#audience-/, "");
+      const candidates = [queryAudience, hashAudience].map((value) => value.trim().toLowerCase()).filter(Boolean);
+      return candidates.find((value) => validIds.includes(value)) || "";
+    }
+
+    function getNearestIndex() {
+      const trackLeft = track.scrollLeft;
+      let nearestIndex = 0;
+      let nearestDistance = Number.POSITIVE_INFINITY;
+
+      panels.forEach((panel, index) => {
+        const distance = Math.abs(panel.offsetLeft - trackLeft);
+
+        if (distance < nearestDistance) {
+          nearestDistance = distance;
+          nearestIndex = index;
+        }
+      });
+
+      return nearestIndex;
+    }
+
+    function setActiveState(nextIndex) {
+      activeIndex = Math.max(0, Math.min(nextIndex, panels.length - 1));
+      const activePanel = panels[activeIndex];
+      const activeId = activePanel?.dataset.audienceProgramPanel || "";
+
+      panels.forEach((panel, index) => {
+        panel.classList.toggle("is-active", index === activeIndex);
+      });
+
+      tabs.forEach((tab) => {
+        const isActive = tab.dataset.audienceProgramTab === activeId;
+        tab.classList.toggle("is-active", isActive);
+        tab.setAttribute("aria-selected", String(isActive));
+
+        if (isActive) {
+          tab.scrollIntoView({
+            behavior: "smooth",
+            inline: "center",
+            block: "nearest"
+          });
+        }
+      });
+
+      if (label) {
+        label.textContent = tabs.find((tab) => tab.dataset.audienceProgramTab === activeId)?.textContent?.trim() || "";
+      }
+
+      if (progress) {
+        progress.textContent = `${activeIndex + 1} / ${panels.length}`;
+      }
+
+      if (previousButton) {
+        previousButton.disabled = activeIndex === 0;
+      }
+
+      if (nextButton) {
+        nextButton.disabled = activeIndex === panels.length - 1;
+      }
+    }
+
+    function goToPanel(nextIndex, behavior = "smooth") {
+      const clampedIndex = Math.max(0, Math.min(nextIndex, panels.length - 1));
+      const targetPanel = panels[clampedIndex];
+
+      if (!targetPanel) {
+        return;
+      }
+
+      setActiveState(clampedIndex);
+      track.scrollTo({
+        left: targetPanel.offsetLeft,
+        behavior
+      });
+    }
+
+    function clearDirectionalCue() {
+      stage?.classList.remove("is-cue-left", "is-cue-right");
+    }
+
+    function updateDirectionalCue(event) {
+      const supportsHover = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+
+      if (!supportsHover || !stage) {
+        clearDirectionalCue();
+        return;
+      }
+
+      const bounds = stage.getBoundingClientRect();
+      const midpoint = bounds.left + bounds.width / 2;
+      const isLeftSide = event.clientX < midpoint;
+
+      stage.classList.toggle("is-cue-left", isLeftSide);
+      stage.classList.toggle("is-cue-right", !isLeftSide);
+    }
+
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        const targetIndex = panelIds.indexOf(tab.dataset.audienceProgramTab || "");
+        goToPanel(targetIndex);
+      });
+    });
+
+    previousButton?.addEventListener("click", () => {
+      goToPanel(activeIndex - 1);
+    });
+
+    nextButton?.addEventListener("click", () => {
+      goToPanel(activeIndex + 1);
+    });
+
+    shell.addEventListener("pointermove", updateDirectionalCue, { passive: true });
+    shell.addEventListener("pointerleave", clearDirectionalCue, { passive: true });
+
+    track.addEventListener(
+      "scroll",
+      () => {
+        window.cancelAnimationFrame(scrollFrame);
+        scrollFrame = window.requestAnimationFrame(() => {
+          const nearestIndex = getNearestIndex();
+
+          if (nearestIndex !== activeIndex) {
+            setActiveState(nearestIndex);
+          }
+        });
+      },
+      { passive: true }
+    );
+
+    window.addEventListener("resize", () => {
+      window.cancelAnimationFrame(scrollFrame);
+      scrollFrame = window.requestAnimationFrame(() => {
+        goToPanel(activeIndex, "auto");
+      });
+    });
+
+    goToPanel(activeIndex, "auto");
+
+    if (requestedAudience || isExplorerOnlyView || window.location.hash === "#explore-programs") {
+      window.requestAnimationFrame(() => {
+        const siteHeader = document.querySelector(".site-header");
+        const headerOffset = (siteHeader?.getBoundingClientRect().height || 0) + 12;
+        const targetTop = shell.getBoundingClientRect().top + window.scrollY - headerOffset;
+
+        window.scrollTo({
+          top: Math.max(0, targetTop),
+          behavior: "auto"
+        });
+      });
+    }
+  });
 }
 
 function createCoreXformerAnalytics(supabase) {

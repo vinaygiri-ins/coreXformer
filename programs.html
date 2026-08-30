@@ -9,6 +9,15 @@
     content="Explore CoreXformer program briefs for experiential learning around experience, strategy, teamwork, emotions, perseverance, adaptability, and future action."
   >
   <link rel="canonical" href="https://corexformer.pages.dev/programs.html">
+  <script>
+    (() => {
+      const params = new URLSearchParams(window.location.search);
+
+      if (params.get("view") === "explore" || params.has("audience")) {
+        document.documentElement.dataset.programExplorerMode = "true";
+      }
+    })();
+  </script>
   <meta name="robots" content="index,follow">
   <meta property="og:site_name" content="CoreXformer">
   <meta property="og:type" content="website">
@@ -85,7 +94,12 @@
       <nav id="site-nav" class="site-nav">
         <a href="index.html#vision">Vision</a>
         <a href="mission.html">Mission</a>
-        <a href="index.html#programs" class="is-current">Programs</a>
+        <div class="nav-menu-item nav-program-menu">
+          <a href="programs.html" class="is-current" aria-haspopup="true">Programs</a>
+          <div class="nav-submenu" aria-label="Program menu">
+            <a href="programs.html?view=explore#explore-programs">Explore programs</a>
+          </div>
+        </div>
                 <a href="index.html#impact">Impact</a>
         <a href="about.html">About</a>
         <a href="index.html#contact" class="button button-small">Let&apos;s connect</a>
@@ -334,7 +348,441 @@
         </div>
 
         <div class="section-link-row program-contact-row">
+          <a class="button button-ghost" href="programs.html?view=explore#explore-programs">Explore programs</a>
           <a class="button" href="index.html#contact">Let&apos;s connect</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section audience-program-explorer-section" id="explore-programs" data-section-slug="programs-audience-explorer">
+      <div class="container">
+        <div class="audience-program-shell" data-audience-program-rail>
+          <header class="audience-program-head">
+            <p class="eyebrow">Explore programs</p>
+            <h2>Choose the audience and move through the matching programs.</h2>
+          </header>
+
+          <div class="audience-program-tabs" role="tablist" aria-label="Explore programs by audience">
+            <button type="button" class="audience-program-tab is-active" id="audience-tab-schools" role="tab" aria-selected="true" aria-controls="audience-panel-schools" data-audience-program-tab="schools">Schools</button>
+            <button type="button" class="audience-program-tab" id="audience-tab-teachers" role="tab" aria-selected="false" aria-controls="audience-panel-teachers" data-audience-program-tab="teachers">Teachers</button>
+            <button type="button" class="audience-program-tab" id="audience-tab-colleges" role="tab" aria-selected="false" aria-controls="audience-panel-colleges" data-audience-program-tab="colleges">Colleges</button>
+            <button type="button" class="audience-program-tab" id="audience-tab-corporates" role="tab" aria-selected="false" aria-controls="audience-panel-corporates" data-audience-program-tab="corporates">Corporates</button>
+            <button type="button" class="audience-program-tab" id="audience-tab-government" role="tab" aria-selected="false" aria-controls="audience-panel-government" data-audience-program-tab="government">Government</button>
+            <button type="button" class="audience-program-tab" id="audience-tab-communities" role="tab" aria-selected="false" aria-controls="audience-panel-communities" data-audience-program-tab="communities">Communities</button>
+          </div>
+
+          <div class="audience-program-stage">
+            <button class="audience-program-arrow audience-program-arrow-prev" type="button" aria-label="Previous audience" data-audience-program-prev>
+              <span>&lsaquo;</span>
+            </button>
+
+            <div class="audience-program-viewport" tabindex="0" aria-label="Audience program rail" data-audience-program-track>
+              <section class="audience-program-panel is-active" id="audience-panel-schools" role="tabpanel" aria-labelledby="audience-tab-schools" data-audience-program-panel="schools">
+                <div class="audience-program-panel-inner">
+                  <div class="audience-program-panel-head">
+                    <div>
+                      <p class="eyebrow">Schools</p>
+                      <h3>Programs for school groups</h3>
+                    </div>
+                    <span class="audience-program-count">6 programs</span>
+                  </div>
+
+                  <div class="audience-program-card-grid">
+                    <article class="audience-program-card">
+                      <p class="product-kicker">Belonging and early trust</p>
+                      <h4>Belong &amp; Connect</h4>
+                      <p>Help students feel safe, included, and connected in a new or evolving group.</p>
+                      <div class="chip-row"><span class="chip">New classes</span><span class="chip">Belonging</span><span class="chip">Participation</span></div>
+                      <button class="program-objective-toggle" type="button" data-program-cart-toggle data-program-number="School 01" data-program-title="Belong &amp; Connect" aria-pressed="false">Add objective</button>
+                    </article>
+
+                    <article class="audience-program-card">
+                      <p class="product-kicker">Teamwork and cooperation</p>
+                      <h4>Team Up &amp; Solve</h4>
+                      <p>Help students collaborate better through listening, coordination, and shared problem-solving.</p>
+                      <div class="chip-row"><span class="chip">Group work</span><span class="chip">Listening</span><span class="chip">Coordination</span></div>
+                      <button class="program-objective-toggle" type="button" data-program-cart-toggle data-program-number="School 02" data-program-title="Team Up &amp; Solve" aria-pressed="false">Add objective</button>
+                    </article>
+
+                    <article class="audience-program-card">
+                      <p class="product-kicker">Emotional awareness under challenge</p>
+                      <h4>Feel, Pause, Respond</h4>
+                      <p>Help students notice emotions and respond more consciously under challenge or time pressure.</p>
+                      <div class="chip-row"><span class="chip">Pressure</span><span class="chip">Mistakes</span><span class="chip">Resilience</span></div>
+                      <button class="program-objective-toggle" type="button" data-program-cart-toggle data-program-number="School 03" data-program-title="Feel, Pause, Respond" aria-pressed="false">Add objective</button>
+                    </article>
+
+                    <article class="audience-program-card">
+                      <p class="product-kicker">Difference and empathy</p>
+                      <h4>Respect in Difference</h4>
+                      <p>Help students understand differences, reduce judgment, and work through peer tension more healthily.</p>
+                      <div class="chip-row"><span class="chip">Cliques</span><span class="chip">Inclusion</span><span class="chip">Empathy</span></div>
+                      <button class="program-objective-toggle" type="button" data-program-cart-toggle data-program-number="School 04" data-program-title="Respect in Difference" aria-pressed="false">Add objective</button>
+                    </article>
+
+                    <article class="audience-program-card">
+                      <p class="product-kicker">Confidence and initiative</p>
+                      <h4>Courage &amp; Confidence in Action</h4>
+                      <p>Help students participate with more confidence, voice, and willingness to try.</p>
+                      <div class="chip-row"><span class="chip">Voice</span><span class="chip">Self-doubt</span><span class="chip">Participation</span></div>
+                      <button class="program-objective-toggle" type="button" data-program-cart-toggle data-program-number="School 05" data-program-title="Courage &amp; Confidence in Action" aria-pressed="false">Add objective</button>
+                    </article>
+
+                    <article class="audience-program-card">
+                      <p class="product-kicker">Leadership and responsibility</p>
+                      <h4>Student Leadership in Action</h4>
+                      <p>Help student leaders understand leadership as responsibility, influence, and care for group outcomes.</p>
+                      <div class="chip-row"><span class="chip">Prefects</span><span class="chip">House leaders</span><span class="chip">Stewardship</span></div>
+                      <button class="program-objective-toggle" type="button" data-program-cart-toggle data-program-number="School 06" data-program-title="Student Leadership in Action" aria-pressed="false">Add objective</button>
+                    </article>
+                  </div>
+                </div>
+              </section>
+
+              <section class="audience-program-panel" id="audience-panel-teachers" role="tabpanel" aria-labelledby="audience-tab-teachers" data-audience-program-panel="teachers">
+                <div class="audience-program-panel-inner">
+                  <div class="audience-program-panel-head">
+                    <div>
+                      <p class="eyebrow">Teachers</p>
+                      <h3>Programs for educators</h3>
+                    </div>
+                    <span class="audience-program-count">7 programs</span>
+                  </div>
+
+                  <div class="audience-program-card-grid">
+                    <article class="audience-program-card">
+                      <p class="product-kicker">Presence and classroom climate</p>
+                      <h4>Holding the Space</h4>
+                      <p>Help teachers become more aware of how they create the emotional and relational climate of a classroom.</p>
+                      <div class="chip-row"><span class="chip">Presence</span><span class="chip">Tone</span><span class="chip">Safety</span></div>
+                      <button class="program-objective-toggle" type="button" data-program-cart-toggle data-program-number="Teacher 01" data-program-title="Holding the Space" aria-pressed="false">Add objective</button>
+                    </article>
+
+                    <article class="audience-program-card">
+                      <p class="product-kicker">Student trust and belonging</p>
+                      <h4>Connection Before Instruction</h4>
+                      <p>Help teachers build stronger trust, belonging, and connection with students.</p>
+                      <div class="chip-row"><span class="chip">Engagement</span><span class="chip">Belonging</span><span class="chip">Connection</span></div>
+                      <button class="program-objective-toggle" type="button" data-program-cart-toggle data-program-number="Teacher 02" data-program-title="Connection Before Instruction" aria-pressed="false">Add objective</button>
+                    </article>
+
+                    <article class="audience-program-card">
+                      <p class="product-kicker">Pressure and response</p>
+                      <h4>Responding Under Pressure</h4>
+                      <p>Help teachers notice and improve how they respond in difficult, emotional, or unpredictable moments.</p>
+                      <div class="chip-row"><span class="chip">Reactivity</span><span class="chip">Recovery</span><span class="chip">Awareness</span></div>
+                      <button class="program-objective-toggle" type="button" data-program-cart-toggle data-program-number="Teacher 03" data-program-title="Responding Under Pressure" aria-pressed="false">Add objective</button>
+                    </article>
+
+                    <article class="audience-program-card">
+                      <p class="product-kicker">Staff collaboration</p>
+                      <h4>Teacher Teaming &amp; Collaboration</h4>
+                      <p>Help teachers work together with more trust, clarity, and shared responsibility.</p>
+                      <div class="chip-row"><span class="chip">Departments</span><span class="chip">Support</span><span class="chip">Team rhythm</span></div>
+                      <button class="program-objective-toggle" type="button" data-program-cart-toggle data-program-number="Teacher 04" data-program-title="Teacher Teaming &amp; Collaboration" aria-pressed="false">Add objective</button>
+                    </article>
+
+                    <article class="audience-program-card">
+                      <p class="product-kicker">Reflective practice</p>
+                      <h4>Reflection as Practice</h4>
+                      <p>Help teachers use reflection as a real developmental practice rather than a formal requirement.</p>
+                      <div class="chip-row"><span class="chip">Observation</span><span class="chip">Awareness</span><span class="chip">Growth</span></div>
+                      <button class="program-objective-toggle" type="button" data-program-cart-toggle data-program-number="Teacher 05" data-program-title="Reflection as Practice" aria-pressed="false">Add objective</button>
+                    </article>
+
+                    <article class="audience-program-card">
+                      <p class="product-kicker">Wellbeing and renewal</p>
+                      <h4>Preventing Burnout, Rebuilding Energy</h4>
+                      <p>Create space for teachers to notice fatigue, overload, and the need for renewal without judgment.</p>
+                      <div class="chip-row"><span class="chip">Fatigue</span><span class="chip">Pressure</span><span class="chip">Renewal</span></div>
+                      <button class="program-objective-toggle" type="button" data-program-cart-toggle data-program-number="Teacher 06" data-program-title="Preventing Burnout, Rebuilding Energy" aria-pressed="false">Add objective</button>
+                    </article>
+
+                    <article class="audience-program-card">
+                      <p class="product-kicker">Mentoring and leadership</p>
+                      <h4>Teacher Leadership in Action</h4>
+                      <p>Help teachers grow into leadership as mentors, coordinators, and culture-shapers.</p>
+                      <div class="chip-row"><span class="chip">Mentoring</span><span class="chip">Influence</span><span class="chip">Coordination</span></div>
+                      <button class="program-objective-toggle" type="button" data-program-cart-toggle data-program-number="Teacher 07" data-program-title="Teacher Leadership in Action" aria-pressed="false">Add objective</button>
+                    </article>
+                  </div>
+                </div>
+              </section>
+
+              <section class="audience-program-panel" id="audience-panel-colleges" role="tabpanel" aria-labelledby="audience-tab-colleges" data-audience-program-panel="colleges">
+                <div class="audience-program-panel-inner">
+                  <div class="audience-program-panel-head">
+                    <div>
+                      <p class="eyebrow">Colleges</p>
+                      <h3>Programs for college students</h3>
+                    </div>
+                    <span class="audience-program-count">6 programs</span>
+                  </div>
+
+                  <div class="audience-program-card-grid">
+                    <article class="audience-program-card">
+                      <p class="product-kicker">Belonging and identity</p>
+                      <h4>Finding My Place</h4>
+                      <p>Help students build belonging, comfort, confidence, and early identity in a new environment.</p>
+                      <div class="chip-row"><span class="chip">Orientation</span><span class="chip">Belonging</span><span class="chip">Confidence</span></div>
+                      <button class="program-objective-toggle" type="button" data-program-cart-toggle data-program-number="College 01" data-program-title="Finding My Place" aria-pressed="false">Add objective</button>
+                    </article>
+
+                    <article class="audience-program-card">
+                      <p class="product-kicker">Assignments and teamwork</p>
+                      <h4>Project Teams That Work</h4>
+                      <p>Help students collaborate better in group assignments, campus teams, committees, and projects.</p>
+                      <div class="chip-row"><span class="chip">Accountability</span><span class="chip">Coordination</span><span class="chip">Contribution</span></div>
+                      <button class="program-objective-toggle" type="button" data-program-cart-toggle data-program-number="College 02" data-program-title="Project Teams That Work" aria-pressed="false">Add objective</button>
+                    </article>
+
+                    <article class="audience-program-card">
+                      <p class="product-kicker">Speaking up and difference</p>
+                      <h4>Speak Up &amp; Work Through Conflict</h4>
+                      <p>Help students build confidence in disagreement, feedback, and hard peer conversations.</p>
+                      <div class="chip-row"><span class="chip">Conflict</span><span class="chip">Voice</span><span class="chip">Respect</span></div>
+                      <button class="program-objective-toggle" type="button" data-program-cart-toggle data-program-number="College 03" data-program-title="Speak Up &amp; Work Through Conflict" aria-pressed="false">Add objective</button>
+                    </article>
+
+                    <article class="audience-program-card">
+                      <p class="product-kicker">Pressure and uncertainty</p>
+                      <h4>Pressure, Ambiguity &amp; Resilience</h4>
+                      <p>Help students respond better to deadlines, comparison, ambiguity, and emotional pressure.</p>
+                      <div class="chip-row"><span class="chip">Stress</span><span class="chip">Ambiguity</span><span class="chip">Resilience</span></div>
+                      <button class="program-objective-toggle" type="button" data-program-cart-toggle data-program-number="College 04" data-program-title="Pressure, Ambiguity &amp; Resilience" aria-pressed="false">Add objective</button>
+                    </article>
+
+                    <article class="audience-program-card">
+                      <p class="product-kicker">Workplace preparation</p>
+                      <h4>Campus to Workplace Readiness</h4>
+                      <p>Help students strengthen communication, professionalism, teamwork, and workplace awareness.</p>
+                      <div class="chip-row"><span class="chip">Readiness</span><span class="chip">Professionalism</span><span class="chip">Communication</span></div>
+                      <button class="program-objective-toggle" type="button" data-program-cart-toggle data-program-number="College 05" data-program-title="Campus to Workplace Readiness" aria-pressed="false">Add objective</button>
+                    </article>
+
+                    <article class="audience-program-card">
+                      <p class="product-kicker">Influence and initiative</p>
+                      <h4>Lead Without Title</h4>
+                      <p>Help students understand leadership as initiative, responsibility, and influence before formal authority.</p>
+                      <div class="chip-row"><span class="chip">Initiative</span><span class="chip">Influence</span><span class="chip">Ownership</span></div>
+                      <button class="program-objective-toggle" type="button" data-program-cart-toggle data-program-number="College 06" data-program-title="Lead Without Title" aria-pressed="false">Add objective</button>
+                    </article>
+                  </div>
+                </div>
+              </section>
+
+              <section class="audience-program-panel" id="audience-panel-corporates" role="tabpanel" aria-labelledby="audience-tab-corporates" data-audience-program-panel="corporates">
+                <div class="audience-program-panel-inner">
+                  <div class="audience-program-panel-head">
+                    <div>
+                      <p class="eyebrow">Corporates</p>
+                      <h3>Programs for work teams</h3>
+                    </div>
+                    <span class="audience-program-count">7 programs</span>
+                  </div>
+
+                  <div class="audience-program-card-grid">
+                    <article class="audience-program-card">
+                      <p class="product-kicker">Trust and safety</p>
+                      <h4>Build Team Trust</h4>
+                      <p>Help teams create stronger openness, safety, and working trust in how they move together.</p>
+                      <div class="chip-row"><span class="chip">Psychological safety</span><span class="chip">Trust</span><span class="chip">Team comfort</span></div>
+                      <button class="program-objective-toggle" type="button" data-program-cart-toggle data-program-number="Corporate 01" data-program-title="Build Team Trust" aria-pressed="false">Add objective</button>
+                    </article>
+
+                    <article class="audience-program-card">
+                      <p class="product-kicker">Communication and feedback</p>
+                      <h4>Better Conversations at Work</h4>
+                      <p>Help teams improve listening, clarity, feedback, and day-to-day communication.</p>
+                      <div class="chip-row"><span class="chip">Clarity</span><span class="chip">Feedback</span><span class="chip">Listening</span></div>
+                      <button class="program-objective-toggle" type="button" data-program-cart-toggle data-program-number="Corporate 02" data-program-title="Better Conversations at Work" aria-pressed="false">Add objective</button>
+                    </article>
+
+                    <article class="audience-program-card">
+                      <p class="product-kicker">Ownership and execution</p>
+                      <h4>Own the Objective</h4>
+                      <p>Help teams strengthen role clarity, accountability, and collective ownership toward results.</p>
+                      <div class="chip-row"><span class="chip">Ownership</span><span class="chip">Execution</span><span class="chip">Responsibility</span></div>
+                      <button class="program-objective-toggle" type="button" data-program-cart-toggle data-program-number="Corporate 03" data-program-title="Own the Objective" aria-pressed="false">Add objective</button>
+                    </article>
+
+                    <article class="audience-program-card">
+                      <p class="product-kicker">Manager transition</p>
+                      <h4>First-Time Manager Shift</h4>
+                      <p>Help newly promoted managers move from individual contribution into people leadership.</p>
+                      <div class="chip-row"><span class="chip">Managers</span><span class="chip">Delegation</span><span class="chip">Authority</span></div>
+                      <button class="program-objective-toggle" type="button" data-program-cart-toggle data-program-number="Corporate 04" data-program-title="First-Time Manager Shift" aria-pressed="false">Add objective</button>
+                    </article>
+
+                    <article class="audience-program-card">
+                      <p class="product-kicker">Silos and alignment</p>
+                      <h4>Cross-Functional Alignment</h4>
+                      <p>Help teams work better across functions, priorities, and interdependent roles.</p>
+                      <div class="chip-row"><span class="chip">Silos</span><span class="chip">Alignment</span><span class="chip">Coordination</span></div>
+                      <button class="program-objective-toggle" type="button" data-program-cart-toggle data-program-number="Corporate 05" data-program-title="Cross-Functional Alignment" aria-pressed="false">Add objective</button>
+                    </article>
+
+                    <article class="audience-program-card">
+                      <p class="product-kicker">Pressure and change</p>
+                      <h4>Lead Through Change</h4>
+                      <p>Help teams and managers respond more steadily to uncertainty, transition, and ongoing pressure.</p>
+                      <div class="chip-row"><span class="chip">Change</span><span class="chip">Adaptability</span><span class="chip">Resilience</span></div>
+                      <button class="program-objective-toggle" type="button" data-program-cart-toggle data-program-number="Corporate 06" data-program-title="Lead Through Change" aria-pressed="false">Add objective</button>
+                    </article>
+
+                    <article class="audience-program-card">
+                      <p class="product-kicker">Repair and reconnection</p>
+                      <h4>Reset Conflict, Rebuild Trust</h4>
+                      <p>Help strained teams surface recurring friction safely and reconnect around better ways of working.</p>
+                      <div class="chip-row"><span class="chip">Conflict</span><span class="chip">Repair</span><span class="chip">Respect</span></div>
+                      <button class="program-objective-toggle" type="button" data-program-cart-toggle data-program-number="Corporate 07" data-program-title="Reset Conflict, Rebuild Trust" aria-pressed="false">Add objective</button>
+                    </article>
+                  </div>
+                </div>
+              </section>
+
+              <section class="audience-program-panel" id="audience-panel-government" role="tabpanel" aria-labelledby="audience-tab-government" data-audience-program-panel="government">
+                <div class="audience-program-panel-inner">
+                  <div class="audience-program-panel-head">
+                    <div>
+                      <p class="eyebrow">Government</p>
+                      <h3>Programs for public service teams</h3>
+                    </div>
+                    <span class="audience-program-count">7 programs</span>
+                  </div>
+
+                  <div class="audience-program-card-grid">
+                    <article class="audience-program-card">
+                      <p class="product-kicker">Shared purpose and trust</p>
+                      <h4>Team Cohesion for Public Service</h4>
+                      <p>Help units strengthen trust, respect, and shared purpose while working inside structured systems.</p>
+                      <div class="chip-row"><span class="chip">Cohesion</span><span class="chip">Purpose</span><span class="chip">Trust</span></div>
+                      <button class="program-objective-toggle" type="button" data-program-cart-toggle data-program-number="Government 01" data-program-title="Team Cohesion for Public Service" aria-pressed="false">Add objective</button>
+                    </article>
+
+                    <article class="audience-program-card">
+                      <p class="product-kicker">Communication and follow-through</p>
+                      <h4>Clear Communication &amp; Accountability</h4>
+                      <p>Help teams improve role clarity, follow-through, and responsible communication.</p>
+                      <div class="chip-row"><span class="chip">Accountability</span><span class="chip">Clarity</span><span class="chip">Follow-through</span></div>
+                      <button class="program-objective-toggle" type="button" data-program-cart-toggle data-program-number="Government 02" data-program-title="Clear Communication &amp; Accountability" aria-pressed="false">Add objective</button>
+                    </article>
+
+                    <article class="audience-program-card">
+                      <p class="product-kicker">Supervisory transition</p>
+                      <h4>New Supervisor Transition</h4>
+                      <p>Help first-time supervisors shift from task responsibility into people guidance and team leadership.</p>
+                      <div class="chip-row"><span class="chip">Supervisors</span><span class="chip">Authority</span><span class="chip">Guidance</span></div>
+                      <button class="program-objective-toggle" type="button" data-program-cart-toggle data-program-number="Government 03" data-program-title="New Supervisor Transition" aria-pressed="false">Add objective</button>
+                    </article>
+
+                    <article class="audience-program-card">
+                      <p class="product-kicker">Leadership inside systems</p>
+                      <h4>Leading People in Government</h4>
+                      <p>Help supervisors and managers strengthen people leadership, team influence, and developmental presence.</p>
+                      <div class="chip-row"><span class="chip">Leadership</span><span class="chip">Judgment</span><span class="chip">People development</span></div>
+                      <button class="program-objective-toggle" type="button" data-program-cart-toggle data-program-number="Government 04" data-program-title="Leading People in Government" aria-pressed="false">Add objective</button>
+                    </article>
+
+                    <article class="audience-program-card">
+                      <p class="product-kicker">Interdepartmental work</p>
+                      <h4>Cross-Department Collaboration</h4>
+                      <p>Help public teams coordinate better across units, functions, and shared mandates.</p>
+                      <div class="chip-row"><span class="chip">Coordination</span><span class="chip">Departments</span><span class="chip">Dependencies</span></div>
+                      <button class="program-objective-toggle" type="button" data-program-cart-toggle data-program-number="Government 05" data-program-title="Cross-Department Collaboration" aria-pressed="false">Add objective</button>
+                    </article>
+
+                    <article class="audience-program-card">
+                      <p class="product-kicker">Implementation pressure</p>
+                      <h4>Change, Service &amp; Execution</h4>
+                      <p>Help teams stay steadier during reform, rollout, pressure, and shifting public-service demands.</p>
+                      <div class="chip-row"><span class="chip">Change</span><span class="chip">Execution</span><span class="chip">Service pressure</span></div>
+                      <button class="program-objective-toggle" type="button" data-program-cart-toggle data-program-number="Government 06" data-program-title="Change, Service &amp; Execution" aria-pressed="false">Add objective</button>
+                    </article>
+
+                    <article class="audience-program-card">
+                      <p class="product-kicker">Repair and dialogue</p>
+                      <h4>Conflict into Clarity</h4>
+                      <p>Help strained teams work through recurring friction, blame, or misunderstanding with more care.</p>
+                      <div class="chip-row"><span class="chip">Conflict</span><span class="chip">Repair</span><span class="chip">Clarity</span></div>
+                      <button class="program-objective-toggle" type="button" data-program-cart-toggle data-program-number="Government 07" data-program-title="Conflict into Clarity" aria-pressed="false">Add objective</button>
+                    </article>
+                  </div>
+                </div>
+              </section>
+
+              <section class="audience-program-panel" id="audience-panel-communities" role="tabpanel" aria-labelledby="audience-tab-communities" data-audience-program-panel="communities">
+                <div class="audience-program-panel-inner">
+                  <div class="audience-program-panel-head">
+                    <div>
+                      <p class="eyebrow">Communities</p>
+                      <h3>Programs for communities</h3>
+                    </div>
+                    <span class="audience-program-count">6 programs</span>
+                  </div>
+
+                  <div class="audience-program-card-grid">
+                    <article class="audience-program-card">
+                      <p class="product-kicker">Belonging and voice</p>
+                      <h4>Belong &amp; Participate</h4>
+                      <p>Help people feel safer, more present, and more willing to participate honestly in the collective.</p>
+                      <div class="chip-row"><span class="chip">Belonging</span><span class="chip">Voice</span><span class="chip">Participation</span></div>
+                      <button class="program-objective-toggle" type="button" data-program-cart-toggle data-program-number="Community 01" data-program-title="Belong &amp; Participate" aria-pressed="false">Add objective</button>
+                    </article>
+
+                    <article class="audience-program-card">
+                      <p class="product-kicker">Difference and dialogue</p>
+                      <h4>Dialogue Across Difference</h4>
+                      <p>Help groups work through perspective gaps with more empathy, listening, and honest conversation.</p>
+                      <div class="chip-row"><span class="chip">Dialogue</span><span class="chip">Difference</span><span class="chip">Listening</span></div>
+                      <button class="program-objective-toggle" type="button" data-program-cart-toggle data-program-number="Community 02" data-program-title="Dialogue Across Difference" aria-pressed="false">Add objective</button>
+                    </article>
+
+                    <article class="audience-program-card">
+                      <p class="product-kicker">Contribution and action</p>
+                      <h4>Shared Ownership in Action</h4>
+                      <p>Help people move from passive attendance into stronger contribution, responsibility, and collective ownership.</p>
+                      <div class="chip-row"><span class="chip">Ownership</span><span class="chip">Contribution</span><span class="chip">Coordination</span></div>
+                      <button class="program-objective-toggle" type="button" data-program-cart-toggle data-program-number="Community 03" data-program-title="Shared Ownership in Action" aria-pressed="false">Add objective</button>
+                    </article>
+
+                    <article class="audience-program-card">
+                      <p class="product-kicker">Local pressure and strain</p>
+                      <h4>Community Under Pressure</h4>
+                      <p>Help groups respond more steadily when urgency, complexity, or emotional pressure start shaping the space.</p>
+                      <div class="chip-row"><span class="chip">Pressure</span><span class="chip">Resilience</span><span class="chip">Steadiness</span></div>
+                      <button class="program-objective-toggle" type="button" data-program-cart-toggle data-program-number="Community 04" data-program-title="Community Under Pressure" aria-pressed="false">Add objective</button>
+                    </article>
+
+                    <article class="audience-program-card">
+                      <p class="product-kicker">Repair and reconnection</p>
+                      <h4>Repair &amp; Reconnect</h4>
+                      <p>Help groups work through mistrust, emotional fatigue, or repeating tension with more care and clarity.</p>
+                      <div class="chip-row"><span class="chip">Repair</span><span class="chip">Trust</span><span class="chip">Reconnection</span></div>
+                      <button class="program-objective-toggle" type="button" data-program-cart-toggle data-program-number="Community 05" data-program-title="Repair &amp; Reconnect" aria-pressed="false">Add objective</button>
+                    </article>
+
+                    <article class="audience-program-card">
+                      <p class="product-kicker">Local leadership</p>
+                      <h4>Local Leadership in Action</h4>
+                      <p>Help volunteers and local leaders hold people, responsibility, and collective energy with more awareness.</p>
+                      <div class="chip-row"><span class="chip">Leadership</span><span class="chip">Responsibility</span><span class="chip">Influence</span></div>
+                      <button class="program-objective-toggle" type="button" data-program-cart-toggle data-program-number="Community 06" data-program-title="Local Leadership in Action" aria-pressed="false">Add objective</button>
+                    </article>
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            <button class="audience-program-arrow audience-program-arrow-next" type="button" aria-label="Next audience" data-audience-program-next>
+              <span>&rsaquo;</span>
+            </button>
+          </div>
+
+          <footer class="audience-program-foot">
+            <span data-audience-program-label>Schools</span>
+            <span data-audience-program-progress>1 / 6</span>
+          </footer>
         </div>
       </div>
     </section>
@@ -350,7 +798,7 @@
         <p>Experiential learning sessions for schools, colleges, teams, institutions, and communities.</p>
         <div class="footer-links">
           <a class="footer-admin-link" href="mission.html">Mission</a>
-          <a class="footer-admin-link" href="index.html#programs">View programs</a>
+          <a class="footer-admin-link" href="programs.html?view=explore#explore-programs">Explore programs</a>
           <a class="footer-admin-link" href="about.html">About</a>
           <a class="footer-admin-link" href="feedback.html">Feedback</a>
           <a class="footer-admin-link" href="hanoi-team-lab.html">Experiential Lab</a>
