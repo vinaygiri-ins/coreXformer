@@ -3,24 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CoreXformer Feedback | Participant Learning</title>
+  <title>CoreXformer Feedback Library | Reports and Session Moments</title>
   <meta
     name="description"
-    content="CoreXformer participant feedback showing overall program rating, recommendation to next batches, and anonymised learning takeaways."
+    content="Browse CoreXformer feedback session by session through daily statistics, anonymised participant takeaways and day-matched session moments."
   >
-  <link rel="canonical" href="https://corexformer.pages.dev/feedback.html">
+  <link rel="canonical" href="https://corexformer.com/feedback.html">
   <meta name="robots" content="index,follow">
   <meta property="og:site_name" content="CoreXformer">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="CoreXformer Feedback | Participant Learning">
-  <meta property="og:description" content="Overall rating, next-batch recommendation, and anonymised learning takeaways from CoreXformer participants.">
-  <meta property="og:url" content="https://corexformer.pages.dev/feedback.html">
+  <meta property="og:title" content="CoreXformer Feedback Library | Reports and Session Moments">
+  <meta property="og:description" content="Browse daily session statistics, anonymised participant takeaways and day-matched session moments.">
+  <meta property="og:url" content="https://corexformer.com/feedback.html">
   <meta property="og:image" content="https://corexformer.pages.dev/images/vinay-giri-founder.jpg">
   <meta property="og:image:alt" content="CoreXformer founder portrait and experiential learning brand preview">
   <meta property="og:locale" content="en_IN">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="CoreXformer Feedback | Participant Learning">
-  <meta name="twitter:description" content="Overall rating, next-batch recommendation, and anonymised learning takeaways from CoreXformer participants.">
+  <meta name="twitter:title" content="CoreXformer Feedback Library | Reports and Session Moments">
+  <meta name="twitter:description" content="Browse daily session statistics, anonymised participant takeaways and day-matched session moments.">
   <meta name="twitter:image" content="https://corexformer.pages.dev/images/vinay-giri-founder.jpg">
   <meta name="twitter:image:alt" content="CoreXformer founder portrait and experiential learning brand preview">
   <script type="application/ld+json">
@@ -29,15 +29,15 @@
   "@graph": [
     {
       "@type": "WebPage",
-      "@id": "https://corexformer.pages.dev/feedback.html#webpage",
-      "url": "https://corexformer.pages.dev/feedback.html",
-      "name": "CoreXformer Feedback | Participant Learning",
-      "description": "CoreXformer participant feedback showing overall program rating, recommendation to next batches, and anonymised learning takeaways.",
+      "@id": "https://corexformer.com/feedback.html#webpage",
+      "url": "https://corexformer.com/feedback.html",
+      "name": "CoreXformer Feedback Library | Reports and Session Moments",
+      "description": "Browse CoreXformer feedback session by session through daily statistics, anonymised participant takeaways and day-matched session moments.",
       "isPartOf": {
-        "@id": "https://corexformer.pages.dev/#website"
+        "@id": "https://corexformer.com/#website"
       },
       "about": {
-        "@id": "https://corexformer.pages.dev/#organization"
+        "@id": "https://corexformer.com/#organization"
       },
       "inLanguage": "en-IN"
     },
@@ -48,13 +48,13 @@
           "@type": "ListItem",
           "position": 1,
           "name": "Home",
-          "item": "https://corexformer.pages.dev/"
+          "item": "https://corexformer.com/"
         },
         {
           "@type": "ListItem",
           "position": 2,
           "name": "Feedback",
-          "item": "https://corexformer.pages.dev/feedback.html"
+          "item": "https://corexformer.com/feedback.html"
         }
       ]
     }
@@ -64,7 +64,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260825-feedback-scale-v2">
+  <link rel="stylesheet" href="styles.css?v=20260925-feedback-library-v3">
 </head>
 <body data-page-slug="feedback">
   <header class="site-header">
@@ -93,38 +93,162 @@
         </div>
         <a href="index.html#impact">Impact</a>
         <a href="about.html">About</a>
+        <a href="feedback.html" class="is-current">Feedback</a>
         <a href="index.html#contact" class="button button-small">Let&apos;s connect</a>
       </nav>
     </div>
   </header>
 
   <main class="feedback-public-page" data-feedback-summary>
-    <section class="feedback-public-section" aria-labelledby="feedback-public-heading">
+    <section class="feedback-public-section" aria-labelledby="feedback-cohort-heading">
       <div class="container feedback-public-shell">
-        <h1 class="visually-hidden" id="feedback-public-heading">CoreXformer participant feedback</h1>
+        <section class="feedback-cohort-browser" aria-labelledby="feedback-cohort-heading" data-feedback-cohort-browser>
+          <div class="feedback-section-heading feedback-cohort-heading">
+            <div>
+              <p class="eyebrow">Browse feedback</p>
+              <h1 id="feedback-cohort-heading">Cohort collection</h1>
+            </div>
+            <span class="feedback-collection-progress" data-feedback-collection-progress>1 of 1</span>
+          </div>
 
-        <div class="feedback-outcome-grid" aria-label="Feedback summary">
-          <article class="feedback-outcome-card">
-            <span>Overall program rating</span>
-            <strong data-feedback-overall>—</strong>
+          <div class="feedback-cohort-selector" data-feedback-collection-swipe tabindex="0">
+            <button
+              class="feedback-slider-button"
+              type="button"
+              data-feedback-collection-prev
+              aria-label="Show previous feedback collection"
+            ><span aria-hidden="true">&#8249;</span></button>
+
+            <article class="feedback-cohort-card" aria-live="polite">
+              <p class="feedback-cohort-kicker" data-feedback-cohort-kicker>Institution feedback</p>
+              <h3 data-feedback-cohort-title>Graphic Era | Cohort 1</h3>
+              <p data-feedback-cohort-description>Three experiential-learning sessions</p>
+              <div class="feedback-cohort-meta" aria-label="Cohort details">
+                <span data-feedback-cohort-dates>14–16 September 2026</span>
+                <span data-feedback-cohort-forms>44 feedback forms</span>
+              </div>
+            </article>
+
+            <button
+              class="feedback-slider-button"
+              type="button"
+              data-feedback-collection-next
+              aria-label="Show next feedback collection"
+            ><span aria-hidden="true">&#8250;</span></button>
+          </div>
+          <p class="feedback-swipe-hint">Swipe the card or use the arrows to browse institutions.</p>
+        </section>
+
+        <section class="feedback-session-browser" aria-labelledby="feedback-session-heading" data-feedback-session-browser>
+          <div class="feedback-section-heading">
+            <div>
+              <p class="eyebrow">Session-by-session feedback</p>
+              <h2 id="feedback-session-heading">Individual day statistics</h2>
+            </div>
+            <span class="feedback-session-progress" data-feedback-session-progress>Session 1 of 3</span>
+          </div>
+
+          <div class="feedback-session-selector" data-feedback-session-swipe tabindex="0">
+            <button
+              class="feedback-slider-button"
+              type="button"
+              data-feedback-session-prev
+              aria-label="Show previous session"
+            ><span aria-hidden="true">&#8249;</span></button>
+
+            <div class="feedback-session-tabs" role="tablist" aria-label="Choose a session" data-feedback-session-tabs></div>
+
+            <button
+              class="feedback-slider-button"
+              type="button"
+              data-feedback-session-next
+              aria-label="Show next session"
+            ><span aria-hidden="true">&#8250;</span></button>
+          </div>
+
+          <article class="feedback-session-card" aria-live="polite" data-feedback-session-card>
+            <div class="feedback-session-card-head">
+              <div>
+                <p class="feedback-session-kicker" data-feedback-session-kicker>Graphic Era | Cohort 1</p>
+                <h3 data-feedback-session-title>Session 1 | 14 September 2026</h3>
+                <p data-feedback-session-context>Immediate participant feedback from this session.</p>
+              </div>
+              <a
+                class="button button-ghost feedback-session-report-link"
+                href="documents/feedback/graphic-era-cohort-1/session-1-visual-analytics.pdf"
+                target="_blank"
+                rel="noopener"
+                data-feedback-session-report
+              >Open this session&apos;s report</a>
+            </div>
+            <div class="feedback-session-stat-grid" aria-label="Statistics for the selected session" data-feedback-session-stats></div>
           </article>
-          <article class="feedback-outcome-card feedback-outcome-card-accent">
-            <span>Recommendation to next batches</span>
-            <strong data-feedback-recommend>—</strong>
-          </article>
-        </div>
+
+          <div class="feedback-session-empty" hidden data-feedback-session-empty>
+            <strong>Session feedback is not yet in the website library.</strong>
+            <p data-feedback-session-empty-copy>The institution is listed, but completed forms and day-matched photographs have not yet been added.</p>
+          </div>
+        </section>
 
         <div class="feedback-learning-shell feedback-public-learning">
           <div class="feedback-learning-head">
             <div>
-              <p class="eyebrow">Participant learning</p>
-              <h2>What participants learnt from the program.</h2>
+              <p class="eyebrow" data-feedback-learning-eyebrow>Session 1 | participant learning</p>
+              <h2 data-feedback-learning-heading>What participants carried from this session.</h2>
+              <p class="feedback-public-context" data-feedback-context>Loading the feedback snapshot.</p>
             </div>
+            <span class="feedback-learning-count" data-feedback-learning-count>Loading responses</span>
           </div>
-          <div class="feedback-learning-wall" tabindex="0" aria-label="Participant learning takeaways. Swipe sideways or scroll to read more.">
+          <div class="feedback-learning-wall" tabindex="0" aria-label="Anonymised participant responses. Swipe sideways or scroll to read every form response.">
             <div class="feedback-learning-track" data-feedback-library-grid></div>
           </div>
         </div>
+
+        <section class="feedback-photo-shell" aria-labelledby="feedback-photo-heading" data-feedback-photo-gallery>
+          <div class="feedback-section-heading">
+            <div>
+              <p class="eyebrow">Matched to the selected day</p>
+              <h2 id="feedback-photo-heading">Session moment</h2>
+            </div>
+            <span class="feedback-photo-progress" data-feedback-photo-progress>1 of 4</span>
+          </div>
+
+          <div class="feedback-photo-viewer">
+            <button
+              class="feedback-slider-button feedback-photo-arrow feedback-photo-arrow-prev"
+              type="button"
+              data-feedback-photo-prev
+              aria-label="Show previous session photo"
+            ><span aria-hidden="true">&#8249;</span></button>
+
+            <figure class="feedback-photo-stage" tabindex="0">
+              <img
+                src="images/feedback/graphic-era-cohort-1/session-1-activity.jpg"
+                alt="Participants taking part in a collaborative experiential-learning activity"
+                loading="lazy"
+                decoding="async"
+                data-feedback-photo-image
+              >
+              <figcaption class="feedback-photo-caption" aria-live="polite">
+                <span data-feedback-photo-label>Session 1 | Collaborative challenge</span>
+                <strong data-feedback-photo-caption>Participants explore a shared problem through action before guided reflection.</strong>
+              </figcaption>
+            </figure>
+
+            <button
+              class="feedback-slider-button feedback-photo-arrow feedback-photo-arrow-next"
+              type="button"
+              data-feedback-photo-next
+              aria-label="Show next session photo"
+            ><span aria-hidden="true">&#8250;</span></button>
+          </div>
+
+          <div class="feedback-photo-thumbnails" aria-label="Choose a session photo" data-feedback-photo-thumbnails></div>
+          <div class="feedback-photo-empty" hidden data-feedback-photo-empty>
+            <strong>No verified photograph is available for this session.</strong>
+            <p>The space is intentionally left blank rather than showing a photograph from another day.</p>
+          </div>
+        </section>
       </div>
     </section>
   </main>
@@ -152,7 +276,7 @@
     </div>
   </footer>
 
-  <script src="feedback.js?v=20260825-feedback-scale-v2"></script>
+  <script src="feedback.js?v=20260925-feedback-library-v3"></script>
   <script src="script.js?v=20260722-rail-fit-v20"></script>
 </body>
 </html>
