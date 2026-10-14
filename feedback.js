@@ -39,8 +39,8 @@ const FEEDBACK_COLLECTIONS = [
         ],
         photos: [
           {
-            src: "images/feedback/graphic-era-cohort-1/session-1-activity.jpg",
-            alt: "Participants taking part in the first Graphic Era experiential-learning session",
+            src: "images/feedback/graphic-era-cohort-1/session-1-activity-sketch.webp",
+            alt: "Pencil sketch of participants taking part in the first Graphic Era experiential-learning session",
             label: "Session 1 | 14 September 2026",
             caption: "Participants work through a shared challenge before guided reflection."
           }
@@ -78,8 +78,8 @@ const FEEDBACK_COLLECTIONS = [
         ],
         photos: [
           {
-            src: "images/feedback/graphic-era-cohort-1/session-2-cohort.jpg",
-            alt: "Graphic Era participants together after the second CoreXformer session",
+            src: "images/feedback/graphic-era-cohort-1/session-2-cohort-sketch.webp",
+            alt: "Pencil sketch of Graphic Era participants together after the second CoreXformer session",
             label: "Session 2 | 15 September 2026",
             caption: "The cohort comes together after practising communication, trust and perspective-taking."
           }
@@ -116,14 +116,14 @@ const FEEDBACK_COLLECTIONS = [
         ],
         photos: [
           {
-            src: "images/feedback/graphic-era-cohort-1/session-3-activity.jpg",
-            alt: "Participants observing and reflecting during the third Graphic Era session",
+            src: "images/feedback/graphic-era-cohort-1/session-3-activity-sketch.webp",
+            alt: "Pencil sketch of participants observing and reflecting during the third Graphic Era session",
             label: "Session 3 | 16 September 2026",
             caption: "A live activity creates material for reflection and a practical next step."
           },
           {
-            src: "images/feedback/graphic-era-cohort-1/session-3-cohort.jpg",
-            alt: "Graphic Era participants and facilitators at the close of the third session",
+            src: "images/feedback/graphic-era-cohort-1/session-3-cohort-sketch.webp",
+            alt: "Pencil sketch of Graphic Era participants and facilitators at the close of the third session",
             label: "Session 3 close | 16 September 2026",
             caption: "The day closes with shared learning and individual takeaways."
           }
@@ -213,8 +213,8 @@ const FEEDBACK_COLLECTIONS = [
         ],
         photos: [
           {
-            src: "images/feedback/rgt-public-vidhayalaya/session-1-online-cohort.png",
-            alt: "RGT Public Vidhayalaya participants and the CoreXformer facilitator in an online experiential-learning session",
+            src: "images/feedback/rgt-public-vidhayalaya/session-1-online-cohort-sketch.webp",
+            alt: "Pencil sketch of RGT Public Vidhayalaya participants and the CoreXformer facilitator in an online experiential-learning session",
             label: "RGT Public Vidhayalaya | 14 October 2026",
             caption: "Participants join the facilitator online for a shared experiential-learning session."
           }
