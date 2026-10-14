@@ -163,6 +163,64 @@ const FEEDBACK_COLLECTIONS = [
         photos: []
       }
     ]
+  },
+  {
+    id: "rgt-public-vidhayalaya-one-day-cohort",
+    kicker: "Institution feedback",
+    title: "RGT Public Vidhayalaya | One-day cohort",
+    description: "One online experiential-learning session",
+    dates: "14 October 2026",
+    formsLabel: "6 completed feedback responses",
+    sessions: [
+      {
+        id: "rgt-public-vidhayalaya-session-1",
+        label: "Session 1",
+        date: "14 October 2026",
+        context:
+          "Immediate feedback from six completed responses. Five of six participants found the programme purposeful; all six would recommend it to others and take part in another experiential-learning programme. This is a descriptive snapshot, not an academic evaluation.",
+        report: "documents/feedback/rgt-public-vidhayalaya/rgt-feedback-summary.pdf",
+        stats: [
+          { label: "Completed responses", value: "6 / 6", note: "All six usable" },
+          { label: "Programme average", value: "4.77 / 5", note: "Five programme statements" },
+          { label: "Facilitator average", value: "4.71 / 5", note: "Four facilitator statements" },
+          { label: "Purposeful - Yes", value: "83%", note: "5 of 6 selected Yes" }
+        ],
+        takeaways: [
+          {
+            author: "Riya & Dhaniya",
+            text: "This seminar taught us how to handle stress and face difficulties in life. It was a great seminar, and we learned many things that will help us in our lives."
+          },
+          {
+            author: "Sathish P.",
+            text: "We enjoyed the session."
+          },
+          {
+            author: "Keerthi",
+            text: "This seminar was a wonderful learning experience. It taught us how to manage stress and overcome challenges in life. We learned many valuable lessons that will help us in the future. Overall, it was an informative and inspiring session."
+          },
+          {
+            author: "Sanya & Rishika",
+            text: "We learned how to set goals and strategies, work as a team and function in difficult times."
+          },
+          {
+            author: "Naga & Subhojit",
+            text: "Teamwork helped us bridge gaps between friends, manage together and adapt as a team."
+          },
+          {
+            author: "R. Ganesh",
+            text: "The conversation was good, and I related to the mind games. I learned how to communicate with teammates and take responsibility. I would like to meet again."
+          }
+        ],
+        photos: [
+          {
+            src: "images/feedback/rgt-public-vidhayalaya/session-1-online-cohort.png",
+            alt: "RGT Public Vidhayalaya participants and the CoreXformer facilitator in an online experiential-learning session",
+            label: "RGT Public Vidhayalaya | 14 October 2026",
+            caption: "Participants join the facilitator online for a shared experiential-learning session."
+          }
+        ]
+      }
+    ]
   }
 ];
 
@@ -415,9 +473,14 @@ function renderLearningTakeaways(takeaways) {
   }
 
   grid.replaceChildren();
+  const namedResponseCount = takeaways.filter(
+    (takeaway) => typeof takeaway === "object" && takeaway?.author
+  ).length;
   setElementText(
     "[data-feedback-learning-count]",
-    takeaways.length ? `${takeaways.length} anonymised form responses` : "No responses available"
+    takeaways.length
+      ? `${takeaways.length} ${namedResponseCount === takeaways.length ? "named participant" : "form"} responses`
+      : "No responses available"
   );
 
   if (!takeaways.length) {
@@ -434,10 +497,11 @@ function renderLearningTakeaways(takeaways) {
     const article = document.createElement("article");
     const copy = document.createElement("p");
     const source = document.createElement("span");
+    const response = typeof takeaway === "string" ? { text: takeaway } : takeaway;
 
     article.className = "feedback-learning-card";
-    copy.textContent = takeaway;
-    source.textContent = `Anonymised response ${String(index + 1).padStart(2, "0")} of ${takeaways.length}`;
+    copy.textContent = response.text;
+    source.textContent = response.author || `Response ${String(index + 1).padStart(2, "0")} of ${takeaways.length}`;
     article.append(copy, source);
     grid.appendChild(article);
   });
